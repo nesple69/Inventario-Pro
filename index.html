@@ -3,120 +3,108 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Inventario Pro | Gestione Magazzino</title>
-
-    <!-- PWA Meta -->
-    <meta name="theme-color" content="#4361ee">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <!-- Styles -->
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- External Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.19.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1c23">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Inventario Pro">
+    <link rel="stylesheet" href="styles.css">
+
 </head>
 
 <body>
     <div class="app-container">
-        <!-- Header -->
         <header class="app-header">
             <div class="logo">
-                <div class="logo-icon"><i class="fas fa-boxes-stacked"></i></div>
+                <div class="logo-icon"><i class="fas fa-boxes"></i></div>
                 <div class="logo-text">
-                    <h1>Inventario<span>PRO</span></h1>
-                    <p>Business Manager</p>
+                    <h1>Inventario Pro</h1>
+                    <p>Gestione magazzino avanzata</p>
                 </div>
             </div>
-
-            <div class="header-center">
-                <div class="search-container">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInput" class="search-input" placeholder="Cerca prodotti, categorie...">
-                </div>
-            </div>
-
-            <div class="header-right">
-                <div id="cloudStatus" class="sync-status offline">
-                    <i class="fas fa-cloud"></i>
-                    <span id="cloudStatusText">Locale</span>
-                </div>
-                <button class="btn btn-outline btn-sm" onclick="syncToGoogle()" title="Sincronizza ora">
-                    <i class="fas fa-sync"></i>
-                </button>
+            <div id="cloudStatus" class="sync-status offline">
+                <i class="fas fa-cloud"></i>
+                <span id="cloudStatusText">Locale</span>
             </div>
         </header>
 
         <div class="app-body">
-            <!-- Sidebar -->
             <aside class="sidebar">
                 <nav class="nav-tabs">
-                    <button class="nav-tab active" onclick="showTab('dashboard')">
-                        <i class="fas fa-chart-line"></i> Dashboard
-                    </button>
-                    <button class="nav-tab" onclick="showTab('products')">
-                        <i class="fas fa-box"></i> Prodotti
-                    </button>
-                    <button class="nav-tab" onclick="showTab('monthly-inventory')">
-                        <i class="fas fa-calendar-check"></i> Inventario Mensile
-                    </button>
-                    <button class="nav-tab" onclick="showTab('categories')">
-                        <i class="fas fa-tags"></i> Categorie
-                    </button>
-                    <button class="nav-tab" onclick="showTab('suppliers')">
-                        <i class="fas fa-truck-loading"></i> Fornitori
-                    </button>
-                    <button class="nav-tab" onclick="showTab('reports')">
-                        <i class="fas fa-file-invoice"></i> Report
-                    </button>
-                    <button class="nav-tab" onclick="showTab('settings')">
-                        <i class="fas fa-cog"></i> Impostazioni
-                    </button>
+                    <button class="nav-tab active" onclick="showTab('dashboard')"><i
+                            class="fas fa-th-large"></i><span>Dashboard</span></button>
+                    <button class="nav-tab" onclick="showTab('products')"><i
+                            class="fas fa-box"></i><span>Prodotti</span></button>
+                    <button class="nav-tab" onclick="showTab('categories')"><i
+                            class="fas fa-tags"></i><span>Categorie</span></button>
+                    <button class="nav-tab" onclick="showTab('suppliers')"><i
+                            class="fas fa-truck-moving"></i><span>Fornitori</span></button>
+                    <button class="nav-tab" onclick="showTab('reports')"><i
+                            class="fas fa-chart-pie"></i><span>Report</span></button>
+                    <button class="nav-tab" onclick="showTab('monthly-inventory')"><i
+                            class="fas fa-clipboard-list"></i><span>Inventario Mensile</span></button>
+                    <button class="nav-tab" onclick="showTab('settings')"><i
+                            class="fas fa-sliders-h"></i><span>Impostazioni</span></button>
                 </nav>
 
-                <div class="sidebar-footer">
-                    <div class="sidebar-title">Status Magazzino</div>
+                <div class="content-section-sidebar" style="margin-top: auto;">
+                    <h3 class="sidebar-title">Statistiche Rapide</h3>
                     <div class="sidebar-stats">
                         <div class="sidebar-stat-card">
-                            <div class="sidebar-stat-icon"><i class="fas fa-check"></i></div>
+                            <div class="sidebar-stat-icon"><i class="fas fa-cubes"></i></div>
                             <div class="sidebar-stat-info">
-                                <span class="sidebar-stat-value" id="inStockCount">0</span>
-                                <span class="sidebar-stat-label">In Stock</span>
+                                <span class="sidebar-stat-value" id="total-products">0</span>
+                                <span class="sidebar-stat-label">Prodotti Totali</span>
                             </div>
                         </div>
                         <div class="sidebar-stat-card">
                             <div class="sidebar-stat-icon"
-                                style="color: var(--warning); background: rgba(255, 159, 28, 0.1);"><i
-                                    class="fas fa-exclamation"></i></div>
+                                style="background: rgba(114, 9, 183, 0.2); color: var(--secondary);"><i
+                                    class="fas fa-wallet"></i></div>
                             <div class="sidebar-stat-info">
-                                <span class="sidebar-stat-value" id="lowStockCount">0</span>
-                                <span class="sidebar-stat-label">Stock Basso</span>
+                                <span class="sidebar-stat-value" id="total-value">€ 0</span>
+                                <span class="sidebar-stat-label">Valore Totale</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </aside>
 
-            <!-- Main Content -->
             <main class="main-content">
-                <!-- Dashboard Tab -->
-                <section id="dashboard-tab" class="tab-content active">
+                <!-- DASHBOARD TAB -->
+                <div class="tab-content active" id="dashboard-tab">
                     <div class="section-header">
                         <div class="header-title">
-                            <h2>Dashboard Overiew</h2>
-                            <p>Stato generale del tuo magazzino</p>
+                            <h2>Panoramica Magazzino</h2>
+                            <p>Monitora lo stato del tuo inventario in tempo reale</p>
                         </div>
                         <div class="header-actions">
-                            <button class="btn btn-primary" onclick="showAddProductModal()">
-                                <i class="fas fa-plus"></i> Nuovo Prodotto
-                            </button>
+                            <button class="btn btn-outline" onclick="refreshData()"><i
+                                    class="fas fa-sync-alt"></i>Aggiorna</button>
+                            <button class="btn btn-primary" onclick="showAddProductModal()"><i
+                                    class="fas fa-plus"></i>Nuovo Prodotto</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchInput" class="search-input"
+                                placeholder="Cerca per nome, categoria o fornitore..." onkeyup="handleSearch()">
                         </div>
                     </div>
 
@@ -124,39 +112,44 @@
                         <div class="stat-card-main">
                             <div class="stat-icon-wrapper icon-blue"><i class="fas fa-box"></i></div>
                             <div class="stat-details">
-                                <span class="stat-main-value" id="total-products">0</span>
-                                <span class="stat-main-label">Totale Articoli</span>
+                                <span class="stat-main-value" id="inStockCount">0</span>
+                                <span class="stat-main-label">In Stock</span>
                             </div>
                         </div>
                         <div class="stat-card-main">
-                            <div class="stat-icon-wrapper icon-green"><i class="fas fa-coins"></i></div>
+                            <div class="stat-icon-wrapper icon-orange"><i class="fas fa-exclamation-triangle"></i></div>
                             <div class="stat-details">
-                                <span class="stat-main-value" id="total-value">€ 0,00</span>
-                                <span class="stat-main-label">Valore Magazzino</span>
+                                <span class="stat-main-value" id="lowStockCount">0</span>
+                                <span class="stat-main-label">Sotto Soglia</span>
                             </div>
                         </div>
                         <div class="stat-card-main">
-                            <div class="stat-icon-wrapper icon-purple"><i class="fas fa-tags"></i></div>
-                            <div class="stat-details">
-                                <span class="stat-main-value" id="categoriesCount">0</span>
-                                <span class="stat-main-label">Categorie</span>
-                            </div>
-                        </div>
-                        <div class="stat-card-main">
-                            <div class="stat-icon-wrapper icon-red"><i class="fas fa-times-circle"></i></div>
+                            <div class="stat-icon-wrapper icon-red"><i class="fas fa-clock"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="outOfStockCount">0</span>
                                 <span class="stat-main-label">Esauriti</span>
                             </div>
                         </div>
+                        <div class="stat-card-main">
+                            <div class="stat-icon-wrapper icon-purple"><i class="fas fa-layer-group"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="categoriesCount">0</span>
+                                <span class="stat-main-label">Categorie</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="card">
-                        <div class="card-header"
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                            <h3 style="font-weight: 700;"><i class="fas fa-history"
-                                    style="margin-right: 0.5rem; color: var(--primary);"></i>Articoli Recenti</h3>
-                            <button class="btn btn-sm btn-outline" onclick="showTab('products')">Vedi tutti</button>
+                        <div class="section-header" style="margin-bottom: 1.5rem;">
+                            <h3><i class="fas fa-history"
+                                    style="margin-right: 0.5rem; color: var(--primary);"></i>Ultimi Prodotti Aggiunti
+                            </h3>
+                            <div class="header-actions">
+                                <button class="btn btn-outline btn-sm" onclick="exportToExcel()"><i
+                                        class="fas fa-file-excel"></i>Esporta</button>
+                                <button class="btn btn-success btn-sm" onclick="showImportModal()"><i
+                                        class="fas fa-file-import"></i>Importa</button>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="data-table">
@@ -165,42 +158,93 @@
                                         <th>Prodotto</th>
                                         <th>Fornitore</th>
                                         <th>Categoria</th>
-                                        <th>Qta</th>
-                                        <th>Prezzo</th>
-                                        <th>Totale</th>
+                                        <th>Quantità</th>
+                                        <th>Valore Unitario</th>
+                                        <th>Valore Totale</th>
                                         <th>Stato</th>
                                         <th>Azioni</th>
                                     </tr>
                                 </thead>
-                                <tbody id="productsTableBody">
-                                    <!-- Populated by JS -->
-                                </tbody>
+                                <tbody id="productsTableBody"></tbody>
                             </table>
                         </div>
                     </div>
-                </section>
-
-                <!-- Products Tab -->
-                <section id="products-tab" class="tab-content">
+                </div>
+                <!-- PRODUCTS TAB -->
+                <div class="tab-content" id="products-tab">
                     <div class="section-header">
                         <div class="header-title">
-                            <h2>Catalogo Prodotti</h2>
-                            <p>Gestisci l'inventario completo</p>
-                        </div>
-                        <div class="header-actions" style="display: flex; gap: 0.75rem;">
-                            <button class="btn btn-outline" onclick="showImportModal()">
-                                <i class="fas fa-file-import"></i> Importa Excel
-                            </button>
-                            <button class="btn btn-outline" onclick="exportToExcel()">
-                                <i class="fas fa-file-export"></i> Esporta Excel
-                            </button>
-                            <button class="btn btn-primary" onclick="showAddProductModal()">
-                                <i class="fas fa-plus"></i> Aggiungi Prodotto
-                            </button>
+                            <h2>Gestione Prodotti</h2>
+                            <p>Aggiungi, modifica o rimuovi articoli dal tuo inventario</p>
                         </div>
                     </div>
 
                     <div class="card">
+                        <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                class="fas fa-plus-circle"
+                                style="margin-right: 0.5rem; color: var(--primary);"></i>Nuovo Prodotto</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Nome Prodotto</label>
+                                <input type="text" id="productName" class="form-input"
+                                    placeholder="Esempio: Smartphone X1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Categoria</label>
+                                <select id="productCategory" class="form-select"
+                                    onchange="updateSubcategories('product')">
+                                    <option value="">Seleziona categoria</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Sottocategoria</label>
+                                <select id="productSubcategory" class="form-select">
+                                    <option value="">Seleziona sottocategoria</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quantità</label>
+                                <input type="number" id="productQuantity" class="form-input" placeholder="0" min="0"
+                                    step="0.001">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Unità</label>
+                                <select id="productUnit" class="form-select">
+                                    <option value="pezzi">Pezzi</option>
+                                    <option value="kg">Kg</option>
+                                    <option value="litri">Litri</option>
+                                    <option value="metri">Metri</option>
+                                    <option value="scatole">Scatole</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Prezzo Unitario</label>
+                                <input type="number" id="productPrice" class="form-input" placeholder="0.00" min="0"
+                                    step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Fornitore</label>
+                                <select id="productSupplier" class="form-select">
+                                    <option value="">Seleziona fornitore</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button class="btn btn-primary" onclick="addProductFromForm()"><i
+                                    class="fas fa-save"></i>Salva Prodotto</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-header" style="margin-bottom: 1.5rem;">
+                            <h3><i class="fas fa-boxes"
+                                    style="margin-right: 0.5rem; color: var(--primary);"></i>Catalogo Completo</h3>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <input type="text" id="productSearchInput" class="form-input"
+                                placeholder="🔍 Cerca prodotto per nome, categoria o fornitore..."
+                                onkeyup="filterProductsTable()" style="font-size: 1rem; padding: 0.75rem 1rem;">
+                        </div>
                         <div class="table-responsive">
                             <table class="data-table">
                                 <thead>
@@ -208,87 +252,61 @@
                                         <th>Prodotto</th>
                                         <th>Fornitore</th>
                                         <th>Categoria</th>
-                                        <th>Sottocat.</th>
-                                        <th>Qta</th>
+                                        <th>Sottocategoria</th>
+                                        <th>Giacenza</th>
                                         <th>Prezzo</th>
                                         <th>Azioni</th>
                                     </tr>
                                 </thead>
-                                <tbody id="allProductsTableBody">
-                                    <!-- Populated by JS -->
-                                </tbody>
+                                <tbody id="allProductsTableBody"></tbody>
                             </table>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <!-- Monthly Inventory Tab -->
-                <section id="monthly-inventory-tab" class="tab-content">
+                <!-- CATEGORIES TAB -->
+                <div class="tab-content" id="categories-tab">
                     <div class="section-header">
                         <div class="header-title">
-                            <h2>Inventario Mensile</h2>
-                            <p>Controllo e rettifica quantità periodica</p>
+                            <h2>Gestione Categorie</h2>
+                            <p>Organizza i tuoi prodotti per una ricerca più rapida</p>
                         </div>
-                        <div class="header-actions" style="display: flex; gap: 0.75rem;">
-                            <button class="btn btn-warning" onclick="showResetQuantitiesModal()">
-                                <i class="fas fa-undo"></i> Azzeramento
-                            </button>
-                            <button class="btn btn-success" onclick="createMonthlySnapshot()">
-                                <i class="fas fa-camera"></i> Salva Snapshot
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="department-selector card">
-                        <span style="font-weight: 700; color: var(--gray); margin-right: 0.5rem;">Filtra Reparto:</span>
-                        <button class="department-btn active" id="dept-btn-tutti"
-                            onclick="setDepartmentFilter('tutti')">Tutti</button>
-                        <button class="department-btn" id="dept-btn-cucina" onclick="setDepartmentFilter('cucina')"><i
-                                class="fas fa-utensils"></i> Cucina</button>
-                        <button class="department-btn" id="dept-btn-bar" onclick="setDepartmentFilter('bar')"><i
-                                class="fas fa-glass-martini-alt"></i> Bar</button>
                     </div>
 
                     <div class="card">
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Prodotto</th>
-                                        <th>Reparto</th>
-                                        <th>Categoria</th>
-                                        <th>Fornitore</th>
-                                        <th>Attuale</th>
-                                        <th>Nuova Quantità</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="monthlyInventoryTableBody">
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
+                        <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                class="fas fa-folder-plus"
+                                style="margin-right: 0.5rem; color: var(--primary);"></i>Nuova Categoria</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Nome Categoria</label>
+                                <input type="text" id="categoryName" class="form-input" list="categoryList"
+                                    placeholder="Seleziona o scrivi nuova categoria">
+                                <datalist id="categoryList"></datalist>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Sottocategoria Iniziale</label>
+                                <input type="text" id="subcategoryName" class="form-input"
+                                    placeholder="Esempio: Viteria">
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button class="btn btn-primary" onclick="addCategoryFromForm()"><i
+                                    class="fas fa-save"></i>Salva Categoria</button>
                         </div>
                     </div>
-                </section>
 
-                <!-- Categories Tab -->
-                <section id="categories-tab" class="tab-content">
-                    <div class="section-header">
-                        <div class="header-title">
-                            <h2>Categorie Magazzino</h2>
-                            <p>Organizza i tuoi prodotti</p>
-                        </div>
-                        <button class="btn btn-primary" onclick="showAddCategoryModal()">
-                            <i class="fas fa-folder-plus"></i> Nuova Categoria
-                        </button>
-                    </div>
                     <div class="card">
+                        <div class="section-header" style="margin-bottom: 1.5rem;">
+                            <h3><i class="fas fa-stream" style="margin-right: 0.5rem; color: var(--primary);"></i>Elenco
+                                Categorie</h3>
+                        </div>
                         <div class="table-responsive">
                             <table class="data-table">
                                 <thead>
                                     <tr>
                                         <th>Categoria</th>
-                                        <th>Prodotti</th>
+                                        <th>Numero Prodotti</th>
                                         <th>Valore Totale</th>
                                         <th>Sottocategorie</th>
                                         <th>Azioni</th>
@@ -298,28 +316,60 @@
                             </table>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <!-- Suppliers Tab -->
-                <section id="suppliers-tab" class="tab-content">
+                <!-- SUPPLIERS TAB -->
+                <div class="tab-content" id="suppliers-tab">
                     <div class="section-header">
                         <div class="header-title">
-                            <h2>Elenco Fornitori</h2>
-                            <p>Gestione contatti e forniture</p>
+                            <h2>Gestione Fornitori</h2>
+                            <p>Mantieni aggiornati i contatti dei tuoi partner commerciali</p>
                         </div>
-                        <button class="btn btn-primary" onclick="showAddSupplierModal()">
-                            <i class="fas fa-user-plus"></i> Nuovo Fornitore
-                        </button>
                     </div>
+
                     <div class="card">
+                        <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                class="fas fa-shipping-fast"
+                                style="margin-right: 0.5rem; color: var(--primary);"></i>Anagrafica Fornitore</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Nome Fornitore</label>
+                                <input type="text" id="supplierName" class="form-input" placeholder="Ragione Sociale">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Telefono</label>
+                                <input type="text" id="supplierPhone" class="form-input" placeholder="+39 ...">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" id="supplierEmail" class="form-input"
+                                    placeholder="info@fornitore.it">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Indirizzo</label>
+                                <input type="text" id="supplierAddress" class="form-input"
+                                    placeholder="Via, Città, CAP">
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button class="btn btn-primary" onclick="addSupplierFromForm()"><i
+                                    class="fas fa-save"></i>Salva Fornitore</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-header" style="margin-bottom: 1.5rem;">
+                            <h3><i class="fas fa-address-book"
+                                    style="margin-right: 0.5rem; color: var(--primary);"></i>Rubrica Fornitori</h3>
+                        </div>
                         <div class="table-responsive">
                             <table class="data-table">
                                 <thead>
                                     <tr>
                                         <th>Fornitore</th>
-                                        <th>Telefono</th>
+                                        <th>Contatti</th>
                                         <th>Email</th>
-                                        <th>Prodotti Ass.</th>
+                                        <th>Articoli</th>
                                         <th>Azioni</th>
                                     </tr>
                                 </thead>
@@ -327,146 +377,332 @@
                             </table>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <!-- Reports Tab -->
-                <section id="reports-tab" class="tab-content">
+                <!-- REPORTS TAB -->
+                <div class="tab-content" id="reports-tab">
                     <div class="section-header">
                         <div class="header-title">
-                            <h2>Analisi e Report</h2>
-                            <p>Esporta dati e visualizza statistiche</p>
+                            <h2>Analisi e Reportistica</h2>
+                            <p>Visualizza l'andamento del tuo magazzino e genera documenti PDF</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-outline" onclick="generateStockReport()"><i
+                                    class="fas fa-file-pdf"></i>Stock PDF</button>
+                            <button class="btn btn-outline" onclick="generateValueReport()"><i
+                                    class="fas fa-file-invoice-dollar"></i>Valore PDF</button>
                         </div>
                     </div>
 
-                    <div class="charts-container mb-2">
+                    <div class="charts-container">
                         <div class="chart-card">
-                            <h3 style="margin-bottom: 1rem;"><i class="fas fa-chart-pie"
-                                    style="color: var(--primary);"></i> Valore per Categoria</h3>
+                            <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                    class="fas fa-chart-pie"
+                                    style="margin-right: 0.5rem; color: var(--primary);"></i>Distribuzione per Categoria
+                            </h3>
                             <div class="chart-wrapper">
                                 <canvas id="categoryChartCanvas"></canvas>
                             </div>
                         </div>
                         <div class="chart-card">
-                            <h3 style="margin-bottom: 1rem;"><i class="fas fa-chart-bar"
-                                    style="color: var(--secondary);"></i> Stato Stock</h3>
+                            <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                    class="fas fa-chart-bar"
+                                    style="margin-right: 0.5rem; color: var(--success);"></i>Stato Giacenze</h3>
                             <div class="chart-wrapper">
                                 <canvas id="stockChartCanvas"></canvas>
                             </div>
                         </div>
                     </div>
 
+                    <div class="stats-grid" style="margin-top: 2rem;">
+                        <div class="report-card" onclick="showCategoryReport()">
+                            <i class="fas fa-layer-group"></i>
+                            <h3>Report Categorie</h3>
+                            <p>Dettaglio prodotti per ogni categoria</p>
+                        </div>
+                        <div class="report-card" onclick="showSupplierReport()">
+                            <i class="fas fa-address-book"></i>
+                            <h3>Report Fornitori</h3>
+                            <p>Analisi delle forniture e contatti</p>
+                        </div>
+                        <div class="report-card" onclick="showStockReport()">
+                            <i class="fas fa-boxes"></i>
+                            <h3>Esaurimenti</h3>
+                            <p>Elenco articoli esauriti o in esaurimento</p>
+                        </div>
+                        <div class="report-card" onclick="showValueReport()">
+                            <i class="fas fa-coins"></i>
+                            <h3>Valutazione</h3>
+                            <p>Stima economica totale dell'inventario</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MONTHLY INVENTORY TAB -->
+                <div class="tab-content" id="monthly-inventory-tab">
+                    <div class="section-header">
+                        <div class="header-title">
+                            <h2>Inventario Mensile</h2>
+                            <p>Aggiorna rapidamente le quantità per l'inventario del mese</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-outline" onclick="exportMonthlyToExcel()"><i
+                                    class="fas fa-file-excel"></i>Esporta Excel</button>
+                            <button class="btn btn-success" onclick="createMonthlySnapshot()"><i
+                                    class="fas fa-camera"></i>Salva Snapshot</button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <div class="stats-grid" style="margin-bottom: 0;">
+                            <div class="stat-card-main">
+                                <div class="stat-icon-wrapper icon-blue"><i class="fas fa-clipboard-check"></i></div>
+                                <div class="stat-details">
+                                    <span class="stat-main-value" id="monthlyCountedProducts">0</span>
+                                    <span class="stat-main-label">Prodotti Verificati</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-main">
+                                <div class="stat-icon-wrapper icon-orange"><i class="fas fa-hourglass-half"></i></div>
+                                <div class="stat-details">
+                                    <span class="stat-main-value" id="monthlyRemainingProducts">0</span>
+                                    <span class="stat-main-label">Da Verificare</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-main">
+                                <div class="stat-icon-wrapper icon-purple"><i class="fas fa-calendar-alt"></i></div>
+                                <div class="stat-details">
+                                    <span class="stat-main-value" id="lastSnapshotDate">Mai</span>
+                                    <span class="stat-main-label">Ultimo Snapshot</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card">
-                        <h3 style="margin-bottom: 1.5rem;">Esportazioni PDF</h3>
-                        <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <button class="btn btn-outline" style="padding: 1.5rem; flex-direction: column;"
-                                onclick="generateStockReport()">
-                                <i class="fas fa-file-pdf"
-                                    style="font-size: 2rem; margin-bottom: 0.5rem; color: #e63946;"></i>
-                                Report Stock Completo
+                        <!-- Department Selector -->
+                        <div class="department-selector">
+                            <span style="font-weight: 600; color: var(--gray); margin-right: 0.5rem;">Filtra
+                                Reparto:</span>
+                            <button class="department-btn active" onclick="setDepartmentFilter('tutti')"
+                                id="dept-btn-tutti">
+                                <i class="fas fa-layer-group"></i> Tutti
                             </button>
-                            <button class="btn btn-outline" style="padding: 1.5rem; flex-direction: column;"
-                                onclick="generateValueReport()">
-                                <i class="fas fa-file-invoice-dollar"
-                                    style="font-size: 2rem; margin-bottom: 0.5rem; color: #2ec4b6;"></i>
-                                Report Valoriale
+                            <button class="department-btn" onclick="setDepartmentFilter('cucina')" id="dept-btn-cucina">
+                                <i class="fas fa-utensils"></i> Cucina
+                            </button>
+                            <button class="department-btn" onclick="setDepartmentFilter('bar')" id="dept-btn-bar">
+                                <i class="fas fa-glass-martini-alt"></i> Bar
+                            </button>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <div class="search-container">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="monthlySearchInput" class="search-input"
+                                    placeholder="Cerca prodotto per nome, categoria o fornitore..."
+                                    onkeyup="filterMonthlyInventory()">
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Prodotto</th>
+                                        <th>Reparto</th>
+                                        <th>Categoria</th>
+                                        <th>Fornitore</th>
+                                        <th>Quantità Attuale</th>
+                                        <th>Nuova Quantità</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthlyInventoryTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                        <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-info-circle"></i>
+                            Gestione Inventario Mensile
+                        </h3>
+                        <p style="margin-bottom: 1rem; opacity: 0.95;">
+                            Usa questa sezione per aggiornare rapidamente le quantità durante l'inventario mensile.
+                            Le modifiche vengono salvate automaticamente.
+                        </p>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn" style="background: white; color: #667eea;"
+                                onclick="showSnapshotsModal()">
+                                <i class="fas fa-history"></i>Storico Snapshot
+                            </button>
+                            <button class="btn btn-danger" onclick="showResetQuantitiesModal()">
+                                <i class="fas fa-redo"></i>Reset Quantità (Nuovo Mese)
                             </button>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <!-- Settings Tab -->
-                <section id="settings-tab" class="tab-content">
+                <!-- SETTINGS TAB -->
+                <div class="tab-content" id="settings-tab">
                     <div class="section-header">
                         <div class="header-title">
                             <h2>Impostazioni Sistema</h2>
-                            <p>Configura preferenze e cloud</p>
+                            <p>Configura le preferenze del software e la sincronizzazione cloud</p>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-cloud"
-                                style="color: var(--primary); margin-right: 0.5rem;"></i>Google Sheets Integration</h3>
-                        <div class="form-group mb-1">
-                            <label class="form-label">Google Script URL</label>
+                        <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                class="fas fa-cloud-sync"
+                                style="margin-right: 0.5rem; color: var(--primary);"></i>Sincronizzazione Google Sheets
+                        </h3>
+                        <div class="form-group">
+                            <label class="form-label">URL Web App Google Script</label>
                             <input type="text" id="googleScriptUrl" class="form-input"
-                                placeholder="https://script.google.com/macros/s/...">
-                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 0.5rem;">Incolla qui l'URL
-                                generato dal tuo Google Apps Script per la sincronizzazione.</p>
+                                placeholder="https://script.google.com/macros/s/.../exec" oninput="saveSettings()">
+                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">
+                                Incolla qui l'URL ottenuto dopo aver pubblicato lo script su Google Apps Script.
+                            </p>
                         </div>
-                        <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" id="autoSyncEnabled" checked> Sincronizzazione automatica ad ogni
-                                modifica
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="form-label">
+                                <input type="checkbox" id="autoSyncEnabled" onchange="toggleAutoSync()"
+                                    style="margin-right: 0.5rem;">
+                                Sincronizzazione Automatica
                             </label>
+                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">
+                                Quando attiva, i dati vengono inviati automaticamente a Google Sheets dopo ogni
+                                modifica.
+                            </p>
                         </div>
-                        <div style="display: flex; gap: 1rem;">
-                            <button class="btn btn-primary" onclick="syncToGoogle()">Sincronizza Ora (Backup)</button>
-                            <button class="btn btn-outline" onclick="restoreFromGoogle()">Ripristina dal Cloud</button>
+                        <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="syncToGoogle()"><i
+                                    class="fas fa-cloud-upload-alt"></i>Invia a Google</button>
+                            <button class="btn btn-outline" onclick="restoreFromGoogle()"><i
+                                    class="fas fa-cloud-download-alt"></i>Ripristina da Google</button>
+                            <button class="btn btn-outline" onclick="generateQRCode()"><i
+                                    class="fas fa-qrcode"></i>Genera QR Code</button>
+                            <button class="btn btn-success" onclick="saveSettings()" style="margin-left: auto;"><i
+                                    class="fas fa-save"></i>Salva Impostazioni</button>
+                        </div>
+                        <div id="qrCodeContainer"
+                            style="display: none; margin-top: 1.5rem; text-align: center; padding: 1.5rem; background: #f8f9fa; border-radius: 12px;">
+                            <h4 style="margin-bottom: 1rem;">Scansiona con il tuo dispositivo mobile</h4>
+                            <div id="qrCodeImage"></div>
+                            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 1rem;">
+                                Apri l'app sul dispositivo mobile e incolla l'URL nelle impostazioni
+                            </p>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-sliders-h"
-                                style="color: var(--secondary); margin-right: 0.5rem;"></i>Parametri Sistema</h3>
-                        <div class="form-grid">
+                    <div class="form-grid">
+                        <div class="card">
+                            <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                    class="fas fa-bell"
+                                    style="margin-right: 0.5rem; color: var(--warning);"></i>Preferenze Notifiche</h3>
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label class="form-label">Notifiche Stock Basso</label>
+                                <select id="lowStockNotifications" class="form-select">
+                                    <option value="all">Tutte le notifiche</option>
+                                    <option value="email">Solo email</option>
+                                    <option value="none">Nessuna</option>
+                                </select>
+                            </div>
                             <div class="form-group">
                                 <label class="form-label">Soglia Stock Basso</label>
-                                <input type="number" id="lowStockThreshold" class="form-input" value="5">
+                                <input type="number" id="lowStockThreshold" class="form-input" value="5" min="1">
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                    class="fas fa-globe"
+                                    style="margin-right: 0.5rem; color: var(--accent);"></i>Localizzazione</h3>
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label class="form-label">Lingua</label>
+                                <select id="language" class="form-select">
+                                    <option value="it">Italiano</option>
+                                    <option value="en">English</option>
+                                    <option value="fr">Français</option>
+                                    <option value="de">Deutsch</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Valuta</label>
                                 <select id="currency" class="form-select">
                                     <option value="EUR">Euro (€)</option>
                                     <option value="USD">Dollaro ($)</option>
+                                    <option value="GBP">Sterlina (£)</option>
                                 </select>
                             </div>
                         </div>
-                        <button class="btn btn-primary" onclick="saveSettings()">Salva Impostazioni</button>
                     </div>
-                </section>
+
+                    <div class="card">
+                        <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                class="fas fa-database"
+                                style="margin-right: 0.5rem; color: var(--gray);"></i>Manutenzione Dati</h3>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-outline" onclick="exportBackup()"><i
+                                    class="fas fa-download"></i>Backup Locale</button>
+                            <button class="btn btn-outline" onclick="showImportBackupModal()"><i
+                                    class="fas fa-upload"></i>Ripristina Backup</button>
+                            <button class="btn btn-danger" onclick="resetData()" style="margin-left: auto;"><i
+                                    class="fas fa-trash-alt"></i>Reset Totale</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                        <button class="btn btn-success btn-lg" style="padding: 0.8rem 2rem;" onclick="saveSettings()"><i
+                                class="fas fa-check-circle"></i>Salva Tutte le Impostazioni</button>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
 
-    <!-- Modals -->
-    <!-- Add Product Modal -->
-    <div id="addProductModal" class="modal">
+    <!-- MODALS -->
+    <div class="modal" id="addProductModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Nuovo Prodotto</h3>
+                <div class="modal-title"><i class="fas fa-plus-circle" style="color: var(--primary);"></i>Nuovo Prodotto
+                </div>
                 <button class="modal-close" onclick="closeAddProductModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
                 <div class="form-grid">
-                    <div class="form-group" style="grid-column: span 2;">
+                    <div class="form-group">
                         <label class="form-label">Nome Prodotto</label>
-                        <input type="text" id="modalProductName" class="form-input">
+                        <input type="text" id="modalProductName" class="form-input"
+                            placeholder="Inserisci nome prodotto">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoria</label>
+                        <select id="modalProductCategory" class="form-select" onchange="updateSubcategories('modal')">
+                            <option value="">Seleziona categoria</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Reparto</label>
                         <select id="modalProductDepartment" class="form-select">
-                            <option value="entrambi">Entrambi</option>
-                            <option value="cucina">Cucina</option>
-                            <option value="bar">Bar</option>
+                            <option value="entrambi">🏢 Entrambi</option>
+                            <option value="cucina">🍳 Cucina</option>
+                            <option value="bar">🍹 Bar</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Categoria</label>
-                        <select id="modalProductCategory" class="form-select"
-                            onchange="updateSubcategories('modal')"></select>
-                    </div>
-                    <div class="form-group">
                         <label class="form-label">Sottocategoria</label>
-                        <select id="modalProductSubcategory" class="form-select"></select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Fornitore</label>
-                        <select id="modalProductSupplier" class="form-select"></select>
+                        <select id="modalProductSubcategory" class="form-select">
+                            <option value="">Seleziona sottocategoria</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Quantità</label>
-                        <input type="number" id="modalProductQuantity" class="form-input" step="0.01">
+                        <input type="number" id="modalProductQuantity" class="form-input" placeholder="0" min="0"
+                            step="0.001">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Unità</label>
@@ -474,12 +710,20 @@
                             <option value="pezzi">Pezzi</option>
                             <option value="kg">Kg</option>
                             <option value="litri">Litri</option>
+                            <option value="metri">Metri</option>
                             <option value="scatole">Scatole</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Prezzo Unitario</label>
-                        <input type="number" id="modalProductPrice" class="form-input" step="0.01">
+                        <input type="number" id="modalProductPrice" class="form-input" placeholder="0.00" min="0"
+                            step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fornitore</label>
+                        <select id="modalProductSupplier" class="form-select">
+                            <option value="">Seleziona fornitore</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -490,51 +734,29 @@
         </div>
     </div>
 
-    <!-- Quick Quantity Modal -->
-    <div id="quickQuantityModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
-            <div class="modal-header">
-                <h3>Aggiorna Stock</h3>
-                <button class="modal-close" onclick="closeQuickQuantityModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group mb-1">
-                    <label>Prodotto</label>
-                    <input type="text" id="quickProductName" class="form-input" readonly style="background: #f8f9fa;">
-                </div>
-                <div class="form-group">
-                    <label>Nuova Quantità</label>
-                    <input type="number" id="quickNewQuantity" class="form-input" step="0.01">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary w-100" onclick="saveQuickQuantity()">Aggiorna Ora</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Import Modal -->
-    <div id="importModal" class="modal">
+    <div class="modal" id="importModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title"><i class="fas fa-file-import"></i> Importa da Excel</h3>
+                <div class="modal-title"><i class="fas fa-file-import" style="color: var(--success);"></i>Importa da
+                    Excel</div>
                 <button class="modal-close" onclick="closeImportModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <div class="form-group mb-2">
-                    <label class="form-label">Seleziona File Excel (.xlsx, .xls)</label>
+                <div class="form-group">
+                    <label class="form-label">Seleziona file Excel (.xlsx, .xls)</label>
                     <input type="file" id="excelFile" class="form-input" accept=".xlsx, .xls">
                 </div>
                 <div id="importPreview" style="display: none; margin-top: 1.5rem;">
-                    <h4 style="margin-bottom: 0.5rem;">Anteprima Dati (Prime 10 righe)</h4>
+                    <h4 class="sidebar-title" style="color: var(--dark); margin-bottom: 1rem;">Anteprima Importazione
+                    </h4>
                     <div class="table-responsive" style="max-height: 300px;">
-                        <table class="data-table" style="font-size: 0.8rem;">
+                        <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Cat.</th>
-                                    <th>Sottocat.</th>
+                                    <th>Categoria</th>
+                                    <th>Sottocategoria</th>
                                     <th>Prodotto</th>
-                                    <th>Qta</th>
+                                    <th>Quantità</th>
                                     <th>Unità</th>
                                     <th>Fornitore</th>
                                     <th>Prezzo</th>
@@ -548,63 +770,221 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeImportModal()">Annulla</button>
-                <button class="btn btn-primary" onclick="processExcelImport()">Conferma Importazione</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Snapshots Modal -->
-    <div id="snapshotsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-camera"></i> Archivio Snapshots</h3>
-                <button class="modal-close" onclick="closeSnapshotsModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body" id="snapshotsListContainer">
-                <!-- Populated by JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Reset Quantities Modal -->
-    <div id="resetQuantitiesModal" class="modal">
-        <div class="modal-content" style="max-width: 450px;">
-            <div class="modal-header" style="background: var(--danger); color: white;">
-                <h3><i class="fas fa-exclamation-triangle"></i> Azzeramento Inventario</h3>
-                <button class="modal-close" onclick="closeResetQuantitiesModal()"
-                    style="color: white; background: rgba(0,0,0,0.1);"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <p>Questa operazione <strong>azzera tutte le quantità</strong> dei prodotti nel magazzino.</p>
-                <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--gray);">Verrà creato automaticamente uno
-                    snapshot di sicurezza prima del reset.</p>
-
-                <div
-                    style="margin-top: 1.5rem; padding: 1rem; background: #fff5f5; border-radius: 8px; border: 1px solid #feb2b2;">
-                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                        <input type="checkbox" id="confirmResetCheckbox">
-                        <span>Confermo di voler azzerare tutto</span>
-                    </label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeResetQuantitiesModal()">Annulla</button>
-                <button class="btn btn-danger" id="confirmResetBtn" disabled onclick="confirmResetQuantities()">Resetta
+                <button class="btn btn-success" onclick="processExcelImport()"><i class="fas fa-upload"></i>Importa
                     Ora</button>
             </div>
         </div>
     </div>
 
-    <!-- Notification -->
-    <div id="notification" class="notification success">
-        <div class="notification-icon"><i class="fas fa-check-circle"></i></div>
-        <div class="notification-content">
-            <div class="notification-title" id="notificationTitle">Successo</div>
-            <div class="notification-message" id="notificationMessage">Operazione completata!</div>
+    <div class="modal" id="addCategoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-folder-plus" style="color: var(--primary);"></i>Nuova
+                    Categoria</div>
+                <button class="modal-close" onclick="closeAddCategoryModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nome Categoria</label>
+                        <input type="text" id="modalCategoryName" class="form-input"
+                            placeholder="Inserisci nome categoria">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sottocategoria</label>
+                        <input type="text" id="modalSubcategoryName" class="form-input"
+                            placeholder="Inserisci sottocategoria">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeAddCategoryModal()">Annulla</button>
+                <button class="btn btn-primary" onclick="saveCategory()">Salva Categoria</button>
+            </div>
         </div>
     </div>
 
-    <!-- External Script -->
+    <div class="modal" id="addSupplierModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-id-card" style="color: var(--primary);"></i>Nuovo Fornitore
+                </div>
+                <button class="modal-close" onclick="closeAddSupplierModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nome Fornitore</label>
+                        <input type="text" id="modalSupplierName" class="form-input"
+                            placeholder="Inserisci nome fornitore">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Telefono</label>
+                        <input type="text" id="modalSupplierPhone" class="form-input" placeholder="Inserisci telefono">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="modalSupplierEmail" class="form-input" placeholder="Inserisci email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Indirizzo</label>
+                        <input type="text" id="modalSupplierAddress" class="form-input"
+                            placeholder="Inserisci indirizzo">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeAddSupplierModal()">Annulla</button>
+                <button class="btn btn-primary" onclick="saveSupplier()">Salva Fornitore</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="importBackupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-database" style="color: var(--warning);"></i>Ripristina Backup
+                    Locale</div>
+                <button class="modal-close" onclick="closeImportBackupModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Seleziona file di backup (.json)</label>
+                    <input type="file" id="backupFile" class="form-input" accept=".json">
+                </div>
+                <div
+                    style="margin-top: 1rem; padding: 1rem; background: #fff5f5; border-radius: 10px; border: 1px solid #feb2b2; display: flex; gap: 0.75rem; align-items: flex-start;">
+                    <i class="fas fa-exclamation-triangle" style="color: var(--danger); margin-top: 2px;"></i>
+                    <p style="font-size: 0.85rem; color: #c53030; font-weight: 500;">
+                        Attenzione: Il ripristino sovrascriverà tutti i dati attualmente presenti nel browser. Questa
+                        operazione non è reversibile.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeImportBackupModal()">Annulla</button>
+                <button class="btn btn-danger" onclick="restoreBackup()"><i class="fas fa-upload"></i>Sovrascrivi e
+                    Ripristina</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SNAPSHOTS HISTORY MODAL -->
+    <div class="modal" id="snapshotsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-history" style="color: var(--primary);"></i>Storico Snapshot
+                    Inventario</div>
+                <button class="modal-close" onclick="closeSnapshotsModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--gray); margin-bottom: 1rem;">
+                    Gli snapshot salvano lo stato dell'inventario in un momento specifico. Puoi esportarli o
+                    ripristinarli.
+                </p>
+                <div id="snapshotsListContainer">
+                    <p style="text-align: center; color: var(--gray); padding: 2rem;">
+                        <i class="fas fa-inbox"
+                            style="font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem;"></i>
+                        Nessuno snapshot salvato
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeSnapshotsModal()">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESET QUANTITIES MODAL -->
+    <div class="modal" id="resetQuantitiesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>Reset
+                    Quantità - Nuovo Mese</div>
+                <button class="modal-close" onclick="closeResetQuantitiesModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <h4 style="color: #856404; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-info-circle"></i>
+                        Attenzione
+                    </h4>
+                    <p style="color: #856404; margin: 0; font-size: 0.9rem;">
+                        Questa operazione azzererà <strong>SOLO le quantità</strong> di tutti i prodotti.
+                        Tutti i prodotti, categorie, fornitori e prezzi rimarranno invariati.
+                    </p>
+                </div>
+
+                <div
+                    style="background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <h4 style="color: #0c5460; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-camera"></i>
+                        Snapshot Automatico
+                    </h4>
+                    <p style="color: #0c5460; margin: 0; font-size: 0.9rem;">
+                        Prima del reset verrà creato automaticamente uno snapshot dell'inventario corrente
+                        con la data di oggi.
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="confirmResetCheckbox" style="margin-right: 0.5rem;">
+                        Confermo di voler azzerare tutte le quantità
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeResetQuantitiesModal()">Annulla</button>
+                <button class="btn btn-danger" onclick="confirmResetQuantities()" id="confirmResetBtn" disabled>
+                    <i class="fas fa-redo"></i>Reset Quantità
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUICK QUANTITY UPDATE MODAL -->
+    <div class="modal" id="quickQuantityModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-edit" style="color: var(--primary);"></i>Aggiorna Quantità
+                </div>
+                <button class="modal-close" onclick="closeQuickQuantityModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label">Prodotto</label>
+                    <input type="text" id="quickProductName" class="form-input" readonly
+                        style="background: #f8f9fa; cursor: not-allowed;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label">Quantità Attuale</label>
+                    <input type="text" id="quickCurrentQuantity" class="form-input" readonly
+                        style="background: #f8f9fa; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nuova Quantità</label>
+                    <input type="number" id="quickNewQuantity" class="form-input" placeholder="Inserisci nuova quantità"
+                        min="0" step="0.001" style="font-size: 1.2rem; font-weight: 600; color: var(--primary);">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeQuickQuantityModal()">Annulla</button>
+                <button class="btn btn-success" onclick="saveQuickQuantity()"><i class="fas fa-check"></i>Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle notification-icon"></i>
+        <div class="notification-content">
+            <div class="notification-title" id="notificationTitle">Successo</div>
+            <div class="notification-message" id="notificationMessage">Operazione completata</div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 
