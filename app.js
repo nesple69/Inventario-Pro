@@ -1639,7 +1639,7 @@ function renderMonthlyInventoryTable() {
                         <span style="font-weight: 600; color: var(--gray);">${p.quantity} ${p.unit}</span>
                     </td>
                     <td>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap; min-width: 220px;">
                             <button class="btn-action" onclick="incrementQuantity(${p.id}, -1)" title="Decrementa">
                                 <i class="fas fa-minus"></i>
                             </button>
@@ -1656,7 +1656,7 @@ function renderMonthlyInventoryTable() {
                             </button>
                         </div>
                     </td>
-                    <td>
+                    <td style="min-width: 60px; text-align: center;">
                         <button class="btn btn-sm btn-primary" onclick="openQuickQuantityModal(${p.id})">
                             <i class="fas fa-edit"></i>
                         </button>
