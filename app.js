@@ -1639,22 +1639,14 @@ function renderMonthlyInventoryTable() {
                         <span style="font-weight: 600; color: var(--gray);">${p.quantity} ${p.unit}</span>
                     </td>
                     <td>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap; min-width: 220px;">
-                            <button class="btn-action" onclick="incrementQuantity(${p.id}, -1)" title="Decrementa">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <input type="number" 
-                                id="monthly-qty-${p.id}" 
-                                value="${p.quantity}" 
-                                min="0" 
-                                step="0.001"
-                                onchange="updateMonthlyQuantity(${p.id}, this.value)"
-                                style="width: 100px; padding: 0.5rem; border: 2px solid var(--primary); border-radius: 8px; text-align: center; font-weight: 600; font-size: 1rem;"
-                            />
-                            <button class="btn-action" onclick="incrementQuantity(${p.id}, 1)" title="Incrementa">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
+                        <input type="number" 
+                            id="monthly-qty-${p.id}" 
+                            value="${p.quantity}" 
+                            min="0" 
+                            step="0.001"
+                            onchange="updateMonthlyQuantity(${p.id}, this.value)"
+                            style="width: 100px; padding: 0.8rem 0.5rem; border: 2px solid var(--primary); border-radius: 8px; text-align: center; font-weight: 600; font-size: 1.1rem;"
+                        />
                     </td>
                     <td style="min-width: 60px; text-align: center;">
                         <button class="btn btn-sm btn-primary" onclick="openQuickQuantityModal(${p.id})">
