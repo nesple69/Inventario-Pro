@@ -194,7 +194,6 @@ function renderAllProductsTable() {
                     <td class="product-cell">
                         <span class="product-name" style="font-weight: 600; color: var(--dark);">${p.name}</span>
                     </td>
-                    <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
                     <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
                     <td><span class="badge badge-category">${p.category}</span></td>
                     <td><span class="subcategory-text">${p.subcategory || '-'}</span></td>
@@ -237,7 +236,6 @@ function createProductRow(p) {
                 <td class="product-cell">
                     <span class="product-name" style="font-weight: 600; color: var(--dark);">${p.name}</span>
                 </td>
-                <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
                 <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
                 <td><span class="badge badge-category">${p.category}</span></td>
                 <td class="quantity-cell">
@@ -333,7 +331,6 @@ function addProductFromForm() {
     const name = document.getElementById('productName').value;
     const categoryId = document.getElementById('productCategory').value;
     const subcategory = document.getElementById('productSubcategory').value;
-    const department = document.getElementById('productDepartment').value;
     const quantity = parseFloat(document.getElementById('productQuantity').value);
     const unit = document.getElementById('productUnit').value;
     const price = parseFloat(document.getElementById('productPrice').value);
@@ -352,7 +349,6 @@ function addProductFromForm() {
         name: name,
         category: category.name,
         subcategory: subcategory,
-        department: department || 'entrambi',
         quantity: quantity,
         unit: unit,
         price: price,
@@ -367,7 +363,6 @@ function addProductFromForm() {
     // Reset form
     document.getElementById('productName').value = '';
     document.getElementById('productCategory').value = '';
-    document.getElementById('productDepartment').value = 'entrambi';
     document.getElementById('productSubcategory').value = '';
     document.getElementById('productQuantity').value = '';
     document.getElementById('productPrice').value = '';
@@ -646,19 +641,6 @@ function renderSuppliersTable() {
 
 // FUNZIONI CATEGORIE
 function showAddCategoryModal() {
-    // Reset modal state
-    const modalTitle = document.querySelector('#addCategoryModal .modal-title');
-    if (modalTitle) {
-        modalTitle.innerHTML = '<i class="fas fa-folder-plus" style="color: var(--primary);"></i>Nuova Categoria';
-    }
-    const saveBtn = document.querySelector('#addCategoryModal .btn-primary');
-    if (saveBtn) {
-        saveBtn.textContent = 'Salva Categoria';
-        saveBtn.onclick = saveCategory;
-    }
-    document.getElementById('modalCategoryName').value = '';
-    document.getElementById('modalSubcategoryName').value = '';
-
     document.getElementById('addCategoryModal').classList.add('show');
 }
 
@@ -768,10 +750,10 @@ function editCategory(categoryId) {
     document.getElementById('modalCategoryName').value = category.name;
 
     // Cambia il titolo del modal
-    document.querySelector('#addCategoryModal .modal-title').innerHTML = '<i class="fas fa-edit" style="color: var(--primary);"></i>Modifica Categoria';
+    document.querySelector('#addCategoryModal .modal-title').innerHTML = '<i class="fas fa-edit"></i>Modifica Categoria';
 
     // Cambia l'azione del pulsante Salva
-    const saveButton = document.querySelector('#addCategoryModal .btn-primary');
+    const saveButton = document.querySelector('#addCategoryModal .btn-success');
     saveButton.textContent = 'Aggiorna Categoria';
     saveButton.onclick = function () { updateCategory(categoryId); };
 }
@@ -823,23 +805,6 @@ function deleteCategory(categoryId) {
 
 // FUNZIONI FORNITORI
 function showAddSupplierModal() {
-    // Reset modal state
-    const modalTitle = document.querySelector('#addSupplierModal .modal-title');
-    if (modalTitle) {
-        modalTitle.innerHTML = '<i class="fas fa-id-card" style="color: var(--primary);"></i>Nuovo Fornitore';
-    }
-    const saveBtn = document.querySelector('#addSupplierModal .btn-primary');
-    if (saveBtn) {
-        saveBtn.textContent = 'Salva Fornitore';
-        saveBtn.onclick = saveSupplier;
-    }
-
-    // Reset form
-    document.getElementById('modalSupplierName').value = '';
-    document.getElementById('modalSupplierPhone').value = '';
-    document.getElementById('modalSupplierEmail').value = '';
-    document.getElementById('modalSupplierAddress').value = '';
-
     document.getElementById('addSupplierModal').classList.add('show');
 }
 
@@ -918,14 +883,12 @@ function editSupplier(supplierId) {
     document.getElementById('modalSupplierAddress').value = supplier.address;
 
     // Cambia il titolo del modal
-    document.querySelector('#addSupplierModal .modal-title').innerHTML = '<i class="fas fa-edit" style="color: var(--primary);"></i>Modifica Fornitore';
+    document.querySelector('#addSupplierModal .modal-title').innerHTML = '<i class="fas fa-edit"></i>Modifica Fornitore';
 
     // Cambia l'azione del pulsante Salva
-    const saveButton = document.querySelector('#addSupplierModal .btn-primary');
-    if (saveButton) {
-        saveButton.textContent = 'Aggiorna Fornitore';
-        saveButton.onclick = function () { updateSupplier(supplierId); };
-    }
+    const saveButton = document.querySelector('#addSupplierModal .btn-success');
+    saveButton.textContent = 'Aggiorna Fornitore';
+    saveButton.onclick = function () { updateSupplier(supplierId); };
 }
 
 function updateSupplier(supplierId) {
