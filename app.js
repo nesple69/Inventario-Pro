@@ -1681,6 +1681,8 @@ function renderMonthlyInventoryTable() {
                             value="${p.quantity}" 
                             min="0" 
                             step="0.001"
+                            inputmode="decimal"
+                            pattern="[0-9]*"
                             onchange="updateMonthlyQuantity(${p.id}, this.value)"
                             style="width: 100px; padding: 0.8rem 0.5rem; border: 2px solid var(--primary); border-radius: 8px; text-align: center; font-weight: 600; font-size: 1.1rem;"
                         />
