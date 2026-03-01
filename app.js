@@ -14,7 +14,7 @@ let appData = {
         { id: 1, name: "Apple Store", phone: "+39 02 1234567", email: "orders@apple.com", productCount: 2 },
         { id: 2, name: "Fornitore Alimentari", phone: "+39 055 123456", email: "info@alimentari.it", productCount: 2 }
     ],
-    settings: { language: 'it', currency: 'EUR', decimalPlaces: 2, lowStockLimit: 5, stockNotifications: 'all', googleScriptUrl: 'https://script.google.com/macros/s/AKfycby9XwpOM6QL9PsRtJkujwA2LCE9bWVuRKdfGGUlTpcn1na85QpMnIBSF-cZF9UpZMufEA/exec' },
+    settings: { language: 'it', currency: 'EUR', decimalPlaces: 2, lowStockLimit: 5, stockNotifications: 'all', googleScriptUrl: 'https://script.google.com/macros/s/AKfycbx42MmA2hynjQBstPaoXJYXvmCa4c3taQPry8fZb1PsGYl7dCKzqD83uH26FAazxm26Og/exec' },
     monthlySnapshots: [],
     monthlyInventoryChanges: {}
 };
