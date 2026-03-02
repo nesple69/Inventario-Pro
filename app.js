@@ -14,7 +14,7 @@ let appData = {
         { id: 1, name: "Apple Store", phone: "+39 02 1234567", email: "orders@apple.com", productCount: 2 },
         { id: 2, name: "Fornitore Alimentari", phone: "+39 055 123456", email: "info@alimentari.it", productCount: 2 }
     ],
-    settings: { language: 'it', currency: 'EUR', decimalPlaces: 2, lowStockLimit: 5, stockNotifications: 'all', googleScriptUrl: 'https://script.google.com/macros/s/AKfycbx42MmA2hynjQBstPaoXJYXvmCa4c3taQPry8fZb1PsGYl7dCKzqD83uH26FAazxm26Og/exec' },
+    settings: { language: 'it', currency: 'EUR', decimalPlaces: 2, lowStockLimit: 5, stockNotifications: 'all', googleScriptUrl: '' },
     monthlySnapshots: [],
     monthlyInventoryChanges: {}
 };
@@ -135,7 +135,13 @@ function loadSettingsTab() {
 function populateCategoryDropdown(selectId) {
     const select = document.getElementById(selectId);
     if (!select) return;
-    select.innerHTML = '<option value="">Seleziona categoria</option>';
+
+    if (selectId === 'monthlyCategoryFilter') {
+        select.innerHTML = '<option value="">Tutte le Categorie</option>';
+    } else {
+        select.innerHTML = '<option value="">Seleziona categoria</option>';
+    }
+
     appData.categories.forEach(category => {
         select.innerHTML += `<option value="${category.id}">${category.name}</option>`;
     });
@@ -167,6 +173,12 @@ function updateStatistics() {
     document.getElementById('total-products').textContent = stats.totalProducts;
     document.getElementById('total-value').textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+    // Settings Stats
+    const settingsTotal = document.getElementById('settings-total-products');
+    const settingsValue = document.getElementById('settings-total-value');
+    if (settingsTotal) settingsTotal.textContent = stats.totalProducts;
+    if (settingsValue) settingsValue.textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
     // Dashboard Stats
     document.getElementById('inStockCount').textContent = stats.inStock;
     document.getElementById('lowStockCount').textContent = stats.lowStock;
@@ -174,13 +186,70 @@ function updateStatistics() {
     document.getElementById('categoriesCount').textContent = stats.categories;
 }
 
+let currentDashboardFilter = null;
+
+function filterDashboardByStatus(status) {
+    if (currentDashboardFilter === status) {
+        currentDashboardFilter = null; // Toggle off
+    } else {
+        currentDashboardFilter = status;
+    }
+
+    // Update card styling
+    document.querySelectorAll('.dashboard-stat-filter').forEach(card => {
+        card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+        card.style.border = '1px solid var(--border)';
+        card.style.transform = 'translateY(0)';
+    });
+
+    if (currentDashboardFilter) {
+        const activeCard = document.getElementById(`filter-card-${status}`);
+        if (activeCard) {
+            activeCard.style.boxShadow = '0 8px 16px rgba(67, 97, 238, 0.15)';
+            activeCard.style.border = '2px solid var(--primary)';
+            activeCard.style.transform = 'translateY(-2px)';
+        }
+    }
+
+    renderRecentProducts();
+}
+
 function renderRecentProducts() {
     const tbody = document.getElementById('productsTableBody');
     if (!tbody) return;
 
-    // Get last 10 added/modified products
-    const recent = [...appData.products].reverse().slice(0, 10);
-    tbody.innerHTML = recent.map(p => createProductRow(p)).join('');
+    let productsList = [...appData.products].reverse();
+
+    if (currentDashboardFilter === 'in-stock') {
+        productsList = productsList.filter(p => p.quantity > appData.settings.lowStockLimit);
+    } else if (currentDashboardFilter === 'low-stock') {
+        productsList = productsList.filter(p => p.quantity > 0 && p.quantity <= appData.settings.lowStockLimit);
+    } else if (currentDashboardFilter === 'out-of-stock') {
+        productsList = productsList.filter(p => p.quantity === 0);
+    }
+
+    // Mostriamo gli ultimi 10 se non c'è il filtro, altrimenti li mostriamo tutti quelli del filtro
+    const recent = currentDashboardFilter ? productsList : productsList.slice(0, 10);
+
+    // Update the title
+    const tableHeader = document.getElementById('dashboardTableTitle');
+    if (tableHeader) {
+        if (currentDashboardFilter === 'in-stock') {
+            tableHeader.innerHTML = '<i class="fas fa-box" style="margin-right: 0.5rem; color: #4cc9f0;"></i>Prodotti In Stock';
+        } else if (currentDashboardFilter === 'low-stock') {
+            tableHeader.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem; color: #f72585;"></i>Prodotti Sotto Soglia';
+        } else if (currentDashboardFilter === 'out-of-stock') {
+            tableHeader.innerHTML = '<i class="fas fa-clock" style="margin-right: 0.5rem; color: #e63946;"></i>Prodotti Esauriti';
+        } else {
+            tableHeader.innerHTML = '<i class="fas fa-history" style="margin-right: 0.5rem; color: var(--primary);"></i>Ultimi Prodotti Aggiunti';
+        }
+    }
+
+    if (recent.length > 0) {
+        tbody.innerHTML = recent.map(p => createProductRow(p)).join('');
+    } else {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato in questo stato</td></tr>';
+    }
 }
 
 function renderAllProductsTable() {
@@ -1246,10 +1315,28 @@ function saveSettings() {
         if (lang) appData.settings.language = lang.value;
         if (curr) appData.settings.currency = curr.value;
         if (decimals) appData.settings.decimalPlaces = parseInt(decimals.value) || 2;
-        if (url) appData.settings.googleScriptUrl = url.value.trim();
 
-        saveToCloud();
-        showNotification('Impostazioni salvate!');
+        let urlChanged = false;
+        if (url && url.value.trim() !== (appData.settings.googleScriptUrl || '')) {
+            appData.settings.googleScriptUrl = url.value.trim();
+            urlChanged = true;
+        }
+
+        // Save locally
+        localStorage.setItem('inventarioData', JSON.stringify(appData));
+
+        if (urlChanged && appData.settings.googleScriptUrl) {
+            // DO NOT auto-sync if URL just changed! Let the user restore manually by clicking the button.
+            // If they just linked the app, they probably want to pull data, not wipe the cloud!
+            appData.settings.autoSync = false; // Disable temporarily to be safe
+            const autoSyncCheckbox = document.getElementById('autoSyncEnabled');
+            if (autoSyncCheckbox) autoSyncCheckbox.checked = false;
+
+            showNotification('Nuovo URL configurato. Clicca su "Ripristina da Google" per scaricare i dati.', 'warning');
+        } else {
+            saveToCloud(); // Normal save (triggers auto-sync)
+            showNotification('Impostazioni salvate!');
+        }
     } catch (err) {
         console.error('Errore durante il salvataggio:', err);
         showNotification('Errore nel salvataggio impostazioni', 'error');
@@ -1561,6 +1648,7 @@ function renderStockChart() {
 function updateAllDropdowns() {
     populateCategoryDropdown('productCategory');
     populateCategoryDropdown('modalProductCategory');
+    populateCategoryDropdown('monthlyCategoryFilter');
     populateSupplierDropdown('productSupplier');
     populateSupplierDropdown('modalProductSupplier');
     populateCategoryDatalist();
@@ -1637,6 +1725,14 @@ function renderMonthlyInventoryTable() {
 
     const searchTerm = document.getElementById('monthlySearchInput')?.value.toLowerCase() || '';
     const selectedDept = appData.settings.selectedDepartment || 'tutti';
+    const categoryFilterId = document.getElementById('monthlyCategoryFilter')?.value || '';
+
+    // Trova il nome della categoria se c'è un filtro attivo
+    let categoryFilterName = '';
+    if (categoryFilterId) {
+        const cat = appData.categories.find(c => c.id == categoryFilterId);
+        if (cat) categoryFilterName = cat.name;
+    }
 
     // Update department buttons state on load
     document.querySelectorAll('.department-btn').forEach(btn => {
@@ -1644,16 +1740,34 @@ function renderMonthlyInventoryTable() {
     });
 
     const filteredProducts = appData.products.filter(product => {
+        // 1. Filtro Ricerca
         const matchesSearch = product.name.toLowerCase().includes(searchTerm) ||
             product.category.toLowerCase().includes(searchTerm) ||
             (product.supplier && product.supplier.toLowerCase().includes(searchTerm));
 
-        const productDept = product.department || 'entrambi';
-        const matchesDept = selectedDept === 'tutti' ||
-            productDept === 'entrambi' ||
-            productDept === selectedDept;
+        // 2. Filtro Reparto (Migliorato per evitare che "entrambi" invada tutto se non voluto)
+        let productDept = product.department;
 
-        return matchesSearch && matchesDept;
+        // Se non specificato, proviamo a dedurlo dalla categoria per non mostrare "entrambi" ovunque
+        if (!productDept || productDept === 'entrambi') {
+            const catLower = product.category.toLowerCase();
+            if (selectedDept === 'cucina' && (catLower.includes('bar') || catLower.includes('bevande') || catLower.includes('vino') || catLower.includes('drink') || catLower.includes('alcol') || catLower.includes('birra'))) {
+                productDept = 'bar'; // Forza a bar per non mostrarlo in cucina
+            } else if (selectedDept === 'bar' && (catLower.includes('cucina') || catLower.includes('cibo') || catLower.includes('carne') || catLower.includes('pesce') || catLower.includes('verdura') || catLower.includes('pasta') || catLower.includes('alimenti'))) {
+                productDept = 'cucina'; // Forza a cucina per non mostrarlo in bar
+            } else {
+                productDept = 'entrambi';
+            }
+        }
+
+        const matchesDept = selectedDept === 'tutti' ||
+            productDept === selectedDept ||
+            productDept === 'entrambi';
+
+        // 3. Filtro Categoria (Nuovo menu a tendina)
+        const matchesCategory = categoryFilterName === '' || product.category === categoryFilterName;
+
+        return matchesSearch && matchesDept && matchesCategory;
     });
 
     tbody.innerHTML = filteredProducts.map(p => {

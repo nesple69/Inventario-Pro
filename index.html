@@ -109,28 +109,35 @@
                     </div>
 
                     <div class="stats-grid">
-                        <div class="stat-card-main">
+                        <div class="stat-card-main dashboard-stat-filter" id="filter-card-in-stock"
+                            onclick="filterDashboardByStatus('in-stock')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
                             <div class="stat-icon-wrapper icon-blue"><i class="fas fa-box"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="inStockCount">0</span>
                                 <span class="stat-main-label">In Stock</span>
                             </div>
                         </div>
-                        <div class="stat-card-main">
+                        <div class="stat-card-main dashboard-stat-filter" id="filter-card-low-stock"
+                            onclick="filterDashboardByStatus('low-stock')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
                             <div class="stat-icon-wrapper icon-orange"><i class="fas fa-exclamation-triangle"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="lowStockCount">0</span>
                                 <span class="stat-main-label">Sotto Soglia</span>
                             </div>
                         </div>
-                        <div class="stat-card-main">
+                        <div class="stat-card-main dashboard-stat-filter" id="filter-card-out-of-stock"
+                            onclick="filterDashboardByStatus('out-of-stock')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
                             <div class="stat-icon-wrapper icon-red"><i class="fas fa-clock"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="outOfStockCount">0</span>
                                 <span class="stat-main-label">Esauriti</span>
                             </div>
                         </div>
-                        <div class="stat-card-main">
+                        <div class="stat-card-main" onclick="showTab('categories')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
                             <div class="stat-icon-wrapper icon-purple"><i class="fas fa-layer-group"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="categoriesCount">0</span>
@@ -141,7 +148,7 @@
 
                     <div class="card">
                         <div class="section-header" style="margin-bottom: 1.5rem;">
-                            <h3><i class="fas fa-history"
+                            <h3 id="dashboardTableTitle"><i class="fas fa-history"
                                     style="margin-right: 0.5rem; color: var(--primary);"></i>Ultimi Prodotti Aggiunti
                             </h3>
                             <div class="header-actions">
@@ -491,19 +498,32 @@
 
                     <div class="card">
                         <!-- Department Selector -->
-                        <div class="department-selector">
-                            <span style="font-weight: 600; color: var(--gray); margin-right: 0.5rem;">Filtra
-                                Reparto:</span>
-                            <button class="department-btn active" onclick="setDepartmentFilter('tutti')"
-                                id="dept-btn-tutti">
-                                <i class="fas fa-layer-group"></i> Tutti
-                            </button>
-                            <button class="department-btn" onclick="setDepartmentFilter('cucina')" id="dept-btn-cucina">
-                                <i class="fas fa-utensils"></i> Cucina
-                            </button>
-                            <button class="department-btn" onclick="setDepartmentFilter('bar')" id="dept-btn-bar">
-                                <i class="fas fa-glass-martini-alt"></i> Bar
-                            </button>
+                        <div class="department-selector"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <span style="font-weight: 600; color: var(--gray); margin-right: 0.5rem;">Filtra
+                                    Reparto:</span>
+                                <button class="department-btn active" onclick="setDepartmentFilter('tutti')"
+                                    id="dept-btn-tutti">
+                                    <i class="fas fa-layer-group"></i> Tutti
+                                </button>
+                                <button class="department-btn" onclick="setDepartmentFilter('cucina')"
+                                    id="dept-btn-cucina">
+                                    <i class="fas fa-utensils"></i> Cucina
+                                </button>
+                                <button class="department-btn" onclick="setDepartmentFilter('bar')" id="dept-btn-bar">
+                                    <i class="fas fa-glass-martini-alt"></i> Bar
+                                </button>
+                            </div>
+                            <div
+                                style="display: flex; align-items: center; gap: 0.5rem; background: var(--light); padding: 0.3rem 0.8rem; border-radius: 20px; border: 1px solid var(--border);">
+                                <i class="fas fa-tags" style="color: var(--primary);"></i>
+                                <select id="monthlyCategoryFilter" class="form-select"
+                                    onchange="filterMonthlyInventory()"
+                                    style="border: none; background: transparent; padding: 0.2rem; min-width: 150px; font-weight: 500; font-size: 0.95rem; cursor: pointer;">
+                                    <option value="">Tutte le Categorie</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div style="margin-bottom: 1.5rem;">
@@ -561,6 +581,25 @@
                         <div class="header-title">
                             <h2>Impostazioni Sistema</h2>
                             <p>Configura le preferenze del software e la sincronizzazione cloud</p>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                        <div class="stat-card-main">
+                            <div class="stat-icon-wrapper icon-blue"><i class="fas fa-cubes"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="settings-total-products">0</span>
+                                <span class="stat-main-label">Prodotti Totali</span>
+                            </div>
+                        </div>
+                        <div class="stat-card-main">
+                            <div class="stat-icon-wrapper"
+                                style="background: rgba(114, 9, 183, 0.2); color: var(--secondary);"><i
+                                    class="fas fa-wallet"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="settings-total-value">€ 0</span>
+                                <span class="stat-main-label">Valore Totale</span>
+                            </div>
                         </div>
                     </div>
 
