@@ -1745,26 +1745,15 @@ function renderMonthlyInventoryTable() {
             product.category.toLowerCase().includes(searchTerm) ||
             (product.supplier && product.supplier.toLowerCase().includes(searchTerm));
 
-        // 2. Filtro Reparto (Migliorato per evitare che "entrambi" invada tutto se non voluto)
-        let productDept = product.department;
+        // 2. Filtro Reparto (Reso RIGIDO come richiesto dall'utente)
+        // Se l'utente clicca Cucina, vuole VEDERE SOLO CUCINA. Non "Entrambi".
+        let productDept = product.department || 'entrambi';
 
-        // Se non specificato, proviamo a dedurlo dalla categoria per non mostrare "entrambi" ovunque
-        if (!productDept || productDept === 'entrambi') {
-            const catLower = product.category.toLowerCase();
-            if (selectedDept === 'cucina' && (catLower.includes('bar') || catLower.includes('bevande') || catLower.includes('vino') || catLower.includes('drink') || catLower.includes('alcol') || catLower.includes('birra'))) {
-                productDept = 'bar'; // Forza a bar per non mostrarlo in cucina
-            } else if (selectedDept === 'bar' && (catLower.includes('cucina') || catLower.includes('cibo') || catLower.includes('carne') || catLower.includes('pesce') || catLower.includes('verdura') || catLower.includes('pasta') || catLower.includes('alimenti'))) {
-                productDept = 'cucina'; // Forza a cucina per non mostrarlo in bar
-            } else {
-                productDept = 'entrambi';
-            }
-        }
+        // Se il prodotto è "entrambi" ma noi abbiamo selezionato "Cucina", 
+        // l'utente NON vuole vederlo! Quindi matchesDept sarà falso.
+        const matchesDept = selectedDept === 'tutti' || productDept === selectedDept;
 
-        const matchesDept = selectedDept === 'tutti' ||
-            productDept === selectedDept ||
-            productDept === 'entrambi';
-
-        // 3. Filtro Categoria (Nuovo menu a tendina)
+        // 3. Filtro Categoria
         const matchesCategory = categoryFilterName === '' || product.category === categoryFilterName;
 
         return matchesSearch && matchesDept && matchesCategory;
