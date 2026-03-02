@@ -1759,6 +1759,19 @@ function renderMonthlyInventoryTable() {
         return matchesSearch && matchesDept && matchesCategory;
     });
 
+    // Helper functions per i badge
+    const getDepartmentBadgeClass = (dept) => {
+        if (dept === 'cucina') return 'badge-cucina';
+        if (dept === 'bar') return 'badge-bar';
+        return 'badge-neutral';
+    };
+
+    const getDepartmentIcon = (dept) => {
+        if (dept === 'cucina') return '<i class="fas fa-utensils"></i> Cucina';
+        if (dept === 'bar') return '<i class="fas fa-glass-martini-alt"></i> Bar';
+        return '<i class="fas fa-layer-group"></i> Entrambi';
+    };
+
     tbody.innerHTML = filteredProducts.map(p => {
         const isChanged = appData.monthlyInventoryChanges[p.id];
         const rowClass = isChanged ? 'style="background: #e6f7ff;"' : '';
