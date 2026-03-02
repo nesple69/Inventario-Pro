@@ -2282,17 +2282,32 @@ function restoreFromGoogle(silent = false) {
     }
     updateCloudStatus('syncing', 'Caricamento...');
 
-    // Utilizzo del proxy AllOrigins per evitare PER SEMPRE i blocchi CORS di Google (Failed to fetch)
+    // Utilizzo del proxy AllOrigins (endpoint /get garantito senza CORS) per evitare blocchi
     const timeStamp = new Date().getTime();
     const cleanUrl = url.trim() + (url.includes('?') ? '&' : '?') + 't=' + timeStamp;
-    const fetchUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(cleanUrl);
+    const fetchUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(cleanUrl);
 
     fetch(fetchUrl)
         .then(response => {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return response.json();
         })
-        .then(data => {
+        .then(proxyData => {
+            if (!proxyData || !proxyData.contents) {
+                if (!silent) showNotification('Risposta vuota dal proxy CORS', 'error');
+                updateCloudStatus('error', 'Errore Rete');
+                return;
+            }
+
+            let data;
+            try {
+                data = JSON.parse(proxyData.contents);
+            } catch (e) {
+                if (!silent) showNotification('I dati da Google non sono in formato valido', 'error');
+                updateCloudStatus('error', 'Formato non valido');
+                return;
+            }
+
             if (data && data.products) {
                 appData = data;
                 if (appData.settings.autoSync === undefined) appData.settings.autoSync = true;
