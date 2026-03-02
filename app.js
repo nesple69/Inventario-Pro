@@ -2184,7 +2184,11 @@ function updateAll() {
     saveToCloud(); // Auto-save to localStorage
 }
 
+let isInitialLoad = true;
+
 function saveToCloud() {
+    if (isInitialLoad) return; // Non salvare nel cloud se stiamo solo inizializzando i dati
+
     localStorage.setItem('inventarioData', JSON.stringify(appData));
 
     // Auto-Sync to Cloud
@@ -2272,7 +2276,8 @@ async function syncToCloud(silent = false) {
         });
 
         if (!response.ok) {
-            throw new Error(`Errore HTTP: ${response.status}`);
+            const errText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errText.substring(0, 50)}`);
         }
 
         if (!silent) showNotification('Dati salvati sul Cloud!', 'success');
@@ -2315,7 +2320,8 @@ async function restoreFromCloud(silent = false) {
         });
 
         if (!response.ok) {
-            throw new Error(`Errore HTTP: ${response.status}`);
+            const errText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errText.substring(0, 50)}`);
         }
 
         const rows = await response.json();
@@ -2364,7 +2370,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Auto-restore dal Cloud all'avvio (se configurato)
     if (appData.settings.supabaseUrl && appData.settings.supabaseKey && appData.settings.autoSync) {
-        setTimeout(() => restoreFromCloud(true), 1500);
+        setTimeout(() => {
+            restoreFromCloud(true).finally(() => {
+                isInitialLoad = false; // Ora l'app può salvare modifiche vere
+            });
+        }, 1500);
+    } else {
+        setTimeout(() => { isInitialLoad = false; }, 2000);
     }
 
     // Registrazione Service Worker per PWA
