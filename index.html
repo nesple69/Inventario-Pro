@@ -605,45 +605,43 @@
 
                     <div class="card">
                         <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
-                                class="fas fa-cloud-sync"
-                                style="margin-right: 0.5rem; color: var(--primary);"></i>Sincronizzazione Google Sheets
+                                class="fas fa-database"
+                                style="margin-right: 0.5rem; color: #3ecf8e;"></i>Sincronizzazione Supabase
                         </h3>
-                        <div class="form-group">
-                            <label class="form-label">URL Web App Google Script</label>
-                            <input type="text" id="googleScriptUrl" class="form-input"
-                                placeholder="https://script.google.com/macros/s/.../exec" oninput="saveSettings()">
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label class="form-label">URL Progetto Supabase</label>
+                            <input type="text" id="supabaseUrl" class="form-input"
+                                placeholder="https://xxxxxxxxx.supabase.co" oninput="saveSettings()">
                             <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">
-                                Incolla qui l'URL ottenuto dopo aver pubblicato lo script su Google Apps Script.
+                                L'URL del tuo progetto Supabase (Project Settings -> API).
                             </p>
                         </div>
-                        <div class="form-group" style="margin-top: 1rem;">
-                            <label class="form-label">
+                        <div class="form-group">
+                            <label class="form-label">Chiave Anonima (Anon Public Key)</label>
+                            <input type="password" id="supabaseKey" class="form-input"
+                                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." oninput="saveSettings()">
+                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">
+                                La chiave API pubblica standard (evita di mostrare la service_role).
+                            </p>
+                        </div>
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label class="form-label" style="display: flex; align-items: center; cursor: pointer;">
                                 <input type="checkbox" id="autoSyncEnabled" onchange="toggleAutoSync()"
-                                    style="margin-right: 0.5rem;">
+                                    style="margin-right: 0.5rem; width: 1.1rem; height: 1.1rem;">
                                 Sincronizzazione Automatica
                             </label>
                             <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">
-                                Quando attiva, i dati vengono inviati automaticamente a Google Sheets dopo ogni
-                                modifica.
+                                Salva automaticamente i dati su Supabase dopo ogni modifica all'inventario.
                             </p>
                         </div>
                         <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
-                            <button class="btn btn-primary" onclick="syncToGoogle()"><i
-                                    class="fas fa-cloud-upload-alt"></i>Invia a Google</button>
-                            <button class="btn btn-outline" onclick="restoreFromGoogle()"><i
-                                    class="fas fa-cloud-download-alt"></i>Ripristina da Google</button>
-                            <button class="btn btn-outline" onclick="generateQRCode()"><i
-                                    class="fas fa-qrcode"></i>Genera QR Code</button>
+                            <button class="btn btn-primary" onclick="syncToCloud()"
+                                style="background: #3ecf8e; border-color: #3ecf8e;"><i
+                                    class="fas fa-cloud-upload-alt"></i>Invia al Cloud</button>
+                            <button class="btn btn-outline" onclick="restoreFromCloud()"><i
+                                    class="fas fa-cloud-download-alt"></i>Ripristina dal Cloud</button>
                             <button class="btn btn-success" onclick="saveSettings()" style="margin-left: auto;"><i
                                     class="fas fa-save"></i>Salva Impostazioni</button>
-                        </div>
-                        <div id="qrCodeContainer"
-                            style="display: none; margin-top: 1.5rem; text-align: center; padding: 1.5rem; background: #f8f9fa; border-radius: 12px;">
-                            <h4 style="margin-bottom: 1rem;">Scansiona con il tuo dispositivo mobile</h4>
-                            <div id="qrCodeImage"></div>
-                            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 1rem;">
-                                Apri l'app sul dispositivo mobile e incolla l'URL nelle impostazioni
-                            </p>
                         </div>
                     </div>
 

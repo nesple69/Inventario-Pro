@@ -117,7 +117,8 @@ function loadSettingsTab() {
         'language': settings.language,
         'currency': settings.currency,
         'decimalPlaces': settings.decimalPlaces,
-        'googleScriptUrl': settings.googleScriptUrl || ''
+        'supabaseUrl': settings.supabaseUrl || '',
+        'supabaseKey': settings.supabaseKey || ''
     };
 
     for (const [id, value] of Object.entries(fields)) {
@@ -1308,7 +1309,8 @@ function saveSettings() {
         const lang = document.getElementById('language');
         const curr = document.getElementById('currency');
         const decimals = document.getElementById('decimalPlaces');
-        const url = document.getElementById('googleScriptUrl');
+        const url = document.getElementById('supabaseUrl');
+        const key = document.getElementById('supabaseKey');
 
         if (notifications) appData.settings.stockNotifications = notifications.value;
         if (threshold) appData.settings.lowStockLimit = parseInt(threshold.value) || 5;
@@ -1317,22 +1319,25 @@ function saveSettings() {
         if (decimals) appData.settings.decimalPlaces = parseInt(decimals.value) || 2;
 
         let urlChanged = false;
-        if (url && url.value.trim() !== (appData.settings.googleScriptUrl || '')) {
-            appData.settings.googleScriptUrl = url.value.trim();
+        if (url && url.value.trim() !== (appData.settings.supabaseUrl || '')) {
+            appData.settings.supabaseUrl = url.value.trim();
             urlChanged = true;
+        }
+        if (key) {
+            appData.settings.supabaseKey = key.value.trim();
         }
 
         // Save locally
         localStorage.setItem('inventarioData', JSON.stringify(appData));
 
-        if (urlChanged && appData.settings.googleScriptUrl) {
+        if (urlChanged && appData.settings.supabaseUrl) {
             // DO NOT auto-sync if URL just changed! Let the user restore manually by clicking the button.
             // If they just linked the app, they probably want to pull data, not wipe the cloud!
             appData.settings.autoSync = false; // Disable temporarily to be safe
             const autoSyncCheckbox = document.getElementById('autoSyncEnabled');
             if (autoSyncCheckbox) autoSyncCheckbox.checked = false;
 
-            showNotification('Nuovo URL configurato. Clicca su "Ripristina da Google" per scaricare i dati.', 'warning');
+            showNotification('Nuove credenziali Supabase salvate. Clicca "Ripristina dal Cloud" per scaricare.', 'warning');
         } else {
             saveToCloud(); // Normal save (triggers auto-sync)
             showNotification('Impostazioni salvate!');
@@ -2182,8 +2187,8 @@ function updateAll() {
 function saveToCloud() {
     localStorage.setItem('inventarioData', JSON.stringify(appData));
 
-    // Auto-Sync to Google Sheets
-    if (appData.settings.autoSync && appData.settings.googleScriptUrl) {
+    // Auto-Sync to Cloud
+    if (appData.settings.autoSync && appData.settings.supabaseUrl) {
         debounceAutoSync();
     }
 }
@@ -2193,7 +2198,7 @@ function debounceAutoSync() {
     updateCloudStatus('syncing', 'In coda...');
     clearTimeout(autoSyncTimeout);
     autoSyncTimeout = setTimeout(() => {
-        syncToGoogle(true); // true per modalità silenziosa
+        syncToCloud(true); // true per modalità silenziosa
     }, 3000); // Aspetta 3 secondi di inattività
 }
 
@@ -2226,120 +2231,113 @@ function showNotification(message, type = 'success') {
 }
 
 
-// GOOGLE SHEETS INTEGRATION
-function syncToGoogle(silent = false) {
+// SUPABASE INTEGRATION
+async function syncToCloud(silent = false) {
     // Forza aggiornamento URL
-    const urlInput = document.getElementById('googleScriptUrl');
+    const urlInput = document.getElementById('supabaseUrl');
+    const keyInput = document.getElementById('supabaseKey');
     if (urlInput && urlInput.value) {
-        appData.settings.googleScriptUrl = urlInput.value.trim();
+        appData.settings.supabaseUrl = urlInput.value.trim();
+        if (keyInput) appData.settings.supabaseKey = keyInput.value.trim();
         localStorage.setItem('inventarioData', JSON.stringify(appData));
     }
 
-    const url = appData.settings.googleScriptUrl;
-    if (!url || !url.startsWith('https://script.google.com')) {
+    const sbUrl = appData.settings.supabaseUrl;
+    const sbKey = appData.settings.supabaseKey;
+
+    if (!sbUrl || !sbKey || !sbUrl.includes('.supabase.co')) {
         if (!silent) {
-            showNotification('URL Script non valido. Incolla l\'indirizzo corretto nelle Impostazioni.', 'error');
-            updateCloudStatus('error', 'URL mancante');
+            showNotification('Credenziali Supabase mancanti o non valide. Controlla le Impostazioni.', 'error');
+            updateCloudStatus('error', 'Credenziali mancanti');
         }
         return;
     }
 
     if (!silent) {
-        showNotification('Invio dati in corso...', 'warning');
+        showNotification('Invio dati al Cloud in corso...', 'warning');
     }
     updateCloudStatus('syncing', 'Sincronizzazione...');
 
     try {
-        // Use fetch instead of form submit to avoid opening new tabs
-        fetch(url, {
-            method: 'POST',
-            mode: 'no-cors',
+        const fetchUrl = `${sbUrl}/rest/v1/app_data?id=eq.1`;
+        const response = await fetch(fetchUrl, {
+            method: 'PATCH',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'apikey': sbKey,
+                'Authorization': `Bearer ${sbKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
             },
-            body: 'data=' + encodeURIComponent(JSON.stringify(appData))
-        }).then(() => {
-            if (!silent) {
-                showNotification('Dati inviati a Google Sheets!', 'success');
-            }
-            updateCloudStatus('online', 'Sincronizzato');
-        }).catch(e => {
-            // no-cors mode doesn't return errors, so this is fine
-            if (!silent) {
-                showNotification('Dati inviati a Google Sheets!', 'success');
-            }
-            updateCloudStatus('online', 'Sincronizzato');
+            body: JSON.stringify({ data: appData })
         });
-    } catch (e) {
-        if (!silent) {
-            showNotification('Errore di invio: ' + e.message, 'error');
+
+        if (!response.ok) {
+            throw new Error(`Errore HTTP: ${response.status}`);
         }
+
+        if (!silent) showNotification('Dati salvati sul Cloud!', 'success');
+        updateCloudStatus('online', 'Sincronizzato');
+
+    } catch (e) {
+        console.error('Supabase Sync Error:', e);
+        if (!silent) showNotification('Errore di invio: ' + e.message, 'error');
         updateCloudStatus('error', 'Errore sync');
     }
 }
 
-function restoreFromGoogle(silent = false) {
-    const url = appData.settings.googleScriptUrl;
-    if (!url) {
+async function restoreFromCloud(silent = false) {
+    const sbUrl = appData.settings.supabaseUrl;
+    const sbKey = appData.settings.supabaseKey;
+
+    if (!sbUrl || !sbKey) {
         if (!silent) {
-            showNotification('Inserisci prima l\'URL dello script nelle impostazioni', 'error');
-            updateCloudStatus('error', 'URL mancante');
+            showNotification('Inserisci URL e Chiave Supabase nelle impostazioni', 'error');
+            updateCloudStatus('error', 'Credenziali mancanti');
         }
         return;
     }
 
-    if (!silent && !confirm('Questo sovrascriverà i dati locali con quelli presenti su Google Sheets. Continuare?')) return;
+    if (!silent && !confirm('Questo sovrascriverà i dati locali con quelli presenti nel Cloud Supabase. Continuare?')) return;
 
     if (!silent) {
         showNotification('Scaricamento dati...', 'warning');
     }
     updateCloudStatus('syncing', 'Caricamento...');
 
-    // Metodo definitivo: JSONP
-    // Questo aggira completamente i blocchi CORS di Google e non richiede proxy esterni.
-    const callbackName = 'googleSheetCallback_' + new Date().getTime();
+    try {
+        const fetchUrl = `${sbUrl}/rest/v1/app_data?id=eq.1&select=data`;
+        const response = await fetch(fetchUrl, {
+            method: 'GET',
+            headers: {
+                'apikey': sbKey,
+                'Authorization': `Bearer ${sbKey}`
+            }
+        });
 
-    // 1. Creiamo la funzione globale che Google Script chiamerà
-    window[callbackName] = function (data) {
-        // Pulizia
-        delete window[callbackName];
-        const scriptEl = document.getElementById(callbackName);
-        if (scriptEl) scriptEl.remove();
+        if (!response.ok) {
+            throw new Error(`Errore HTTP: ${response.status}`);
+        }
 
-        if (data && data.products) {
-            appData = data;
+        const rows = await response.json();
+
+        if (rows && rows.length > 0 && rows[0].data && rows[0].data.products) {
+            appData = rows[0].data;
             if (appData.settings.autoSync === undefined) appData.settings.autoSync = true;
             localStorage.setItem('inventarioData', JSON.stringify(appData));
             updateAll();
             loadSettingsTab();
-            if (!silent) showNotification('Dati ripristinati da Google con successo!', 'success');
+            if (!silent) showNotification('Dati ripristinati dal Cloud con successo!', 'success');
             updateCloudStatus('online', 'Sincronizzato');
-        } else if (data && data.error) {
-            if (!silent) showNotification('Errore dal foglio: ' + data.error, 'error');
-            updateCloudStatus('error', 'Errore Foglio');
         } else {
-            if (!silent) showNotification('Dati non validi o vuoti ricevuti da Google', 'error');
+            if (!silent) showNotification('Il database Supabase sembra vuoto o non configurato.', 'error');
             updateCloudStatus('error', 'Dati non validi');
         }
-    };
 
-    // 2. Prepariamo l'URL con il parametro callback
-    const cleanUrl = url.trim() + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
-
-    // 3. Creiamo e iniettiamo lo script
-    const script = document.createElement('script');
-    script.id = callbackName;
-    script.src = cleanUrl;
-
-    // Gestione errori di rete
-    script.onerror = function () {
-        delete window[callbackName];
-        script.remove();
-        if (!silent) showNotification('Errore di connessione a Google. Controlla il link.', 'error');
+    } catch (e) {
+        console.error('Supabase Fetch Error:', e);
+        if (!silent) showNotification('Errore di connessione a Supabase: ' + e.message, 'error');
         updateCloudStatus('error', 'Errore Rete');
-    };
-
-    document.body.appendChild(script);
+    }
 }
 
 // INIZIALIZZAZIONE
@@ -2364,9 +2362,9 @@ document.addEventListener('DOMContentLoaded', function () {
     loadDashboardData();
     showNotification('Sistema caricato!');
 
-    // Auto-restore da Google all'avvio (se configurato)
-    if (appData.settings.googleScriptUrl && appData.settings.autoSync) {
-        setTimeout(() => restoreFromGoogle(true), 1500);
+    // Auto-restore dal Cloud all'avvio (se configurato)
+    if (appData.settings.supabaseUrl && appData.settings.supabaseKey && appData.settings.autoSync) {
+        setTimeout(() => restoreFromCloud(true), 1500);
     }
 
     // Registrazione Service Worker per PWA
