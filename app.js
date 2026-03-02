@@ -2282,36 +2282,36 @@ function restoreFromGoogle(silent = false) {
     }
     updateCloudStatus('syncing', 'Caricamento...');
 
-    fetch(url)
-        .then(response => response.json())
+    // Utilizzo del proxy AllOrigins per evitare PER SEMPRE i blocchi CORS di Google (Failed to fetch)
+    const timeStamp = new Date().getTime();
+    const cleanUrl = url.trim() + (url.includes('?') ? '&' : '?') + 't=' + timeStamp;
+    const fetchUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(cleanUrl);
+
+    fetch(fetchUrl)
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
         .then(data => {
             if (data && data.products) {
                 appData = data;
-                // Mantieni autoSync attivo
-                if (appData.settings.autoSync === undefined) {
-                    appData.settings.autoSync = true;
-                }
+                if (appData.settings.autoSync === undefined) appData.settings.autoSync = true;
                 localStorage.setItem('inventarioData', JSON.stringify(appData));
                 updateAll();
-                // Update settings inputs 
                 loadSettingsTab();
-                if (!silent) {
-                    showNotification('Dati ripristinati da Google!', 'success');
-                }
+                if (!silent) showNotification('Dati ripristinati da Google!', 'success');
                 updateCloudStatus('online', 'Sincronizzato');
             } else {
-                if (!silent) {
-                    showNotification('Dati non validi ricevuti da Google', 'error');
-                }
+                if (!silent) showNotification('Dati non validi o vuoti ricevuti da Google', 'error');
                 updateCloudStatus('error', 'Dati non validi');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Fetch Error:', error);
             if (!silent) {
                 showNotification('Errore durante il ripristino: ' + error.message, 'error');
             }
-            updateCloudStatus('offline', 'Locale');
+            updateCloudStatus('error', 'Errore HTTP');
         });
 }
 
