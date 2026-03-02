@@ -2282,37 +2282,51 @@ function restoreFromGoogle(silent = false) {
     }
     updateCloudStatus('syncing', 'Caricamento...');
 
-    // Utilizzo del proxy corsproxy.io che è molto più affidabile per i Google Scripts
-    const timeStamp = new Date().getTime();
-    const cleanUrl = url.trim() + (url.includes('?') ? '&' : '?') + 't=' + timeStamp;
-    const fetchUrl = "https://corsproxy.io/?" + encodeURIComponent(cleanUrl);
+    // Metodo definitivo: JSONP
+    // Questo aggira completamente i blocchi CORS di Google e non richiede proxy esterni.
+    const callbackName = 'googleSheetCallback_' + new Date().getTime();
 
-    fetch(fetchUrl)
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.products) {
-                appData = data;
-                if (appData.settings.autoSync === undefined) appData.settings.autoSync = true;
-                localStorage.setItem('inventarioData', JSON.stringify(appData));
-                updateAll();
-                loadSettingsTab();
-                if (!silent) showNotification('Dati ripristinati da Google!', 'success');
-                updateCloudStatus('online', 'Sincronizzato');
-            } else {
-                if (!silent) showNotification('Dati non validi o vuoti ricevuti da Google', 'error');
-                updateCloudStatus('error', 'Dati non validi');
-            }
-        })
-        .catch(error => {
-            console.error('Fetch Error:', error);
-            if (!silent) {
-                showNotification('Errore durante il ripristino: ' + error.message, 'error');
-            }
-            updateCloudStatus('error', 'Errore HTTP');
-        });
+    // 1. Creiamo la funzione globale che Google Script chiamerà
+    window[callbackName] = function (data) {
+        // Pulizia
+        delete window[callbackName];
+        const scriptEl = document.getElementById(callbackName);
+        if (scriptEl) scriptEl.remove();
+
+        if (data && data.products) {
+            appData = data;
+            if (appData.settings.autoSync === undefined) appData.settings.autoSync = true;
+            localStorage.setItem('inventarioData', JSON.stringify(appData));
+            updateAll();
+            loadSettingsTab();
+            if (!silent) showNotification('Dati ripristinati da Google con successo!', 'success');
+            updateCloudStatus('online', 'Sincronizzato');
+        } else if (data && data.error) {
+            if (!silent) showNotification('Errore dal foglio: ' + data.error, 'error');
+            updateCloudStatus('error', 'Errore Foglio');
+        } else {
+            if (!silent) showNotification('Dati non validi o vuoti ricevuti da Google', 'error');
+            updateCloudStatus('error', 'Dati non validi');
+        }
+    };
+
+    // 2. Prepariamo l'URL con il parametro callback
+    const cleanUrl = url.trim() + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+
+    // 3. Creiamo e iniettiamo lo script
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = cleanUrl;
+
+    // Gestione errori di rete
+    script.onerror = function () {
+        delete window[callbackName];
+        script.remove();
+        if (!silent) showNotification('Errore di connessione a Google. Controlla il link.', 'error');
+        updateCloudStatus('error', 'Errore Rete');
+    };
+
+    document.body.appendChild(script);
 }
 
 // INIZIALIZZAZIONE
