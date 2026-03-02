@@ -2259,7 +2259,7 @@ async function syncToCloud(silent = false) {
     updateCloudStatus('syncing', 'Sincronizzazione...');
 
     try {
-        const fetchUrl = `${sbUrl}/rest/v1/app_data?id=eq.1`;
+        const fetchUrl = `${sbUrl}/rest/v1/inventario_secure_v1_9x8b7c?id=eq.1`;
         const response = await fetch(fetchUrl, {
             method: 'PATCH',
             headers: {
@@ -2305,7 +2305,7 @@ async function restoreFromCloud(silent = false) {
     updateCloudStatus('syncing', 'Caricamento...');
 
     try {
-        const fetchUrl = `${sbUrl}/rest/v1/app_data?id=eq.1&select=data`;
+        const fetchUrl = `${sbUrl}/rest/v1/inventario_secure_v1_9x8b7c?id=eq.1&select=data`;
         const response = await fetch(fetchUrl, {
             method: 'GET',
             headers: {
