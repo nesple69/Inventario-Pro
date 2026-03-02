@@ -1746,12 +1746,12 @@ function renderMonthlyInventoryTable() {
             (product.supplier && product.supplier.toLowerCase().includes(searchTerm));
 
         // 2. Filtro Reparto (Reso RIGIDO come richiesto dall'utente)
-        // Se l'utente clicca Cucina, vuole VEDERE SOLO CUCINA. Non "Entrambi".
+        // Se l'utente clicca Cucina, vuole VEDERE SOLO CUCINA.
+        // Se l'utente clicca Tutti, vuole VEDERE SOLO ENTRAMBI.
         let productDept = product.department || 'entrambi';
+        let targetDept = selectedDept === 'tutti' ? 'entrambi' : selectedDept;
 
-        // Se il prodotto è "entrambi" ma noi abbiamo selezionato "Cucina", 
-        // l'utente NON vuole vederlo! Quindi matchesDept sarà falso.
-        const matchesDept = selectedDept === 'tutti' || productDept === selectedDept;
+        const matchesDept = productDept === targetDept;
 
         // 3. Filtro Categoria
         const matchesCategory = categoryFilterName === '' || product.category === categoryFilterName;
