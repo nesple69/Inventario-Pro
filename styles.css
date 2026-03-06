@@ -48,7 +48,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .nav-tabs-header {
@@ -150,14 +150,8 @@ body {
     flex: 1;
 }
 
-.sidebar {
-    width: 240px;
-    background: #f8fafc;
-    border-right: 1px solid var(--border);
-    padding: 1.5rem 0.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+.app-body.no-sidebar {
+    display: block;
 }
 
 .nav-tabs {
@@ -197,63 +191,50 @@ body {
     color: var(--primary);
 }
 
-.content-section-sidebar {
-    padding: 0 1rem;
+/* Header Stats in Dashboard */
+.header-stats-wrapper {
+    display: flex;
+    gap: 1.5rem;
+    margin-right: 1.5rem;
+    padding-right: 1.5rem;
+    border-right: 1px solid var(--border);
 }
 
-.sidebar-title {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #718096;
-    margin-bottom: 1rem;
+.header-stat-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-}
-
-.sidebar-stats {
-    display: flex;
-    flex-direction: column;
     gap: 0.75rem;
 }
 
-.sidebar-stat-card {
-    background: white;
-    border: 1px solid var(--border);
+.header-stat-item i {
+    font-size: 1.25rem;
+    color: var(--primary);
+    background: rgba(67, 97, 238, 0.1);
+    padding: 0.5rem;
     border-radius: 10px;
-    padding: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
 }
 
-.sidebar-stat-icon {
-    width: 32px;
-    height: 32px;
-    background: rgba(46, 196, 182, 0.2);
-    color: var(--success);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
+.header-stat-item:last-child i {
+    color: var(--secondary);
+    background: rgba(114, 9, 183, 0.1);
 }
 
-.sidebar-stat-info {
+.header-stat-item .stat-info {
     display: flex;
     flex-direction: column;
 }
 
-.sidebar-stat-value {
-    font-size: 0.95rem;
+.header-stat-item .stat-value {
+    font-size: 1.1rem;
     font-weight: 700;
+    color: var(--dark);
+    line-height: 1.1;
 }
 
-.sidebar-stat-label {
-    font-size: 0.7rem;
-    color: #a0aec0;
+.header-stat-item .stat-label {
+    font-size: 0.75rem;
+    color: var(--gray);
+    font-weight: 600;
 }
 
 /* Main Content */

@@ -60,32 +60,7 @@
             </div>
         </header>
 
-        <div class="app-body">
-            <aside class="sidebar">
-
-                <div class="content-section-sidebar" style="margin-top: auto;">
-                    <h3 class="sidebar-title">Statistiche Rapide</h3>
-                    <div class="sidebar-stats">
-                        <div class="sidebar-stat-card">
-                            <div class="sidebar-stat-icon"><i class="fas fa-cubes"></i></div>
-                            <div class="sidebar-stat-info">
-                                <span class="sidebar-stat-value" id="total-products">0</span>
-                                <span class="sidebar-stat-label">Prodotti Totali</span>
-                            </div>
-                        </div>
-                        <div class="sidebar-stat-card">
-                            <div class="sidebar-stat-icon"
-                                style="background: rgba(114, 9, 183, 0.2); color: var(--secondary);"><i
-                                    class="fas fa-wallet"></i></div>
-                            <div class="sidebar-stat-info">
-                                <span class="sidebar-stat-value" id="total-value">€ 0</span>
-                                <span class="sidebar-stat-label">Valore Totale</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
+        <div class="app-body no-sidebar">
             <main class="main-content">
                 <!-- DASHBOARD TAB -->
                 <div class="tab-content active" id="dashboard-tab">
@@ -95,6 +70,22 @@
                             <p>Monitora lo stato del tuo inventario in tempo reale</p>
                         </div>
                         <div class="header-actions">
+                            <div class="header-stats-wrapper">
+                                <div class="header-stat-item">
+                                    <i class="fas fa-cubes"></i>
+                                    <div class="stat-info">
+                                        <span class="stat-value" id="total-products">0</span>
+                                        <span class="stat-label">Prodotti</span>
+                                    </div>
+                                </div>
+                                <div class="header-stat-item">
+                                    <i class="fas fa-wallet"></i>
+                                    <div class="stat-info">
+                                        <span class="stat-value" id="total-value">€ 0</span>
+                                        <span class="stat-label">Valore</span>
+                                    </div>
+                                </div>
+                            </div>
                             <button class="btn btn-outline" onclick="refreshData()"><i
                                     class="fas fa-sync-alt"></i>Aggiorna</button>
                             <button class="btn btn-primary" onclick="showAddProductModal()"><i

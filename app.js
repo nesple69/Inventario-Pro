@@ -170,7 +170,7 @@ function updateStatistics() {
 
     const currency = appData.settings.currency === 'EUR' ? '€' : appData.settings.currency === 'USD' ? '$' : '£';
 
-    // Sidebar Stats
+    // Dashboard Header Stats
     document.getElementById('total-products').textContent = stats.totalProducts;
     document.getElementById('total-value').textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
