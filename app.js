@@ -1362,6 +1362,71 @@ function exportBackup() {
     showNotification('Backup esportato!');
 }
 
+function exportBackupXLSX() {
+    try {
+        const wb = XLSX.utils.book_new();
+
+        // 1. Foglio Prodotti
+        const productsData = appData.products.map(p => ({
+            'ID': p.id,
+            'Nome': p.name,
+            'Categoria': p.category,
+            'Sottocategoria': p.subcategory || '-',
+            'Reparto': p.department || 'entrambi',
+            'Quantità': p.quantity,
+            'Unità': p.unit,
+            'Prezzo': p.price,
+            'Valore Totale': (p.quantity * p.price).toFixed(2),
+            'Fornitore': p.supplier || 'Nessuno',
+            'Stato': p.status
+        }));
+        const wsProducts = XLSX.utils.json_to_sheet(productsData);
+        XLSX.utils.book_append_sheet(wb, wsProducts, "Prodotti");
+
+        // 2. Foglio Categorie
+        const categoriesData = appData.categories.map(c => ({
+            'ID': c.id,
+            'Nome': c.name,
+            'Prodotti': c.productCount,
+            'Sottocategorie': (c.subcategories || []).join(', ')
+        }));
+        const wsCategories = XLSX.utils.json_to_sheet(categoriesData);
+        XLSX.utils.book_append_sheet(wb, wsCategories, "Categorie");
+
+        // 3. Foglio Fornitori
+        const suppliersData = appData.suppliers.map(s => ({
+            'ID': s.id,
+            'Nome': s.name,
+            'Telefono': s.phone || '-',
+            'Email': s.email || '-',
+            'Indirizzo': s.address || '-',
+            'Prodotti': s.productCount
+        }));
+        const wsSuppliers = XLSX.utils.json_to_sheet(suppliersData);
+        XLSX.utils.book_append_sheet(wb, wsSuppliers, "Fornitori");
+
+        // 4. Foglio Impostazioni
+        const settingsData = [{
+            'Lingua': appData.settings.language,
+            'Valuta': appData.settings.currency,
+            'Soglia Stock Basso': appData.settings.lowStockLimit,
+            'Decimali': appData.settings.decimalPlaces,
+            'URL Supabase': appData.settings.supabaseUrl || '-'
+        }];
+        const wsSettings = XLSX.utils.json_to_sheet(settingsData);
+        XLSX.utils.book_append_sheet(wb, wsSettings, "Impostazioni");
+
+        // Genera il file
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        XLSX.writeFile(wb, `Inventario_Backup_Full_${timestamp}.xlsx`);
+
+        showNotification('Backup Excel creato con successo!', 'success');
+    } catch (error) {
+        console.error('Errore durante l\'esportazione XLSX:', error);
+        showNotification('Errore durante la creazione del backup Excel', 'error');
+    }
+}
+
 function showImportBackupModal() {
     document.getElementById('importBackupModal').classList.add('show');
 }

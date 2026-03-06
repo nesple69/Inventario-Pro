@@ -33,9 +33,27 @@
                 <div class="logo-icon"><i class="fas fa-boxes"></i></div>
                 <div class="logo-text">
                     <h1>Inventario Pro</h1>
-                    <p>Gestione magazzino avanzata</p>
+                    <p>Magazzino</p>
                 </div>
             </div>
+
+            <nav class="nav-tabs-header">
+                <button class="nav-tab active" onclick="showTab('dashboard')"><i
+                        class="fas fa-th-large"></i><span>Dashboard</span></button>
+                <button class="nav-tab" onclick="showTab('products')"><i
+                        class="fas fa-box"></i><span>Prodotti</span></button>
+                <button class="nav-tab" onclick="showTab('categories')"><i
+                        class="fas fa-tags"></i><span>Categorie</span></button>
+                <button class="nav-tab" onclick="showTab('suppliers')"><i
+                        class="fas fa-truck-moving"></i><span>Fornitori</span></button>
+                <button class="nav-tab" onclick="showTab('reports')"><i
+                        class="fas fa-chart-pie"></i><span>Report</span></button>
+                <button class="nav-tab" onclick="showTab('monthly-inventory')"><i
+                        class="fas fa-clipboard-list"></i><span>Inventario</span></button>
+                <button class="nav-tab" onclick="showTab('settings')"><i
+                        class="fas fa-sliders-h"></i><span>Impostazioni</span></button>
+            </nav>
+
             <div id="cloudStatus" class="sync-status offline">
                 <i class="fas fa-cloud"></i>
                 <span id="cloudStatusText">Locale</span>
@@ -44,22 +62,6 @@
 
         <div class="app-body">
             <aside class="sidebar">
-                <nav class="nav-tabs">
-                    <button class="nav-tab active" onclick="showTab('dashboard')"><i
-                            class="fas fa-th-large"></i><span>Dashboard</span></button>
-                    <button class="nav-tab" onclick="showTab('products')"><i
-                            class="fas fa-box"></i><span>Prodotti</span></button>
-                    <button class="nav-tab" onclick="showTab('categories')"><i
-                            class="fas fa-tags"></i><span>Categorie</span></button>
-                    <button class="nav-tab" onclick="showTab('suppliers')"><i
-                            class="fas fa-truck-moving"></i><span>Fornitori</span></button>
-                    <button class="nav-tab" onclick="showTab('reports')"><i
-                            class="fas fa-chart-pie"></i><span>Report</span></button>
-                    <button class="nav-tab" onclick="showTab('monthly-inventory')"><i
-                            class="fas fa-clipboard-list"></i><span>Inventario Mensile</span></button>
-                    <button class="nav-tab" onclick="showTab('settings')"><i
-                            class="fas fa-sliders-h"></i><span>Impostazioni</span></button>
-                </nav>
 
                 <div class="content-section-sidebar" style="margin-top: auto;">
                     <h3 class="sidebar-title">Statistiche Rapide</h3>
@@ -694,7 +696,9 @@
                                 style="margin-right: 0.5rem; color: var(--gray);"></i>Manutenzione Dati</h3>
                         <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                             <button class="btn btn-outline" onclick="exportBackup()"><i
-                                    class="fas fa-download"></i>Backup Locale</button>
+                                    class="fas fa-download"></i>Backup Locale (JSON)</button>
+                            <button class="btn btn-outline" onclick="exportBackupXLSX()"><i
+                                    class="fas fa-file-excel"></i>Backup Locale (XLSX)</button>
                             <button class="btn btn-outline" onclick="showImportBackupModal()"><i
                                     class="fas fa-upload"></i>Ripristina Backup</button>
                             <button class="btn btn-danger" onclick="resetData()" style="margin-left: auto;"><i
