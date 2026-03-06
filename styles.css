@@ -39,8 +39,8 @@ body {
 }
 
 .app-header {
-    background: white;
-    border-bottom: 1px solid var(--border);
+    background: var(--primary);
+    color: white;
     padding: 0.5rem 1.5rem;
     display: flex;
     justify-content: space-between;
@@ -48,7 +48,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .nav-tabs-header {
@@ -75,18 +75,19 @@ body {
 .logo-icon {
     font-size: 1.75rem;
     color: var(--primary);
-    background: rgba(67, 97, 238, 0.1);
+    background: white;
     padding: 0.6rem;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .logo-text h1 {
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--dark);
+    color: white;
     letter-spacing: -0.5px;
 }
 
@@ -127,7 +128,7 @@ body {
 
 .logo-text p {
     font-size: 0.8rem;
-    color: var(--gray);
+    color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
 }
 
@@ -163,7 +164,7 @@ body {
 .nav-tab {
     background: transparent;
     border: none;
-    color: var(--gray);
+    color: rgba(255, 255, 255, 0.85);
     padding: 0.6rem 0.9rem;
     text-align: center;
     display: flex;
@@ -182,13 +183,13 @@ body {
 }
 
 .nav-tab:hover {
-    color: var(--primary);
-    background: rgba(67, 97, 238, 0.05);
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .nav-tab.active {
-    background: rgba(67, 97, 238, 0.1);
-    color: var(--primary);
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
 }
 
 /* Header Stats in Dashboard */
