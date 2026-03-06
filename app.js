@@ -170,11 +170,13 @@ function updateStatistics() {
 
     const currency = appData.settings.currency === 'EUR' ? '€' : appData.settings.currency === 'USD' ? '$' : '£';
 
-    // Dashboard Header Stats
-    document.getElementById('total-products').textContent = stats.totalProducts;
-    document.getElementById('total-value').textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    // Dashboard Main Stats
+    const totalProdElem = document.getElementById('total-products');
+    const totalValElem = document.getElementById('total-value');
+    if (totalProdElem) totalProdElem.textContent = stats.totalProducts;
+    if (totalValElem) totalValElem.textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-    // Settings Stats
+    // Settings Stats (if present)
     const settingsTotal = document.getElementById('settings-total-products');
     const settingsValue = document.getElementById('settings-total-value');
     if (settingsTotal) settingsTotal.textContent = stats.totalProducts;

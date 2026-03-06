@@ -192,50 +192,12 @@ body {
     color: white;
 }
 
-/* Header Stats in Dashboard */
-.header-stats-wrapper {
-    display: flex;
-    gap: 1.5rem;
-    margin-right: 1.5rem;
-    padding-right: 1.5rem;
-    border-right: 1px solid var(--border);
-}
-
-.header-stat-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.header-stat-item i {
-    font-size: 1.25rem;
-    color: var(--primary);
-    background: rgba(67, 97, 238, 0.1);
-    padding: 0.5rem;
-    border-radius: 10px;
-}
-
-.header-stat-item:last-child i {
-    color: var(--secondary);
-    background: rgba(114, 9, 183, 0.1);
-}
-
-.header-stat-item .stat-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.header-stat-item .stat-value {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--dark);
-    line-height: 1.1;
-}
-
-.header-stat-item .stat-label {
-    font-size: 0.75rem;
-    color: var(--gray);
-    font-weight: 600;
+/* Stats Grid Layout */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 /* Main Content */

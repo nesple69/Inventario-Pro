@@ -70,22 +70,6 @@
                             <p>Monitora lo stato del tuo inventario in tempo reale</p>
                         </div>
                         <div class="header-actions">
-                            <div class="header-stats-wrapper">
-                                <div class="header-stat-item">
-                                    <i class="fas fa-cubes"></i>
-                                    <div class="stat-info">
-                                        <span class="stat-value" id="total-products">0</span>
-                                        <span class="stat-label">Prodotti</span>
-                                    </div>
-                                </div>
-                                <div class="header-stat-item">
-                                    <i class="fas fa-wallet"></i>
-                                    <div class="stat-info">
-                                        <span class="stat-value" id="total-value">€ 0</span>
-                                        <span class="stat-label">Valore</span>
-                                    </div>
-                                </div>
-                            </div>
                             <button class="btn btn-outline" onclick="refreshData()"><i
                                     class="fas fa-sync-alt"></i>Aggiorna</button>
                             <button class="btn btn-primary" onclick="showAddProductModal()"><i
@@ -102,10 +86,28 @@
                     </div>
 
                     <div class="stats-grid">
+                        <!-- TOTALE PRODOTTI E VALORE -->
+                        <div class="stat-card-main" onclick="showTab('products')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                            <div class="stat-icon-wrapper icon-blue"><i class="fas fa-cubes"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="total-products">0</span>
+                                <span class="stat-main-label">Prodotti Totali</span>
+                            </div>
+                        </div>
+                        <div class="stat-card-main" style="transition: all 0.2s ease; border: 1px solid var(--border);">
+                            <div class="stat-icon-wrapper icon-purple"><i class="fas fa-wallet"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="total-value">€ 0</span>
+                                <span class="stat-main-label">Valore Totale</span>
+                            </div>
+                        </div>
+
+                        <!-- FILTRI STOCK -->
                         <div class="stat-card-main dashboard-stat-filter" id="filter-card-in-stock"
                             onclick="filterDashboardByStatus('in-stock')"
                             style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
-                            <div class="stat-icon-wrapper icon-blue"><i class="fas fa-box"></i></div>
+                            <div class="stat-icon-wrapper icon-green"><i class="fas fa-box"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="inStockCount">0</span>
                                 <span class="stat-main-label">In Stock</span>
@@ -131,10 +133,13 @@
                         </div>
                         <div class="stat-card-main" onclick="showTab('categories')"
                             style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
-                            <div class="stat-icon-wrapper icon-purple"><i class="fas fa-layer-group"></i></div>
+                            <div class="stat-icon-wrapper icon-blue"
+                                style="background: rgba(46, 196, 182, 0.1); color: var(--success);"><i
+                                    class="fas fa-layer-group"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="categoriesCount">0</span>
-                                <span class="stat-main-label">Categorie</span>
+                                <span class="stat-label"
+                                    style="font-size: 0.85rem; color: var(--gray); font-weight: 600;">Categorie</span>
                             </div>
                         </div>
                     </div>
