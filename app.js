@@ -183,9 +183,13 @@ function updateStatistics() {
     if (settingsValue) settingsValue.textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     // Dashboard Stats
-    document.getElementById('inStockCount').textContent = stats.inStock;
-    document.getElementById('lowStockCount').textContent = stats.lowStock;
-    document.getElementById('outOfStockCount').textContent = stats.outOfStock;
+    const inStockElem = document.getElementById('inStockCount');
+    const lowStockElem = document.getElementById('lowStockCount');
+    const outOfStockElem = document.getElementById('outOfStockCount');
+
+    if (inStockElem) inStockElem.textContent = stats.inStock;
+    if (lowStockElem) lowStockElem.textContent = stats.lowStock;
+    if (outOfStockElem) outOfStockElem.textContent = stats.outOfStock;
     document.getElementById('categoriesCount').textContent = stats.categories;
 }
 
