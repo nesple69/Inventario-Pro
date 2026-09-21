@@ -4986,26 +4986,94 @@ function renderRecentProducts() {
     }
 }
 
+let currentProductDeptFilter = 'tutti';
+
+function filterProductsByDepartment(dept) {
+    currentProductDeptFilter = dept;
+
+    // Aggiorna stato attivo dei pulsanti
+    ['tutti', 'cucina', 'bar', 'consumabili'].forEach(d => {
+        const btn = document.getElementById(`prod-dept-btn-${d}`);
+        if (btn) btn.classList.toggle('active', d === dept);
+    });
+
+    renderAllProductsTable();
+}
+
+function updateProductDepartmentCounters() {
+    const products = appData.products || [];
+    const countAll = products.length;
+    const countCucina = products.filter(p => (p.department || '').toLowerCase() === 'cucina' || (p.category || '').toLowerCase() === 'cucina').length;
+    const countBar = products.filter(p => (p.department || '').toLowerCase() === 'bar' || (p.category || '').toLowerCase() === 'beverage').length;
+    const countConsumabili = products.filter(p => (p.department || '').toLowerCase() === 'entrambi' || (p.category || '').toLowerCase() === 'consumabili').length;
+
+    const elAll = document.getElementById('prod-count-tutti');
+    const elCucina = document.getElementById('prod-count-cucina');
+    const elBar = document.getElementById('prod-count-bar');
+    const elCons = document.getElementById('prod-count-consumabili');
+
+    if (elAll) elAll.textContent = countAll;
+    if (elCucina) elCucina.textContent = countCucina;
+    if (elBar) elBar.textContent = countBar;
+    if (elCons) elCons.textContent = countConsumabili;
+}
+
 function renderAllProductsTable() {
+    updateProductDepartmentCounters();
+
     const tbody = document.getElementById('allProductsTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = appData.products.map(p => {
-        const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+    const searchInput = document.getElementById('productSearchInput');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+    let filtered = appData.products || [];
+
+    // Filtro per Reparto
+    if (currentProductDeptFilter !== 'tutti') {
+        filtered = filtered.filter(p => {
+            const pDept = (p.department || '').toLowerCase();
+            const pCat = (p.category || '').toLowerCase();
+            if (currentProductDeptFilter === 'cucina') return pDept === 'cucina' || pCat === 'cucina';
+            if (currentProductDeptFilter === 'bar') return pDept === 'bar' || pCat === 'beverage';
+            if (currentProductDeptFilter === 'consumabili') return pDept === 'entrambi' || pCat === 'consumabili';
+            return true;
+        });
+    }
+
+    // Filtro di ricerca per testo
+    if (searchTerm) {
+        filtered = filtered.filter(p =>
+            (p.name && p.name.toLowerCase().includes(searchTerm)) ||
+            (p.category && p.category.toLowerCase().includes(searchTerm)) ||
+            (p.subcategory && p.subcategory.toLowerCase().includes(searchTerm)) ||
+            (p.supplier && p.supplier.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato per questo reparto o ricerca</td></tr>';
+        return;
+    }
+
+    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+
+    // Ordine richiesto: REPARTO, CATEGORIA, SOTTOCATEGORIA, PRODOTTO, PREZZO, GIACENZA, FORNITORE, AZIONI
+    tbody.innerHTML = filtered.map(p => {
         return `
                 <tr class="fade-in">
-                    <td class="product-cell">
-                        <span class="product-name" style="font-weight: 600; color: var(--dark);">${p.name}</span>
-                    </td>
                     <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
-                    <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
-                    <td><span class="badge badge-category">${p.category}</span></td>
+                    <td><span class="badge badge-category">${p.category || '-'}</span></td>
                     <td><span class="subcategory-text">${p.subcategory || '-'}</span></td>
-                    <td class="quantity-cell">
-                        <span class="quantity-value">${p.quantity}</span>
-                        <span class="quantity-unit">${p.unit}</span>
+                    <td class="product-cell">
+                        <span class="product-name" style="font-weight: 600; color: var(--dark); font-size: 0.95rem;">${p.name}</span>
                     </td>
-                    <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
+                    <td class="price-cell" style="font-weight: 600;">${currency} ${Number(p.price || 0).toFixed(2)}</td>
+                    <td class="quantity-cell">
+                        <span class="quantity-value" style="font-weight: 700;">${p.quantity}</span>
+                        <span class="quantity-unit" style="color: var(--gray); font-size: 0.85rem;">${p.unit}</span>
+                    </td>
+                    <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
                     <td>
                         <div class="table-actions">
                             <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
@@ -5015,6 +5083,10 @@ function renderAllProductsTable() {
                     </td>
                 </tr>`;
     }).join('');
+}
+
+function filterProductsTable() {
+    renderAllProductsTable();
 }
 
 function createProductRow(p) {

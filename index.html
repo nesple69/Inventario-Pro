@@ -245,6 +245,23 @@
                             <h3><i class="fas fa-boxes"
                                     style="margin-right: 0.5rem; color: var(--primary);"></i>Catalogo Completo</h3>
                         </div>
+
+                        <!-- SELETTORE REPARTO CUCINA / BAR / TUTTI -->
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: center;">
+                            <button class="department-btn active" id="prod-dept-btn-tutti" onclick="filterProductsByDepartment('tutti')">
+                                <i class="fas fa-layer-group"></i> Tutti i Reparti <span class="badge" style="background: rgba(0,0,0,0.12); color: inherit; margin-left: 0.3rem;" id="prod-count-tutti">0</span>
+                            </button>
+                            <button class="department-btn" id="prod-dept-btn-cucina" onclick="filterProductsByDepartment('cucina')">
+                                <i class="fas fa-utensils"></i> 🍳 Cucina <span class="badge" style="background: rgba(0,0,0,0.12); color: inherit; margin-left: 0.3rem;" id="prod-count-cucina">0</span>
+                            </button>
+                            <button class="department-btn" id="prod-dept-btn-bar" onclick="filterProductsByDepartment('bar')">
+                                <i class="fas fa-glass-martini-alt"></i> 🍹 Bar <span class="badge" style="background: rgba(0,0,0,0.12); color: inherit; margin-left: 0.3rem;" id="prod-count-bar">0</span>
+                            </button>
+                            <button class="department-btn" id="prod-dept-btn-consumabili" onclick="filterProductsByDepartment('consumabili')">
+                                <i class="fas fa-box"></i> 🏢 Consumabili <span class="badge" style="background: rgba(0,0,0,0.12); color: inherit; margin-left: 0.3rem;" id="prod-count-consumabili">0</span>
+                            </button>
+                        </div>
+
                         <div style="margin-bottom: 1rem;">
                             <input type="text" id="productSearchInput" class="form-input"
                                 placeholder="🔍 Cerca prodotto per nome, categoria o fornitore..."
@@ -254,13 +271,13 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Prodotto</th>
                                         <th>Reparto</th>
-                                        <th>Fornitore</th>
                                         <th>Categoria</th>
                                         <th>Sottocategoria</th>
-                                        <th>Giacenza</th>
+                                        <th>Prodotto</th>
                                         <th>Prezzo</th>
+                                        <th>Giacenza</th>
+                                        <th>Fornitore</th>
                                         <th>Azioni</th>
                                     </tr>
                                 </thead>
@@ -999,7 +1016,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=4.5"></script>
+    <script src="app.js?v=5.0"></script>
 </body>
 
 </html>
