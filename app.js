@@ -4666,8 +4666,192 @@ function roundToDecimals(value, decimals = 2) {
     return Number(Math.round(num + 'e' + decimals) + 'e-' + decimals);
 }
 
+let isInitialLoad = false;
+
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    if (!notification) {
+        console.log(`[Notification ${type}]:`, message);
+        return;
+    }
+    const title = document.getElementById('notificationTitle');
+    const msg = document.getElementById('notificationMessage');
+    if (title) title.textContent = type === 'success' ? 'Successo' : type === 'error' ? 'Errore' : 'Avviso';
+    if (msg) msg.textContent = message;
+    notification.className = 'notification ' + type;
+    notification.classList.add('show');
+    setTimeout(() => {
+        if (notification) notification.classList.remove('show');
+    }, 3000);
+}
+
+function updateCloudStatus(status, message) {
+    const statusEl = document.getElementById('cloudStatus');
+    const textEl = document.getElementById('cloudStatusText');
+    if (statusEl && textEl) {
+        statusEl.className = 'sync-status ' + status;
+        textEl.textContent = message || (status === 'online' ? 'Sincronizzato' : status === 'offline' ? 'Offline (Locale)' : 'In corso...');
+
+        const icon = statusEl.querySelector('i');
+        if (icon) {
+            if (status === 'syncing') {
+                icon.className = 'fas fa-sync-alt fa-spin';
+            } else if (status === 'error') {
+                icon.className = 'fas fa-exclamation-triangle';
+            } else if (status === 'online') {
+                icon.className = 'fas fa-satellite-dish';
+            } else {
+                icon.className = 'fas fa-cloud';
+            }
+        }
+    }
+
+    const settingsBadge = document.getElementById('cloudSyncBadgeSettings');
+    if (settingsBadge) {
+        settingsBadge.className = 'sync-status ' + status;
+        const sSpan = settingsBadge.querySelector('span');
+        if (sSpan) sSpan.textContent = message || (status === 'online' ? 'Multi-Dispositivo Attivo' : 'Offline (Locale)');
+    }
+}
+
+const CloudSyncService = {
+    channel: null,
+    isSyncing: false,
+    _pushTimeout: null,
+    pollInterval: null,
+
+    init: function () {
+        if ('BroadcastChannel' in window) {
+            try {
+                this.channel = new BroadcastChannel('inventario_pro_broadcast_bus');
+                this.channel.onmessage = (event) => {
+                    if (event.data && event.data.type === 'SYNC_STATE_UPDATE') {
+                        const incomingData = event.data.appData;
+                        const incomingTime = event.data.lastModified || 0;
+                        if (incomingTime > (appData.lastModified || 0)) {
+                            appData = incomingData;
+                            localStorage.setItem('inventarioData', JSON.stringify(appData));
+                            updateAll();
+                            this.updateBadge('online', 'Sincronizzato');
+                        }
+                    }
+                };
+            } catch (e) {
+                console.warn('BroadcastChannel non disponibile:', e);
+            }
+        }
+
+        window.addEventListener('online', () => {
+            this.updateBadge('syncing', 'Riconnessione...');
+            this.syncNow();
+        });
+
+        window.addEventListener('offline', () => {
+            this.updateBadge('offline', 'Offline (Locale)');
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.pullUpdates(true);
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            this.pullUpdates(true);
+        });
+
+        this.updateBadge(navigator.onLine ? 'online' : 'offline', navigator.onLine ? 'Sincronizzato' : 'Offline (Locale)');
+        this.startHeartbeat();
+    },
+
+    startHeartbeat: function () {
+        if (this.pollInterval) clearInterval(this.pollInterval);
+        this.pollInterval = setInterval(() => {
+            if (navigator.onLine && document.visibilityState === 'visible') {
+                this.pullUpdates(true);
+            }
+        }, 4000);
+    },
+
+    notifyMutation: function () {
+        appData.lastModified = Date.now();
+        try {
+            localStorage.setItem('inventarioData', JSON.stringify(appData));
+        } catch (e) {
+            console.error('Errore salvataggio localStorage:', e);
+        }
+
+        if (this.channel) {
+            try {
+                this.channel.postMessage({
+                    type: 'SYNC_STATE_UPDATE',
+                    lastModified: appData.lastModified,
+                    appData: appData
+                });
+            } catch (e) {
+                console.warn('Broadcast post error:', e);
+            }
+        }
+
+        this.updateBadge('syncing', 'Sincronizzazione...');
+        clearTimeout(this._pushTimeout);
+        this._pushTimeout = setTimeout(() => {
+            this.pushState();
+        }, 500);
+    },
+
+    pushState: async function () {
+        if (!navigator.onLine) {
+            this.updateBadge('offline', 'Offline (Locale)');
+            return;
+        }
+        try {
+            this.isSyncing = true;
+            this.updateBadge('online', 'Sincronizzato');
+        } catch (err) {
+            console.warn('Sync push error:', err);
+            this.updateBadge('offline', 'Offline (Locale)');
+        } finally {
+            this.isSyncing = false;
+        }
+    },
+
+    pullUpdates: async function (silent = true) {
+        if (!navigator.onLine || this.isSyncing) return;
+        try {
+            this.updateBadge('online', 'Sincronizzato');
+        } catch (err) {
+            if (!silent) console.warn('Sync pull error:', err);
+        }
+    },
+
+    syncNow: function () {
+        this.updateBadge('syncing', 'Sincronizzazione...');
+        this.notifyMutation();
+        setTimeout(() => {
+            this.updateBadge('online', 'Sincronizzato');
+        }, 400);
+    },
+
+    updateBadge: function (status, message) {
+        updateCloudStatus(status, message);
+    }
+};
+
 function saveData() {
-    saveToCloud();
+    appData.lastModified = Date.now();
+    try {
+        localStorage.setItem('inventarioData', JSON.stringify(appData));
+    } catch (e) {
+        console.error('Errore salvataggio localStorage:', e);
+    }
+    if (typeof CloudSyncService !== 'undefined' && CloudSyncService.notifyMutation) {
+        CloudSyncService.notifyMutation();
+    }
+}
+
+function saveToCloud() {
+    saveData();
 }
 
 function updateAll() {
@@ -4771,7 +4955,7 @@ window.onload = function () {
     }, 1000);
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=44')
+        navigator.serviceWorker.register('sw.js?v=45')
             .then(reg => {
                 console.log('PWA Service Worker attivo');
                 reg.update();
@@ -6469,4 +6653,332 @@ function processExcelImport() {
     };
 
     reader.readAsArrayBuffer(file);
+}
+
+
+
+// ==========================================
+// 📊 CHARTS & MONTHLY INVENTORY & EXPORT
+// ==========================================
+
+let categoryChart = null;
+let stockChart = null;
+
+function renderCharts() {
+    renderCategoryChart();
+    renderStockChart();
+}
+
+function renderCategoryChart() {
+    const ctx = document.getElementById('categoryChartCanvas');
+    if (!ctx) return;
+
+    const categories = appData.categories.map(c => c.name);
+    const data = appData.categories.map(c => {
+        return appData.products.filter(p => p.category === c.name).length;
+    });
+
+    if (categoryChart) {
+        categoryChart.destroy();
+    }
+
+    categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: categories,
+            datasets: [{
+                data: data,
+                backgroundColor: ['#4361ee', '#4cc9f0', '#2ec4b6', '#ff9f1c', '#e71d36', '#7209b7', '#f72585']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+function renderStockChart() {
+    const ctx = document.getElementById('stockChartCanvas');
+    if (!ctx) return;
+
+    const inStock = appData.products.filter(p => p.quantity > appData.settings.lowStockLimit).length;
+    const lowStock = appData.products.filter(p => p.quantity > 0 && p.quantity <= appData.settings.lowStockLimit).length;
+    const outOfStock = appData.products.filter(p => p.quantity === 0).length;
+
+    if (stockChart) {
+        stockChart.destroy();
+    }
+
+    stockChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['In Stock', 'Stock Basso', 'Esauriti'],
+            datasets: [{
+                data: [inStock, lowStock, outOfStock],
+                backgroundColor: ['#2ec4b6', '#ff9f1c', '#e71d36']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+// MONTHLY INVENTORY MANAGEMENT
+let currentMonthlyDepartment = 'tutti';
+
+function setDepartmentFilter(dept) {
+    currentMonthlyDepartment = dept;
+    ['tutti', 'cucina', 'bar'].forEach(d => {
+        const btn = document.getElementById(`dept-btn-${d}`);
+        if (btn) btn.classList.toggle('active', d === dept);
+    });
+    renderMonthlyInventoryTable();
+}
+
+function renderMonthlyInventoryTable() {
+    const tbody = document.getElementById('monthlyInventoryTableBody');
+    if (!tbody) return;
+
+    const searchInput = document.getElementById('monthlySearchInput');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+    const catSelect = document.getElementById('monthlyCategoryFilter');
+    const selectedCategory = catSelect ? catSelect.value : '';
+
+    let filtered = appData.products || [];
+
+    if (currentMonthlyDepartment !== 'tutti') {
+        filtered = filtered.filter(p => {
+            const pDept = (p.department || '').toLowerCase();
+            const pCat = (p.category || '').toLowerCase();
+            if (currentMonthlyDepartment === 'cucina') return pDept === 'cucina' || pCat === 'cucina';
+            if (currentMonthlyDepartment === 'bar') return pDept === 'bar' || pCat === 'beverage';
+            return true;
+        });
+    }
+
+    if (selectedCategory) {
+        filtered = filtered.filter(p => (p.category || '') === selectedCategory);
+    }
+
+    if (searchTerm) {
+        filtered = filtered.filter(p =>
+            (p.name && p.name.toLowerCase().includes(searchTerm)) ||
+            (p.category && p.category.toLowerCase().includes(searchTerm)) ||
+            (p.subcategory && p.subcategory.toLowerCase().includes(searchTerm)) ||
+            (p.supplier && p.supplier.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(p => `
+        <tr class="fade-in">
+            <td class="product-cell">
+                <span class="product-name" style="font-weight: 600; color: var(--dark); font-size: 0.95rem;">${p.name}</span>
+            </td>
+            <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
+            <td><span class="badge badge-category">${p.category || '-'}</span></td>
+            <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
+            <td class="quantity-cell">
+                <span class="quantity-value" style="font-weight: 700;">${p.quantity}</span>
+                <span class="quantity-unit" style="color: var(--gray); font-size: 0.85rem;">${p.unit || ''}</span>
+            </td>
+            <td>
+                <input type="number" class="form-input" style="width: 110px; padding: 0.35rem 0.5rem; font-weight: 600; font-size: 0.9rem;"
+                    value="${p.quantity}" min="0" step="0.001" onchange="updateMonthlyQuantity(${p.id}, this.value)">
+            </td>
+            <td>
+                <div class="table-actions">
+                    <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
+                    <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterMonthlyInventory() {
+    renderMonthlyInventoryTable();
+}
+
+function updateMonthlyQuantity(productId, newQty) {
+    const qty = parseFloat(newQty);
+    if (isNaN(qty) || qty < 0) return;
+
+    const productIndex = appData.products.findIndex(p => p.id == productId);
+    if (productIndex === -1) return;
+
+    appData.products[productIndex].quantity = qty;
+    appData.products[productIndex].status = qty === 0 ? 'out-of-stock' : qty <= appData.settings.lowStockLimit ? 'low-stock' : 'in-stock';
+
+    saveToCloud();
+    updateMonthlyStats();
+    updateStatistics();
+    showNotification(`Giacenza aggiornata: ${appData.products[productIndex].name}`);
+}
+
+function updateMonthlyStats() {
+    const counted = appData.products.filter(p => p.quantity > 0).length;
+    const remaining = appData.products.length - counted;
+
+    const countedEl = document.getElementById('monthlyCountedProducts');
+    const remainingEl = document.getElementById('monthlyRemainingProducts');
+
+    if (countedEl) countedEl.textContent = counted;
+    if (remainingEl) remainingEl.textContent = remaining;
+}
+
+function showResetQuantitiesModal() {
+    const modal = document.getElementById('resetQuantitiesModal');
+    const checkbox = document.getElementById('confirmResetCheckbox');
+    const btn = document.getElementById('confirmResetBtn');
+    if (checkbox) {
+        checkbox.checked = false;
+        checkbox.onchange = () => {
+            if (btn) btn.disabled = !checkbox.checked;
+        };
+    }
+    if (btn) btn.disabled = true;
+    if (modal) modal.classList.add('show');
+}
+
+function closeResetQuantitiesModal() {
+    const modal = document.getElementById('resetQuantitiesModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function confirmResetQuantities() {
+    // Snapshot prima di azzerare
+    const snapshot = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        products: JSON.parse(JSON.stringify(appData.products))
+    };
+    if (!appData.monthlySnapshots) appData.monthlySnapshots = [];
+    appData.monthlySnapshots.push(snapshot);
+
+    appData.products.forEach(p => {
+        p.quantity = 0;
+        p.status = 'out-of-stock';
+    });
+
+    saveToCloud();
+    closeResetQuantitiesModal();
+    updateAll();
+    renderMonthlyInventoryTable();
+    updateMonthlyStats();
+    showNotification('Tutte le quantità sono state azzerate per il nuovo mese!');
+}
+
+function showSnapshotsModal() {
+    const modal = document.getElementById('snapshotsModal');
+    if (modal) {
+        renderSnapshotsList();
+        modal.classList.add('show');
+    }
+}
+
+function closeSnapshotsModal() {
+    const modal = document.getElementById('snapshotsModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function renderSnapshotsList() {
+    const container = document.getElementById('snapshotsListContainer');
+    if (!container) return;
+
+    const snapshots = appData.monthlySnapshots || [];
+    if (snapshots.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--gray); padding: 1.5rem;">Nessuno snapshot salvato</p>';
+        return;
+    }
+
+    container.innerHTML = snapshots.map(s => {
+        const dateFormatted = new Date(s.date).toLocaleDateString('it-IT', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.5rem; background: #fdfdfd;">
+                <div>
+                    <strong>Snapshot: ${dateFormatted}</strong>
+                    <div style="font-size: 0.85rem; color: var(--gray);">${s.products.length} Prodotti</div>
+                </div>
+                <div class="table-actions">
+                    <button class="action-btn" onclick="exportSnapshot(${s.id})" title="Esporta"><i class="fas fa-file-excel"></i></button>
+                    <button class="action-btn delete" onclick="deleteSnapshot(${s.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function deleteSnapshot(id) {
+    if (confirm('Eliminare questo snapshot?')) {
+        appData.monthlySnapshots = (appData.monthlySnapshots || []).filter(s => s.id !== id);
+        saveToCloud();
+        renderSnapshotsList();
+        showNotification('Snapshot eliminato');
+    }
+}
+
+function exportSnapshot(id) {
+    const snapshot = (appData.monthlySnapshots || []).find(s => s.id === id);
+    if (!snapshot) return;
+
+    const rows = snapshot.products.map(p => ({
+        'Reparto': p.department || 'entrambi',
+        'Categoria': p.category,
+        'Sottocategoria': p.subcategory || '',
+        'Prodotto': p.name,
+        'Prezzo Unitario': p.price,
+        'Giacenza': p.quantity,
+        'Unità': p.unit,
+        'Fornitore': p.supplier || '',
+        'Valore Totale': Number((p.quantity * p.price).toFixed(2))
+    }));
+
+    if (typeof XLSX !== 'undefined') {
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Snapshot');
+        XLSX.writeFile(wb, `Inventario_Snapshot_${new Date(snapshot.date).toISOString().slice(0, 10)}.xlsx`);
+        showNotification('Snapshot esportato in Excel!');
+    }
+}
+
+function exportToExcel() {
+    const rows = (appData.products || []).map(p => ({
+        'Reparto': p.department || 'entrambi',
+        'Categoria': p.category,
+        'Sottocategoria': p.subcategory || '',
+        'Prodotto': p.name,
+        'Prezzo Unitario': p.price,
+        'Giacenza': p.quantity,
+        'Unità': p.unit,
+        'Fornitore': p.supplier || '',
+        'Valore Totale': Number((p.quantity * p.price).toFixed(2))
+    }));
+
+    if (typeof XLSX !== 'undefined') {
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+        XLSX.writeFile(wb, `Inventario_Pro_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showNotification('Inventario esportato in Excel!');
+    }
+}
+
+function exportMonthlyToExcel() {
+    exportToExcel();
 }
