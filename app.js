@@ -5549,7 +5549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v70';
+const CURRENT_APP_BUILD = 'v71';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5597,7 +5597,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=70')
+        navigator.serviceWorker.register('sw.js?v=71')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -6510,4 +6510,420 @@ function exportMonthlyToExcel() {
 function refreshData() {
     updateAll();
     showNotification('Dati aggiornati!');
+}
+
+
+
+// ==========================================
+// 🏷️ GESTIONE CATEGORIE
+// ==========================================
+function renderCategories() {
+    const tbody = document.getElementById('categoriesTableBody');
+    if (!tbody) return;
+
+    const categories = appData.categories || [];
+    const products = appData.products || [];
+    const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
+
+    if (categories.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--gray); padding: 2rem;">Nessuna categoria presente</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = categories.map(cat => {
+        const catName = typeof cat === 'object' ? cat.name : cat;
+        const catProds = products.filter(p => (p.category || '').toLowerCase() === catName.toLowerCase());
+        const count = catProds.length;
+        const totalVal = catProds.reduce((sum, p) => sum + ((parseFloat(p.quantity) || 0) * (parseFloat(p.price) || 0)), 0);
+        const subcats = (typeof cat === 'object' && Array.isArray(cat.subcategories)) ? cat.subcategories : [];
+
+        const subcatBadges = subcats.map(s => `<span class="badge" style="background: #e2e8f0; color: #334155; margin: 2px; font-size: 0.78rem;">${s}</span>`).join(' ') || '<span style="color: var(--gray); font-size: 0.8rem;">Nessuna</span>';
+
+        const catId = typeof cat === 'object' && cat.id ? cat.id : `'${catName}'`;
+
+        return `
+            <tr>
+                <td><strong style="color: var(--dark); font-size: 1rem;"><i class="fas fa-folder" style="color: var(--primary); margin-right: 0.5rem;"></i>${catName}</strong></td>
+                <td><span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 700;">${count} prodotti</span></td>
+                <td><strong>${currency} ${totalVal.toFixed(2)}</strong></td>
+                <td><div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 400px;">${subcatBadges}</div></td>
+                <td>
+                    <div class="table-actions">
+                        <button class="action-btn delete" onclick="deleteCategory(${catId})" title="Elimina Categoria"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function addCategoryFromForm() {
+    const nameInput = document.getElementById('categoryName');
+    const subcatInput = document.getElementById('subcategoryName');
+    
+    const catName = nameInput ? nameInput.value.trim() : '';
+    const subcatName = subcatInput ? subcatInput.value.trim() : '';
+
+    if (!catName) {
+        alert('Inserisci il nome della categoria.');
+        return;
+    }
+
+    if (!appData.categories) appData.categories = [];
+
+    let existingCat = appData.categories.find(c => (typeof c === 'object' ? c.name : c).toLowerCase() === catName.toLowerCase());
+
+    if (existingCat) {
+        if (typeof existingCat === 'string') {
+            existingCat = { id: Date.now(), name: existingCat, subcategories: [] };
+            const idx = appData.categories.findIndex(c => c === catName);
+            appData.categories[idx] = existingCat;
+        }
+        if (subcatName && !existingCat.subcategories.includes(subcatName)) {
+            existingCat.subcategories.push(subcatName);
+        }
+    } else {
+        appData.categories.push({
+            id: Date.now(),
+            name: catName,
+            subcategories: subcatName ? [subcatName] : []
+        });
+    }
+
+    if (nameInput) nameInput.value = '';
+    if (subcatInput) subcatInput.value = '';
+
+    saveToCloud();
+    updateAll();
+    renderCategories();
+    showNotification('Categoria salvata con successo!', 'success');
+}
+
+function deleteCategory(catId) {
+    if (confirm('Sei sicuro di voler eliminare questa categoria?')) {
+        appData.categories = (appData.categories || []).filter(c => (c.id !== catId && c.name !== catId && c !== catId));
+        saveToCloud();
+        updateAll();
+        renderCategories();
+        showNotification('Categoria eliminata', 'info');
+    }
+}
+
+// ==========================================
+// 🚚 GESTIONE FORNITORI
+// ==========================================
+function getSuppliersList() {
+    let suppliers = appData.suppliers || [];
+    const products = appData.products || [];
+
+    const distinctSuppliers = {};
+    products.forEach(p => {
+        const sName = (p.supplier || 'Altro').trim();
+        if (sName) {
+            distinctSuppliers[sName] = (distinctSuppliers[sName] || 0) + 1;
+        }
+    });
+
+    Object.keys(distinctSuppliers).forEach(sName => {
+        const exists = suppliers.some(s => (typeof s === 'object' ? s.name : s).toLowerCase() === sName.toLowerCase());
+        if (!exists) {
+            suppliers.push({
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                name: sName,
+                phone: '-',
+                email: '-',
+                productCount: distinctSuppliers[sName]
+            });
+        }
+    });
+
+    appData.suppliers = suppliers;
+    return suppliers;
+}
+
+function renderSuppliers() {
+    const tbody = document.getElementById('suppliersTableBody');
+    if (!tbody) return;
+
+    const suppliers = getSuppliersList();
+    const products = appData.products || [];
+    const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
+
+    if (suppliers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun fornitore presente</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = suppliers.map(sup => {
+        const supName = typeof sup === 'object' ? sup.name : sup;
+        const supProds = products.filter(p => (p.supplier || '').toLowerCase() === supName.toLowerCase());
+        const count = supProds.length;
+        const totalVal = supProds.reduce((sum, p) => sum + ((parseFloat(p.quantity) || 0) * (parseFloat(p.price) || 0)), 0);
+        const supId = typeof sup === 'object' && sup.id ? sup.id : `'${supName}'`;
+
+        return `
+            <tr>
+                <td><strong style="color: var(--dark); font-size: 1rem;"><i class="fas fa-truck" style="color: var(--secondary); margin-right: 0.5rem;"></i>${supName}</strong></td>
+                <td><span style="color: var(--gray); font-size: 0.9rem;">${sup.phone || '-'}</span></td>
+                <td><span style="color: var(--gray); font-size: 0.9rem;">${sup.email || '-'}</span></td>
+                <td><span class="badge" style="background: rgba(114, 9, 183, 0.1); color: var(--secondary); font-weight: 700;">${count} prodotti</span></td>
+                <td>
+                    <div class="table-actions">
+                        <button class="action-btn delete" onclick="deleteSupplier(${supId})" title="Elimina Fornitore"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function addSupplierFromForm() {
+    const nameInput = document.getElementById('supplierName');
+    const phoneInput = document.getElementById('supplierPhone');
+    const emailInput = document.getElementById('supplierEmail');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+
+    if (!name) {
+        alert('Inserisci il nome del fornitore.');
+        return;
+    }
+
+    if (!appData.suppliers) appData.suppliers = [];
+
+    const existing = appData.suppliers.find(s => (typeof s === 'object' ? s.name : s).toLowerCase() === name.toLowerCase());
+    if (existing) {
+        if (typeof existing === 'object') {
+            if (phone) existing.phone = phone;
+            if (email) existing.email = email;
+        }
+    } else {
+        appData.suppliers.push({
+            id: Date.now(),
+            name: name,
+            phone: phone,
+            email: email
+        });
+    }
+
+    if (nameInput) nameInput.value = '';
+    if (phoneInput) phoneInput.value = '';
+    if (emailInput) emailInput.value = '';
+
+    saveToCloud();
+    updateAll();
+    renderSuppliers();
+    showNotification('Fornitore salvato con successo!', 'success');
+}
+
+function deleteSupplier(supId) {
+    if (confirm('Eliminare questo fornitore?')) {
+        appData.suppliers = (appData.suppliers || []).filter(s => (s.id !== supId && s.name !== supId && s !== supId));
+        saveToCloud();
+        updateAll();
+        renderSuppliers();
+        showNotification('Fornitore eliminato', 'info');
+    }
+}
+
+// ==========================================
+// 📊 GRAFICI INTERATTIVI & REPORT PDF
+// ==========================================
+let categoryChartInstance = null;
+let stockChartInstance = null;
+
+function renderReports() {
+    const products = appData.products || [];
+    const categories = appData.categories || [];
+    
+    // 1. Dati Categorie
+    const catLabels = [];
+    const catCounts = [];
+    const catValues = [];
+    const colors = ['#4361ee', '#2ec4b6', '#ff9f1c', '#7209b7', '#e63946', '#4cc9f0'];
+
+    categories.forEach(cat => {
+        const name = typeof cat === 'object' ? cat.name : cat;
+        const prods = products.filter(p => (p.category || '').toLowerCase() === name.toLowerCase());
+        catLabels.push(name);
+        catCounts.push(prods.length);
+        catValues.push(prods.reduce((sum, p) => sum + ((parseFloat(p.quantity) || 0) * (parseFloat(p.price) || 0)), 0));
+    });
+
+    // 2. Dati Stato Giacenze
+    const inStock = products.filter(p => p.status === 'in-stock').length;
+    const lowStock = products.filter(p => p.status === 'low-stock').length;
+    const outOfStock = products.filter(p => p.status === 'out-of-stock' || p.quantity === 0).length;
+
+    // Render Grafico Categorie
+    const catCanvas = document.getElementById('categoryChartCanvas');
+    if (catCanvas && typeof Chart !== 'undefined') {
+        const catCtx = catCanvas.getContext('2d');
+        if (categoryChartInstance) {
+            categoryChartInstance.destroy();
+        }
+        categoryChartInstance = new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catCounts,
+                    backgroundColor: colors.slice(0, catLabels.length),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                const idx = ctx.dataIndex;
+                                return ` ${catLabels[idx]}: ${catCounts[idx]} prodotti (€ ${catValues[idx].toFixed(2)})`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Render Grafico Giacenze
+    const stockCanvas = document.getElementById('stockChartCanvas');
+    if (stockCanvas && typeof Chart !== 'undefined') {
+        const stockCtx = stockCanvas.getContext('2d');
+        if (stockChartInstance) {
+            stockChartInstance.destroy();
+        }
+        stockChartInstance = new Chart(stockCtx, {
+            type: 'bar',
+            data: {
+                labels: ['In Stock', 'Stock Basso', 'Esauriti'],
+                datasets: [{
+                    label: 'Prodotti',
+                    data: [inStock, lowStock, outOfStock],
+                    backgroundColor: ['#2ec4b6', '#ff9f1c', '#e63946'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+}
+
+function showCategoryReport() {
+    showTab('categories');
+}
+
+function showSupplierReport() {
+    showTab('suppliers');
+}
+
+function generateStockReport() {
+    try {
+        if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
+            alert('Libreria PDF in caricamento, riprova tra qualche secondo.');
+            return;
+        }
+        const { jsPDF } = window.jspdf || jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.setTextColor(67, 97, 238);
+        doc.text('Inventario Pro - Report Giacenze Magazzino', 14, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generato il: ${new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 14, 28);
+
+        const rows = (appData.products || []).map(p => [
+            p.name,
+            p.department || '-',
+            p.category || '-',
+            `${p.quantity} ${p.unit || 'pz'}`,
+            p.status || 'in-stock',
+            p.supplier || '-'
+        ]);
+
+        if (doc.autoTable) {
+            doc.autoTable({
+                head: [['Prodotto', 'Reparto', 'Categoria', 'Giacenza', 'Stato', 'Fornitore']],
+                body: rows,
+                startY: 35,
+                theme: 'grid',
+                headStyles: { fillColor: [67, 97, 238], textColor: 255, fontStyle: 'bold' },
+                styles: { fontSize: 8, cellPadding: 2 }
+            });
+            doc.save(`Report_Giacenze_${new Date().toISOString().slice(0, 10)}.pdf`);
+            showNotification('Report Giacenze PDF scaricato!', 'success');
+        } else {
+            alert('Plugin tabelle PDF non pronto.');
+        }
+    } catch (e) {
+        console.error('Errore generazione PDF:', e);
+        alert('Errore generazione PDF: ' + e.message);
+    }
+}
+
+function generateValueReport() {
+    try {
+        if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
+            alert('Libreria PDF in caricamento, riprova tra qualche secondo.');
+            return;
+        }
+        const { jsPDF } = window.jspdf || jspdf;
+        const doc = new jsPDF();
+        const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
+
+        const products = appData.products || [];
+        const totalVal = products.reduce((sum, p) => sum + ((parseFloat(p.quantity) || 0) * (parseFloat(p.price) || 0)), 0);
+
+        doc.setFontSize(18);
+        doc.setTextColor(46, 196, 182);
+        doc.text('Inventario Pro - Valorizzazione Economica Magazzino', 14, 20);
+
+        doc.setFontSize(11);
+        doc.setTextColor(50);
+        doc.text(`Totale Prodotti: ${products.length}  |  Valore Totale Inventario: ${currency} ${totalVal.toFixed(2)}`, 14, 28);
+
+        const rows = products.map(p => [
+            p.name,
+            p.department || '-',
+            p.category || '-',
+            `${currency} ${Number(p.price || 0).toFixed(2)}`,
+            `${p.quantity} ${p.unit || 'pz'}`,
+            `${currency} ${(p.quantity * p.price).toFixed(2)}`
+        ]);
+
+        if (doc.autoTable) {
+            doc.autoTable({
+                head: [['Prodotto', 'Reparto', 'Categoria', 'Prezzo Unit.', 'Giacenza', 'Valore Totale']],
+                body: rows,
+                startY: 35,
+                theme: 'grid',
+                headStyles: { fillColor: [46, 196, 182], textColor: 255, fontStyle: 'bold' },
+                styles: { fontSize: 8, cellPadding: 2 }
+            });
+            doc.save(`Valorizzazione_Inventario_${new Date().toISOString().slice(0, 10)}.pdf`);
+            showNotification('Report Valorizzazione PDF scaricato!', 'success');
+        }
+    } catch (e) {
+        console.error('Errore generazione PDF valore:', e);
+        alert('Errore generazione PDF: ' + e.message);
+    }
 }
