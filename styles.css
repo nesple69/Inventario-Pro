@@ -41,7 +41,10 @@ body {
 .app-header {
     background: var(--primary);
     color: white;
-    padding: 0.5rem 1.5rem;
+    padding-top: max(0.85rem, env(safe-area-inset-top, 20px));
+    padding-bottom: 0.8rem;
+    padding-left: max(1rem, env(safe-area-inset-left, 10px));
+    padding-right: max(1rem, env(safe-area-inset-right, 10px));
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -49,6 +52,19 @@ body {
     top: 0;
     z-index: 1000;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        padding-top: max(1.25rem, env(safe-area-inset-top, 35px));
+        padding-bottom: 0.9rem;
+    }
+    .user-profile-btn {
+        padding: 0.55rem 1rem;
+        font-size: 0.95rem;
+        min-height: 42px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
 }
 
 .nav-tabs-header {

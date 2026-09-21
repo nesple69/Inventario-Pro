@@ -4961,7 +4961,7 @@ window.onload = function () {
     }, 1000);
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=46')
+        navigator.serviceWorker.register('sw.js?v=47')
             .then(reg => {
                 console.log('PWA Service Worker attivo');
                 reg.update();
