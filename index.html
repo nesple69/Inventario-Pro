@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=47">
+    <link rel="stylesheet" href="styles.css?v=48">
 
 </head>
 
@@ -519,7 +519,7 @@
                             <h2>Inventario Mensile</h2>
                             <p>Aggiorna rapidamente le quantità per l'inventario del mese</p>
                         </div>
-                        <div class="header-actions">
+                        <div class="header-actions admin-only">
                             <button class="btn btn-outline" onclick="exportMonthlyToExcel()"><i
                                     class="fas fa-file-excel"></i>Esporta Excel</button>
                             <button class="btn btn-success" onclick="createMonthlySnapshot()"><i
@@ -608,9 +608,17 @@
                                 <tbody id="monthlyInventoryTableBody"></tbody>
                             </table>
                         </div>
+
+                        <!-- PULSANTE SALVATAGGIO INVENTARIO RAPIDO -->
+                        <div style="margin-top: 1.5rem; text-align: center; padding: 1rem; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border);">
+                            <button class="btn btn-success" onclick="completeAndSaveInventory()" style="font-size: 1.15rem; font-weight: 700; padding: 0.9rem 2rem; border-radius: 12px; box-shadow: 0 4px 14px rgba(46, 196, 182, 0.35); width: 100%; max-width: 450px;">
+                                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>✅ Salva e Completa Inventario
+                            </button>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--gray);">Tutte le giacenze inserite verranno salvate e archiviate con data e ora</p>
+                        </div>
                     </div>
 
-                    <div class="card"
+                    <div class="card admin-only"
                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                         <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-info-circle"></i>
@@ -1067,7 +1075,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=47"></script>
+    <script src="app.js?v=48"></script>
 
     <!-- PROFILE SELECTOR MODAL -->
     <div class="modal" id="profileSelectorModal">

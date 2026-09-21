@@ -4961,7 +4961,7 @@ window.onload = function () {
     }, 1000);
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=47')
+        navigator.serviceWorker.register('sw.js?v=48')
             .then(reg => {
                 console.log('PWA Service Worker attivo');
                 reg.update();
@@ -7370,4 +7370,82 @@ function createMonthlySnapshot() {
     updateAll();
     renderDashboardRecentSnapshots();
     showNotification(`Inventario ${roleLabel} salvato con successo nell'archivio!`, 'success');
+}
+
+
+function startGuidedInventory() {
+    const roleLabel = currentRole === 'cucina' ? 'Cucina' : currentRole === 'bar' ? 'Bar' : 'Globale';
+    
+    // 1. Salva automaticamente uno snapshot di sicurezza del vecchio inventario
+    const oldProducts = getProductsForRole(currentRole);
+    if (oldProducts.length > 0) {
+        if (!appData.monthlySnapshots) appData.monthlySnapshots = [];
+        appData.monthlySnapshots.push({
+            id: Date.now() - 1000,
+            date: new Date().toISOString(),
+            department: currentRole,
+            operator: `${currentRole === 'cucina' ? 'Operatore Cucina' : currentRole === 'bar' ? 'Operatore Bar' : 'Amministratore'} (Archivio Pre-Conteggio)`,
+            productsCount: oldProducts.filter(p => p.quantity > 0).length,
+            totalValue: oldProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0),
+            products: JSON.parse(JSON.stringify(oldProducts))
+        });
+    }
+
+    // 2. Azzera le quantità per il reparto attivo (così l'operatore scrive direttamente il nuovo numero)
+    const targetProducts = getProductsForRole(currentRole);
+    targetProducts.forEach(p => {
+        p.quantity = 0;
+        p.status = 'out-of-stock';
+    });
+
+    saveToCloud();
+
+    // 3. Vai alla scheda inventario
+    showTab('monthly-inventory');
+    if (currentRole === 'cucina') {
+        setDepartmentFilter('cucina');
+    } else if (currentRole === 'bar') {
+        setDepartmentFilter('bar');
+    } else {
+        setDepartmentFilter('tutti');
+    }
+
+    updateAll();
+    showNotification(`Nuovo inventario ${roleLabel} avviato: quantità azzerate a 0 per compilare rapidamente!`, 'success');
+}
+
+function completeAndSaveInventory() {
+    const roleLabel = currentRole === 'cucina' ? 'Cucina' : currentRole === 'bar' ? 'Bar' : 'Globale';
+    const relevantProducts = getProductsForRole(currentRole);
+    const countedProducts = relevantProducts.filter(p => p.quantity > 0);
+    const totalVal = relevantProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0);
+
+    const snapshot = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        department: currentRole,
+        operator: currentRole === 'cucina' ? 'Operatore Cucina' : currentRole === 'bar' ? 'Operatore Bar' : 'Amministratore',
+        productsCount: countedProducts.length,
+        totalProductsInDept: relevantProducts.length,
+        totalValue: totalVal,
+        products: JSON.parse(JSON.stringify(relevantProducts))
+    };
+
+    if (!appData.monthlySnapshots) appData.monthlySnapshots = [];
+    appData.monthlySnapshots.push(snapshot);
+
+    const lastSnapEl = document.getElementById('lastSnapshotDate');
+    if (lastSnapEl) {
+        lastSnapEl.textContent = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    saveToCloud();
+    showTab('dashboard');
+    updateAll();
+    renderDashboardRecentSnapshots();
+    showNotification(`🎉 Inventario ${roleLabel} salvato con successo nell'archivio!`, 'success');
+}
+
+function createMonthlySnapshot() {
+    completeAndSaveInventory();
 }
