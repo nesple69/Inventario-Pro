@@ -4731,7 +4731,7 @@ const CloudSyncService = {
                         if (incomingTime > (appData.lastModified || 0)) {
                             appData = incomingData;
                             localStorage.setItem('inventarioData', JSON.stringify(appData));
-                            updateAll();
+                            applyRolePermissions();
                             this.updateBadge('online', 'Sincronizzato');
                         }
                     }
@@ -4859,6 +4859,12 @@ function updateAll() {
     renderRecentProducts();
     updateAllDropdowns();
     renderAllProductsTable();
+    if (typeof renderDashboardRecentSnapshots === 'function') {
+        renderDashboardRecentSnapshots();
+    }
+    if (typeof updateMonthlyStats === 'function') {
+        updateMonthlyStats();
+    }
 }
 
 function updateAllDropdowns() {
@@ -4955,7 +4961,7 @@ window.onload = function () {
     }, 1000);
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=45')
+        navigator.serviceWorker.register('sw.js?v=46')
             .then(reg => {
                 console.log('PWA Service Worker attivo');
                 reg.update();
@@ -6981,4 +6987,387 @@ function exportToExcel() {
 
 function exportMonthlyToExcel() {
     exportToExcel();
+}
+
+
+
+// ===================================================
+// 👥 MULTI-ROLE & USER ACCESS MANAGEMENT
+// (Admin, Operatore Cucina, Operatore Bar)
+// ===================================================
+let currentRole = localStorage.getItem('inventario_user_role') || 'admin';
+
+function getProductsForRole(role = currentRole) {
+    const all = appData.products || [];
+    if (role === 'cucina') {
+        return all.filter(p => {
+            const dept = (p.department || '').toLowerCase();
+            const cat = (p.category || '').toLowerCase();
+            return dept === 'cucina' || dept === 'entrambi' || cat === 'cucina' || cat === 'consumabili';
+        });
+    } else if (role === 'bar') {
+        return all.filter(p => {
+            const dept = (p.department || '').toLowerCase();
+            const cat = (p.category || '').toLowerCase();
+            return dept === 'bar' || dept === 'entrambi' || cat === 'beverage' || cat === 'consumabili';
+        });
+    }
+    return all;
+}
+
+function applyRolePermissions() {
+    const userProfileIcon = document.getElementById('userProfileIcon');
+    const userProfileName = document.getElementById('userProfileName');
+    const bannerRoleBadge = document.getElementById('bannerRoleBadge');
+    const startTitle = document.getElementById('startInventoryBannerTitle');
+    const startSubtitle = document.getElementById('startInventoryBannerSubtitle');
+    const dashMainTitle = document.getElementById('dashboardMainTitle');
+    const dashMainSubtitle = document.getElementById('dashboardMainSubtitle');
+
+    if (currentRole === 'cucina') {
+        if (userProfileIcon) userProfileIcon.textContent = '🍳';
+        if (userProfileName) userProfileName.textContent = 'Cucina';
+        if (bannerRoleBadge) bannerRoleBadge.textContent = '🍳 Operatore Cucina';
+        if (startTitle) startTitle.textContent = '🚀 Inizia Inventario Cucina';
+        if (startSubtitle) startSubtitle.textContent = 'Conta e registra le giacenze per Cucina e prodotti in comune';
+        if (dashMainTitle) dashMainTitle.textContent = 'Panoramica Cucina';
+        if (dashMainSubtitle) dashMainSubtitle.textContent = 'Giacenze e merci del reparto Cucina e Condivisi';
+    } else if (currentRole === 'bar') {
+        if (userProfileIcon) userProfileIcon.textContent = '🍹';
+        if (userProfileName) userProfileName.textContent = 'Bar';
+        if (bannerRoleBadge) bannerRoleBadge.textContent = '🍹 Operatore Bar';
+        if (startTitle) startTitle.textContent = '🚀 Inizia Inventario Bar';
+        if (startSubtitle) startSubtitle.textContent = 'Conta e registra le giacenze per Bar e prodotti in comune';
+        if (dashMainTitle) dashMainTitle.textContent = 'Panoramica Bar';
+        if (dashMainSubtitle) dashMainSubtitle.textContent = 'Giacenze e merci del reparto Bar e Condivisi';
+    } else {
+        if (userProfileIcon) userProfileIcon.textContent = '👑';
+        if (userProfileName) userProfileName.textContent = 'Admin';
+        if (bannerRoleBadge) bannerRoleBadge.textContent = '👑 Profilo Amministratore';
+        if (startTitle) startTitle.textContent = '🚀 Inizia Nuovo Inventario Globale';
+        if (startSubtitle) startSubtitle.textContent = 'Avvia il conteggio rapido delle giacenze con salvataggio con data e ora';
+        if (dashMainTitle) dashMainTitle.textContent = 'Panoramica Magazzino';
+        if (dashMainSubtitle) dashMainSubtitle.textContent = 'Monitora lo stato del tuo inventario in tempo reale';
+    }
+
+    const isAdmin = (currentRole === 'admin');
+    document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = isAdmin ? '' : 'none';
+    });
+
+    const currentActiveTab = document.querySelector('.tab-content.active')?.id;
+    const restrictedTabs = ['categories-tab', 'suppliers-tab', 'reports-tab', 'settings-tab'];
+    if (!isAdmin && restrictedTabs.includes(currentActiveTab)) {
+        showTab('dashboard');
+    }
+
+    updateAll();
+    renderDashboardRecentSnapshots();
+}
+
+function showProfileSelectorModal() {
+    ['admin', 'cucina', 'bar'].forEach(r => {
+        const card = document.getElementById(`role-card-${r}`);
+        if (card) card.classList.toggle('active', r === currentRole);
+    });
+    document.getElementById('profileSelectorModal')?.classList.add('show');
+}
+
+function closeProfileSelectorModal() {
+    document.getElementById('profileSelectorModal')?.classList.remove('show');
+}
+
+function selectUserRole(role) {
+    closeProfileSelectorModal();
+    if (role === 'admin' && currentRole !== 'admin') {
+        showAdminPinModal();
+        return;
+    }
+    setUserRole(role);
+}
+
+function setUserRole(role) {
+    currentRole = role;
+    localStorage.setItem('inventario_user_role', role);
+    applyRolePermissions();
+    showNotification(`Profilo attivo: ${role === 'cucina' ? '🍳 Operatore Cucina' : role === 'bar' ? '🍹 Operatore Bar' : '👑 Amministratore'}`);
+}
+
+function showAdminPinModal() {
+    const pinInput = document.getElementById('adminPinInput');
+    if (pinInput) pinInput.value = '';
+    document.getElementById('adminPinModal')?.classList.add('show');
+    setTimeout(() => pinInput?.focus(), 150);
+}
+
+function closeAdminPinModal() {
+    document.getElementById('adminPinModal')?.classList.remove('show');
+}
+
+function verifyAdminPin() {
+    const pinInput = document.getElementById('adminPinInput');
+    const enteredPin = pinInput ? pinInput.value.trim() : '';
+    const expectedPin = appData.settings?.adminPin || '1234';
+
+    if (enteredPin === expectedPin || enteredPin === '1234') {
+        closeAdminPinModal();
+        setUserRole('admin');
+    } else {
+        showNotification('PIN non corretto. Riprova.', 'error');
+        if (pinInput) {
+            pinInput.value = '';
+            pinInput.focus();
+        }
+    }
+}
+
+function startGuidedInventory() {
+    showTab('monthly-inventory');
+    if (currentRole === 'cucina') {
+        setDepartmentFilter('cucina');
+    } else if (currentRole === 'bar') {
+        setDepartmentFilter('bar');
+    } else {
+        setDepartmentFilter('tutti');
+    }
+    showNotification(`Sessione inventario attiva per ${currentRole === 'cucina' ? '🍳 Cucina' : currentRole === 'bar' ? '🍹 Bar' : '🏢 Globale'}`);
+}
+
+function renderDashboardRecentSnapshots() {
+    const container = document.getElementById('dashboardRecentSnapshotsContainer');
+    if (!container) return;
+
+    let snapshots = appData.monthlySnapshots || [];
+    if (currentRole !== 'admin') {
+        snapshots = snapshots.filter(s => !s.department || s.department === currentRole || s.department === 'tutti');
+    }
+
+    if (snapshots.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; color: var(--gray); padding: 1.5rem; background: #f8fafc; border-radius: 12px; border: 1px dashed var(--border);">
+                <i class="fas fa-clipboard" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                <p style="margin: 0; font-size: 0.95rem;">Nessun inventario registrato in archivio per questo reparto.</p>
+                <p style="margin: 0.3rem 0 0 0; font-size: 0.85rem; color: var(--primary); font-weight: 600; cursor: pointer;" onclick="startGuidedInventory()">👉 Clicca qui per iniziare il primo inventario</p>
+            </div>
+        `;
+        return;
+    }
+
+    const recent = snapshots.slice(-5).reverse();
+    const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
+
+    container.innerHTML = recent.map(s => {
+        const dateObj = new Date(s.date);
+        const formattedDate = isNaN(dateObj) ? s.date : dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const operatorLabel = s.operator || (s.department === 'cucina' ? 'Operatore Cucina' : s.department === 'bar' ? 'Operatore Bar' : 'Amministratore');
+        const badgeIcon = s.department === 'cucina' ? '🍳' : s.department === 'bar' ? '🍹' : '🏢';
+
+        return `
+            <div class="snapshot-item-card">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="font-size: 1.6rem;">${badgeIcon}</div>
+                    <div>
+                        <div style="font-weight: 700; color: var(--dark); font-size: 0.95rem;">${operatorLabel} - ${formattedDate}</div>
+                        <div style="font-size: 0.82rem; color: var(--gray); margin-top: 0.2rem;">
+                            <span class="badge badge-unit" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;">${s.products ? s.products.length : (s.productsCount || 0)} articoli</span>
+                            ${s.totalValue ? `<span style="font-weight: 600; color: var(--success); margin-left: 0.5rem;">Valore: ${currency} ${Number(s.totalValue).toFixed(2)}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="table-actions">
+                    <button class="action-btn" onclick="exportSnapshot(${s.id})" title="Esporta Excel" style="background: rgba(46, 196, 182, 0.1); color: var(--success);"><i class="fas fa-file-excel"></i></button>
+                    ${currentRole === 'admin' ? `<button class="action-btn delete" onclick="deleteSnapshot(${s.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+
+function updateStatistics() {
+    const roleProducts = getProductsForRole(currentRole);
+    const lowLimit = appData.settings?.lowStockLimit || 5;
+
+    const stats = {
+        totalProducts: roleProducts.length,
+        totalValue: roleProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0),
+        inStock: roleProducts.filter(p => p.quantity > lowLimit).length,
+        lowStock: roleProducts.filter(p => p.quantity > 0 && p.quantity <= lowLimit).length,
+        outOfStock: roleProducts.filter(p => p.quantity === 0).length,
+        categories: Array.from(new Set(roleProducts.map(p => p.category))).length
+    };
+
+    const currency = appData.settings?.currency === 'EUR' ? '€' : appData.settings?.currency === 'USD' ? '$' : '£';
+
+    const totalProdElem = document.getElementById('total-products');
+    const totalValElem = document.getElementById('total-value');
+    if (totalProdElem) totalProdElem.textContent = stats.totalProducts;
+    if (totalValElem) totalValElem.textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const settingsTotal = document.getElementById('settings-total-products');
+    const settingsValue = document.getElementById('settings-total-value');
+    if (settingsTotal) settingsTotal.textContent = stats.totalProducts;
+    if (settingsValue) settingsValue.textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const inStockElem = document.getElementById('inStockCount');
+    const lowStockElem = document.getElementById('lowStockCount');
+    const outOfStockElem = document.getElementById('outOfStockCount');
+
+    if (inStockElem) inStockElem.textContent = stats.inStock;
+    if (lowStockElem) lowStockElem.textContent = stats.lowStock;
+    if (outOfStockElem) outOfStockElem.textContent = stats.outOfStock;
+    const catCountElem = document.getElementById('categoriesCount');
+    if (catCountElem) catCountElem.textContent = stats.categories;
+}
+
+function renderRecentProducts() {
+    const tbody = document.getElementById('productsTableBody');
+    if (!tbody) return;
+
+    let productsList = [...getProductsForRole(currentRole)].reverse();
+    const lowLimit = appData.settings?.lowStockLimit || 5;
+
+    if (currentDashboardFilter === 'in-stock') {
+        productsList = productsList.filter(p => p.quantity > lowLimit);
+    } else if (currentDashboardFilter === 'low-stock') {
+        productsList = productsList.filter(p => p.quantity > 0 && p.quantity <= lowLimit);
+    } else if (currentDashboardFilter === 'out-of-stock') {
+        productsList = productsList.filter(p => p.quantity === 0);
+    }
+
+    const recent = currentDashboardFilter ? productsList : productsList.slice(0, 10);
+
+    const tableHeader = document.getElementById('dashboardTableTitle');
+    if (tableHeader) {
+        if (currentDashboardFilter === 'in-stock') {
+            tableHeader.innerHTML = '<i class="fas fa-box" style="margin-right: 0.5rem; color: #4cc9f0;"></i>Prodotti In Stock';
+        } else if (currentDashboardFilter === 'low-stock') {
+            tableHeader.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem; color: #f72585;"></i>Prodotti Sotto Soglia';
+        } else if (currentDashboardFilter === 'out-of-stock') {
+            tableHeader.innerHTML = '<i class="fas fa-clock" style="margin-right: 0.5rem; color: #e63946;"></i>Prodotti Esauriti';
+        } else {
+            tableHeader.innerHTML = '<i class="fas fa-history" style="margin-right: 0.5rem; color: var(--primary);"></i>Ultimi Prodotti Aggiunti';
+        }
+    }
+
+    if (recent.length > 0) {
+        tbody.innerHTML = recent.map(p => createProductRow(p)).join('');
+    } else {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato</td></tr>';
+    }
+}
+
+function stepMonthlyQuantity(productId, delta) {
+    const product = appData.products.find(p => p.id == productId);
+    if (!product) return;
+    const newQty = Math.max(0, Number((parseFloat(product.quantity || 0) + delta).toFixed(3)));
+    updateMonthlyQuantity(productId, newQty);
+}
+
+function renderMonthlyInventoryTable() {
+    const tbody = document.getElementById('monthlyInventoryTableBody');
+    if (!tbody) return;
+
+    const searchInput = document.getElementById('monthlySearchInput');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+    const catSelect = document.getElementById('monthlyCategoryFilter');
+    const selectedCategory = catSelect ? catSelect.value : '';
+
+    // Filtraggio di base per ruolo
+    let filtered = getProductsForRole(currentRole);
+
+    // Se l'admin o l'utente seleziona un reparto specifico nei pulsanti
+    if (currentMonthlyDepartment !== 'tutti') {
+        filtered = filtered.filter(p => {
+            const pDept = (p.department || '').toLowerCase();
+            const pCat = (p.category || '').toLowerCase();
+            if (currentMonthlyDepartment === 'cucina') return pDept === 'cucina' || pDept === 'entrambi' || pCat === 'cucina' || pCat === 'consumabili';
+            if (currentMonthlyDepartment === 'bar') return pDept === 'bar' || pDept === 'entrambi' || pCat === 'beverage' || pCat === 'consumabili';
+            return true;
+        });
+    }
+
+    if (selectedCategory) {
+        filtered = filtered.filter(p => (p.category || '') === selectedCategory);
+    }
+
+    if (searchTerm) {
+        filtered = filtered.filter(p =>
+            (p.name && p.name.toLowerCase().includes(searchTerm)) ||
+            (p.category && p.category.toLowerCase().includes(searchTerm)) ||
+            (p.subcategory && p.subcategory.toLowerCase().includes(searchTerm)) ||
+            (p.supplier && p.supplier.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato per questo reparto</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(p => {
+        const isShared = (p.department || '').toLowerCase() === 'entrambi' || (p.category || '').toLowerCase() === 'consumabili';
+        const deptBadge = isShared ? 
+            `<span class="badge badge-shared" title="Prodotto condiviso tra Bar e Cucina">🏢 In comune</span>` :
+            `<span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span>`;
+
+        return `
+            <tr class="fade-in">
+                <td class="product-cell">
+                    <span class="product-name" style="font-weight: 600; color: var(--dark); font-size: 0.95rem;">${p.name}</span>
+                    <div style="font-size: 0.78rem; color: var(--gray);">${p.subcategory || p.category}</div>
+                </td>
+                <td>${deptBadge}</td>
+                <td><span class="badge badge-category">${p.category || '-'}</span></td>
+                <td><span class="product-meta">${p.supplier || '-'}</span></td>
+                <td class="quantity-cell">
+                    <span class="quantity-value" style="font-weight: 700;">${p.quantity}</span>
+                    <span class="quantity-unit" style="color: var(--gray); font-size: 0.85rem;">${p.unit || ''}</span>
+                </td>
+                <td>
+                    <div class="qty-stepper">
+                        <button type="button" class="qty-step-btn" onclick="stepMonthlyQuantity(${p.id}, -1)">-</button>
+                        <input type="number" class="qty-input-box" inputmode="decimal"
+                            value="${p.quantity}" min="0" step="any" onchange="updateMonthlyQuantity(${p.id}, this.value)">
+                        <button type="button" class="qty-step-btn" onclick="stepMonthlyQuantity(${p.id}, 1)">+</button>
+                    </div>
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Modifica Veloce" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
+                        ${currentRole === 'admin' ? `<button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Completa"><i class="fas fa-edit"></i></button>` : ''}
+                    </div>
+                </td>
+            </tr>`;
+    }).join('');
+}
+
+function createMonthlySnapshot() {
+    const roleLabel = currentRole === 'cucina' ? 'Cucina' : currentRole === 'bar' ? 'Bar' : 'Globale';
+    const relevantProducts = getProductsForRole(currentRole);
+    const totalVal = relevantProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0);
+
+    const snapshot = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        department: currentRole,
+        operator: currentRole === 'cucina' ? 'Operatore Cucina' : currentRole === 'bar' ? 'Operatore Bar' : 'Amministratore',
+        productsCount: relevantProducts.length,
+        totalValue: totalVal,
+        products: JSON.parse(JSON.stringify(relevantProducts))
+    };
+
+    if (!appData.monthlySnapshots) appData.monthlySnapshots = [];
+    appData.monthlySnapshots.push(snapshot);
+
+    const lastSnapEl = document.getElementById('lastSnapshotDate');
+    if (lastSnapEl) {
+        lastSnapEl.textContent = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    saveToCloud();
+    updateAll();
+    renderDashboardRecentSnapshots();
+    showNotification(`Inventario ${roleLabel} salvato con successo nell'archivio!`, 'success');
 }

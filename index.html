@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=45">
+    <link rel="stylesheet" href="styles.css?v=46">
 
 </head>
 
@@ -38,25 +38,34 @@
             </div>
 
             <nav class="nav-tabs-header">
-                <button class="nav-tab active" onclick="showTab('dashboard')"><i
+                <button class="nav-tab active" id="nav-tab-dashboard" onclick="showTab('dashboard')"><i
                         class="fas fa-th-large"></i><span>Dashboard</span></button>
-                <button class="nav-tab" onclick="showTab('products')"><i
-                        class="fas fa-box"></i><span>Prodotti</span></button>
-                <button class="nav-tab" onclick="showTab('categories')"><i
+                <button class="nav-tab" id="nav-tab-inventory" onclick="showTab('monthly-inventory')"><i
+                        class="fas fa-clipboard-check"></i><span>Inventario</span></button>
+                <button class="nav-tab" id="nav-tab-products" onclick="showTab('products')"><i
+                        class="fas fa-box"></i><span>Catalogo</span></button>
+                <button class="nav-tab admin-only" id="nav-tab-categories" onclick="showTab('categories')"><i
                         class="fas fa-tags"></i><span>Categorie</span></button>
-                <button class="nav-tab" onclick="showTab('suppliers')"><i
+                <button class="nav-tab admin-only" id="nav-tab-suppliers" onclick="showTab('suppliers')"><i
                         class="fas fa-truck-moving"></i><span>Fornitori</span></button>
-                <button class="nav-tab" onclick="showTab('reports')"><i
+                <button class="nav-tab admin-only" id="nav-tab-reports" onclick="showTab('reports')"><i
                         class="fas fa-chart-pie"></i><span>Report</span></button>
-                <button class="nav-tab" onclick="showTab('monthly-inventory')"><i
-                        class="fas fa-clipboard-list"></i><span>Inventario</span></button>
-                <button class="nav-tab" onclick="showTab('settings')"><i
+                <button class="nav-tab admin-only" id="nav-tab-settings" onclick="showTab('settings')"><i
                         class="fas fa-sliders-h"></i><span>Impostazioni</span></button>
             </nav>
 
-            <div id="cloudStatus" class="sync-status offline">
-                <i class="fas fa-cloud"></i>
-                <span id="cloudStatusText">Locale</span>
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <!-- SELETTORE PROFILO UTENTE -->
+                <button class="user-profile-btn" id="userProfileBtn" onclick="showProfileSelectorModal()" title="Cambia Profilo Operativo">
+                    <span id="userProfileIcon">👑</span>
+                    <span id="userProfileName">Admin</span>
+                    <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.8;"></i>
+                </button>
+
+                <div id="cloudStatus" class="sync-status offline">
+                    <i class="fas fa-cloud"></i>
+                    <span id="cloudStatusText">Locale</span>
+                </div>
             </div>
         </header>
 
@@ -64,15 +73,31 @@
             <main class="main-content">
                 <!-- DASHBOARD TAB -->
                 <div class="tab-content active" id="dashboard-tab">
+                    <!-- BANNER AVVIO INVENTARIO RAPIDO -->
+                    <div class="card" style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%); color: white; margin-bottom: 1.5rem; border-radius: 16px; padding: 1.25rem; border: none; box-shadow: 0 8px 24px rgba(67, 97, 238, 0.25);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.2); padding: 0.25rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem;">
+                                    <span id="bannerRoleBadge">👑 Profilo Amministratore</span>
+                                </div>
+                                <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; color: white;" id="startInventoryBannerTitle">🚀 Inizia Nuovo Inventario</h3>
+                                <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;" id="startInventoryBannerSubtitle">Avvia il conteggio rapido delle giacenze con salvataggio con data e ora</p>
+                            </div>
+                            <button class="btn btn-light" onclick="startGuidedInventory()" style="background: white; color: #4361ee; font-weight: 700; font-size: 1rem; padding: 0.85rem 1.6rem; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); border: none; cursor: pointer;">
+                                <i class="fas fa-clipboard-check" style="margin-right: 0.5rem; color: #4361ee;"></i>Inizia Conteggio
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="section-header">
                         <div class="header-title">
-                            <h2>Panoramica Magazzino</h2>
-                            <p>Monitora lo stato del tuo inventario in tempo reale</p>
+                            <h2 id="dashboardMainTitle">Panoramica Magazzino</h2>
+                            <p id="dashboardMainSubtitle">Monitora lo stato del tuo inventario in tempo reale</p>
                         </div>
                         <div class="header-actions">
                             <button class="btn btn-outline" onclick="refreshData()"><i
                                     class="fas fa-sync-alt"></i>Aggiorna</button>
-                            <button class="btn btn-primary" onclick="showAddProductModal()"><i
+                            <button class="btn btn-primary admin-only" onclick="showAddProductModal()"><i
                                     class="fas fa-plus"></i>Nuovo Prodotto</button>
                         </div>
                     </div>
@@ -133,6 +158,15 @@
                                     style="font-size: 0.85rem; color: var(--gray); font-weight: 600;">Categorie</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- STORICO RECENTI INVENTARI NELLA DASHBOARD -->
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <div class="section-header" style="margin-bottom: 1rem;">
+                            <h3><i class="fas fa-history" style="margin-right: 0.5rem; color: var(--primary);"></i>📜 Ultimi Inventari Registrati</h3>
+                            <button class="btn btn-outline btn-sm" onclick="showSnapshotsModal()"><i class="fas fa-archive"></i>Archivio Completo</button>
+                        </div>
+                        <div id="dashboardRecentSnapshotsContainer"></div>
                     </div>
 
                     <div class="card">
@@ -1032,7 +1066,74 @@
         </div>
     </div>
 
-    <script src="app.js?v=45"></script>
+    <script src="app.js?v=46"></script>
+
+    <!-- PROFILE SELECTOR MODAL -->
+    <div class="modal" id="profileSelectorModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-user-circle" style="color: var(--primary);"></i>Seleziona Profilo Utente</div>
+                <button class="modal-close" onclick="closeProfileSelectorModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 1.25rem;">
+                    Scegli la modalità operativa. Gli operatori possono contare e registrare l'inventario del proprio reparto.
+                </p>
+
+                <div class="role-card" id="role-card-cucina" onclick="selectUserRole('cucina')">
+                    <div class="role-icon-box" style="background: rgba(255, 159, 28, 0.15); color: #e76f51;">🍳</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 1.05rem; color: var(--dark);">Operatore Cucina</div>
+                        <div style="font-size: 0.85rem; color: var(--gray);">Inventario Cucina + Prodotti in comune</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: var(--gray);"></i>
+                </div>
+
+                <div class="role-card" id="role-card-bar" onclick="selectUserRole('bar')">
+                    <div class="role-icon-box" style="background: rgba(76, 201, 240, 0.15); color: #4361ee;">🍹</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 1.05rem; color: var(--dark);">Operatore Bar</div>
+                        <div style="font-size: 0.85rem; color: var(--gray);">Inventario Bar + Prodotti in comune</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: var(--gray);"></i>
+                </div>
+
+                <div class="role-card" id="role-card-admin" onclick="selectUserRole('admin')">
+                    <div class="role-icon-box" style="background: rgba(114, 9, 183, 0.15); color: #7209b7;">👑</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 1.05rem; color: var(--dark);">Amministratore</div>
+                        <div style="font-size: 0.85rem; color: var(--gray);">Accesso completo, Categorie, Fornitori, Report</div>
+                    </div>
+                    <i class="fas fa-lock" style="color: var(--gray);"></i>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeProfileSelectorModal()">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN PIN MODAL -->
+    <div class="modal" id="adminPinModal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-lock" style="color: var(--primary);"></i>Accesso Amministratore</div>
+                <button class="modal-close" onclick="closeAdminPinModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 1rem;">
+                    Inserisci il PIN amministratore (default: <strong>1234</strong>)
+                </p>
+                <input type="password" id="adminPinInput" class="form-input" placeholder="••••"
+                    maxlength="6" inputmode="numeric" style="font-size: 1.8rem; text-align: center; letter-spacing: 8px; width: 180px; margin: 0 auto 1.5rem auto;">
+                <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                    <button class="btn btn-outline" onclick="closeAdminPinModal()">Annulla</button>
+                    <button class="btn btn-primary" onclick="verifyAdminPin()"><i class="fas fa-unlock"></i> Accedi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>

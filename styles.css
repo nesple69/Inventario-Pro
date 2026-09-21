@@ -926,3 +926,166 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ==========================================
+   👥 MULTI-ROLE & PROFILE SWITCHER STYLES
+   ========================================== */
+.user-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    padding: 0.45rem 0.9rem;
+    border-radius: 24px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-profile-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: white;
+    transform: translateY(-1px);
+}
+
+.role-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0.75rem;
+    text-align: left;
+    width: 100%;
+}
+
+.role-card:hover {
+    border-color: var(--primary);
+    background: #f8faff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.12);
+}
+
+.role-card.active {
+    border-color: var(--primary);
+    background: rgba(67, 97, 238, 0.08);
+}
+
+.role-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: #f0f2f5;
+    flex-shrink: 0;
+}
+
+/* ==========================================
+   📱 MOBILE INVENTORY COUNTING STYLES
+   ========================================== */
+.counting-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s ease;
+}
+
+.counting-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.qty-step-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #f8fafc;
+    color: var(--dark);
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    touch-action: manipulation;
+}
+
+.qty-step-btn:active {
+    background: var(--primary);
+    color: white;
+    transform: scale(0.92);
+}
+
+.qty-input-box {
+    width: 80px;
+    height: 38px;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--primary);
+}
+
+.sticky-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 0.85rem 1.25rem;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 999;
+    border-top: 1px solid var(--border);
+}
+
+.badge-shared {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+.snapshot-item-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1.1rem;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 0.6rem;
+    transition: all 0.2s ease;
+}
+
+.snapshot-item-card:hover {
+    border-color: var(--primary);
+    background: #f8faff;
+}
