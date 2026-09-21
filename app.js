@@ -4951,10 +4951,13 @@ function showImportDataPrompt() {
 let supabaseClient = null;
 let supabaseRealtimeChannel = null;
 
+const SUPABASE_EMBEDDED_URL = 'https://qqvwrliuhomyecyvbbep.supabase.co';
+const SUPABASE_EMBEDDED_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdndybGl1aG9teWVjeXZiYmVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMjQzMzUsImV4cCI6MjEwNTYwMDMzNX0.iNXow3smc9YFQn1U_RPd9Gz4tGwKEdBjGIGpIkFuFqU';
+
 function getSupabaseConfig() {
     return {
-        url: localStorage.getItem('inventario_supabase_url') || '',
-        key: localStorage.getItem('inventario_supabase_key') || ''
+        url: localStorage.getItem('inventario_supabase_url') || SUPABASE_EMBEDDED_URL,
+        key: localStorage.getItem('inventario_supabase_key') || SUPABASE_EMBEDDED_KEY
     };
 }
 
@@ -5539,7 +5542,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v64';
+const CURRENT_APP_BUILD = 'v65';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5587,7 +5590,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=64')
+        navigator.serviceWorker.register('sw.js?v=65')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
