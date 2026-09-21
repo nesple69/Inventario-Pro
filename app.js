@@ -4615,6 +4615,123 @@ let appData = {
     "lastModified": 1790010810970
 };
 
+// ==========================================
+// 🛠️ ESSENTIAL UI HELPERS & UTILITIES
+// ==========================================
+function getDepartmentIcon(department) {
+    switch (String(department).toLowerCase()) {
+        case 'cucina': return '🍳 Cucina';
+        case 'bar': return '🍹 Bar';
+        default: return '🏢 Entrambi';
+    }
+}
+
+function getDepartmentBadgeClass(department) {
+    switch (String(department).toLowerCase()) {
+        case 'cucina': return 'badge-cucina';
+        case 'bar': return 'badge-bar';
+        default: return 'badge-entrambi';
+    }
+}
+
+function getStatusBadgeClass(status) {
+    switch (status) {
+        case 'in-stock': return 'badge-success';
+        case 'low-stock': return 'badge-warning';
+        case 'out-of-stock': return 'badge-danger';
+        default: return 'badge-neutral';
+    }
+}
+
+function getStatusIcon(status) {
+    switch (status) {
+        case 'in-stock': return 'fa-check-circle';
+        case 'low-stock': return 'fa-exclamation-triangle';
+        case 'out-of-stock': return 'fa-times-circle';
+        default: return 'fa-box';
+    }
+}
+
+function getStatusText(status) {
+    switch (status) {
+        case 'in-stock': return 'In Stock';
+        case 'low-stock': return 'Stock Basso';
+        case 'out-of-stock': return 'Esaurito';
+        default: return status || 'In Stock';
+    }
+}
+
+function roundToDecimals(value, decimals = 2) {
+    const num = parseFloat(value) || 0;
+    return Number(Math.round(num + 'e' + decimals) + 'e-' + decimals);
+}
+
+function saveData() {
+    saveToCloud();
+}
+
+function updateAllDropdowns() {
+    populateCategoryDropdown('productCategory');
+    populateCategoryDropdown('modalProductCategory');
+    populateSupplierDropdown('productSupplier');
+    populateSupplierDropdown('modalProductSupplier');
+    populateCategoryDatalist();
+}
+
+function populateCategoryDatalist() {
+    const datalist = document.getElementById('categoryList');
+    if (!datalist) return;
+    datalist.innerHTML = (appData.categories || []).map(c => `<option value="${c.name}">`).join('');
+}
+
+let searchTimeout;
+function handleSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        const input = document.getElementById('searchInput');
+        const searchTerm = input ? input.value.toLowerCase() : '';
+        const filteredProducts = (appData.products || []).filter(product =>
+            (product.name && product.name.toLowerCase().includes(searchTerm)) ||
+            (product.category && product.category.toLowerCase().includes(searchTerm)) ||
+            (product.subcategory && product.subcategory.toLowerCase().includes(searchTerm)) ||
+            (product.supplier && product.supplier.toLowerCase().includes(searchTerm))
+        );
+
+        const tbody = document.getElementById('productsTableBody');
+        if (tbody) {
+            tbody.innerHTML = filteredProducts.slice(0, 10).map(p => createProductRow(p)).join('');
+        }
+
+        const allTbody = document.getElementById('allProductsTableBody');
+        if (allTbody) {
+            const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+            allTbody.innerHTML = filteredProducts.map(p => `
+                <tr class="fade-in">
+                    <td class="product-cell">
+                        <span class="product-name" style="font-weight: 600; color: var(--dark);">${p.name}</span>
+                    </td>
+                    <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
+                    <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
+                    <td><span class="badge badge-category">${p.category}</span></td>
+                    <td><span class="subcategory-text">${p.subcategory || '-'}</span></td>
+                    <td class="quantity-cell">
+                        <span class="quantity-value">${p.quantity}</span>
+                        <span class="quantity-unit">${p.unit}</span>
+                    </td>
+                    <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
+                            <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    }, 200);
+}
+
 // INITIALIZATION
 window.onload = function () {
     const CURRENT_VERSION = 'v_2026_09_21_prod_185';
