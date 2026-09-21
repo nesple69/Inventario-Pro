@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inventario-pro-v58';
+const CACHE_NAME = 'inventario-pro-v59';
 const ASSETS = [
   './',
   './index.html',
@@ -39,25 +39,31 @@ self.addEventListener('activate', event => {
   return self.clients.claim();
 });
 
+// Network-first for app code to always get immediate live updates
 self.addEventListener('fetch', event => {
+  if (event.request.mode === 'navigate' || event.request.url.includes(location.origin)) {
+    event.respondWith(
+      fetch(event.request).then(fetchResponse => {
+        if (fetchResponse && fetchResponse.status === 200) {
+          const resClone = fetchResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+        }
+        return fetchResponse;
+      }).catch(() => caches.match(event.request).then(res => res || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Cache-first for CDN/fonts
   event.respondWith(
     caches.match(event.request).then(response => {
       return response || fetch(event.request).then(fetchResponse => {
-        if (event.request.url.includes(location.origin) ||
-          event.request.url.includes('cdnjs.cloudflare.com') ||
-          event.request.url.includes('cdn.jsdelivr.net') ||
-          event.request.url.includes('fonts.googleapis.com')) {
-          return caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, fetchResponse.clone());
-            return fetchResponse;
-          });
+        if (fetchResponse && fetchResponse.status === 200) {
+          const resClone = fetchResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
         }
         return fetchResponse;
       });
-    }).catch(() => {
-      if (event.request.mode === 'navigate') {
-        return caches.match('./index.html');
-      }
     })
   );
 });

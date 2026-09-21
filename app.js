@@ -5234,7 +5234,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=58')
+        navigator.serviceWorker.register('sw.js?v=59')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -5817,7 +5817,7 @@ let currentMonthlyDepartment = 'tutti';
 
 function setDepartmentFilter(dept) {
     currentMonthlyDepartment = dept;
-    ['tutti', 'cucina', 'bar', 'bowling'].forEach(d => {
+    ['tutti', 'cucina', 'bar', 'bowling', 'consumabili'].forEach(d => {
         const btn = document.getElementById(`dept-btn-${d}`);
         if (btn) btn.classList.toggle('active', d === dept);
     });
@@ -5886,6 +5886,9 @@ function renderMonthlyInventoryTable() {
             }
             if (currentMonthlyDepartment === 'bowling') {
                 return pDept === 'bowling' || (pDept === '' && pCat === 'bowling') || pDept === 'entrambi' || pDept === 'tutti';
+            }
+            if (currentMonthlyDepartment === 'consumabili' || currentMonthlyDepartment === 'entrambi') {
+                return pDept === 'entrambi' || (pDept !== 'cucina' && pDept !== 'bar' && pDept !== 'bowling');
             }
             return true;
         });
@@ -5958,6 +5961,9 @@ function updateMonthlyStats() {
             }
             if (currentMonthlyDepartment === 'bowling') {
                 return pDept === 'bowling' || (pDept === '' && pCat === 'bowling') || pDept === 'entrambi' || pDept === 'tutti';
+            }
+            if (currentMonthlyDepartment === 'consumabili' || currentMonthlyDepartment === 'entrambi') {
+                return pDept === 'entrambi' || (pDept !== 'cucina' && pDept !== 'bar' && pDept !== 'bowling');
             }
             return true;
         });
