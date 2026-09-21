@@ -4670,18 +4670,30 @@ function saveData() {
     saveToCloud();
 }
 
+function updateAll() {
+    updateStatistics();
+    renderRecentProducts();
+    updateAllDropdowns();
+    renderAllProductsTable();
+}
+
 function updateAllDropdowns() {
     populateCategoryDropdown('productCategory');
     populateCategoryDropdown('modalProductCategory');
+    populateCategoryDropdown('monthlyCategoryFilter');
+    populateCategoryDropdown('filterCategorySelect');
+    
     populateSupplierDropdown('productSupplier');
     populateSupplierDropdown('modalProductSupplier');
+    populateSupplierDropdown('filterSupplierSelect');
+    
     populateCategoryDatalist();
 }
 
 function populateCategoryDatalist() {
     const datalist = document.getElementById('categoryList');
     if (!datalist) return;
-    datalist.innerHTML = (appData.categories || []).map(c => `<option value="${c.name}">`).join('');
+    datalist.innerHTML = (appData.categories || []).map(c => `<option value="${typeof c === 'object' ? c.name : c}">`).join('');
 }
 
 let searchTimeout;
@@ -4689,7 +4701,7 @@ function handleSearch() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         const input = document.getElementById('searchInput');
-        const searchTerm = input ? input.value.toLowerCase() : '';
+        const searchTerm = input ? input.value.toLowerCase().trim() : '';
         const filteredProducts = (appData.products || []).filter(product =>
             (product.name && product.name.toLowerCase().includes(searchTerm)) ||
             (product.category && product.category.toLowerCase().includes(searchTerm)) ||
@@ -4699,42 +4711,27 @@ function handleSearch() {
 
         const tbody = document.getElementById('productsTableBody');
         if (tbody) {
-            tbody.innerHTML = filteredProducts.slice(0, 10).map(p => createProductRow(p)).join('');
+            if (filteredProducts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato</td></tr>';
+            } else {
+                tbody.innerHTML = filteredProducts.slice(0, 10).map(p => createProductRow(p)).join('');
+            }
         }
 
         const allTbody = document.getElementById('allProductsTableBody');
         if (allTbody) {
-            const currency = appData.settings.currency === 'EUR' ? '€' : '$';
-            allTbody.innerHTML = filteredProducts.map(p => `
-                <tr class="fade-in">
-                    <td class="product-cell">
-                        <span class="product-name" style="font-weight: 600; color: var(--dark);">${p.name}</span>
-                    </td>
-                    <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
-                    <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
-                    <td><span class="badge badge-category">${p.category}</span></td>
-                    <td><span class="subcategory-text">${p.subcategory || '-'}</span></td>
-                    <td class="quantity-cell">
-                        <span class="quantity-value">${p.quantity}</span>
-                        <span class="quantity-unit">${p.unit}</span>
-                    </td>
-                    <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
-                    <td>
-                        <div class="table-actions">
-                            <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
-                            <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+            if (filteredProducts.length === 0) {
+                allTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato</td></tr>';
+            } else {
+                allTbody.innerHTML = filteredProducts.map(p => createProductRow(p)).join('');
+            }
         }
     }, 200);
 }
 
 // INITIALIZATION
 window.onload = function () {
-    const CURRENT_VERSION = 'v_2026_09_21_prod_185';
+    const CURRENT_VERSION = 'v_2026_09_21_prod_185_v2';
     const savedData = localStorage.getItem('inventarioData');
     let shouldResetToDefault = true;
 
@@ -4774,7 +4771,7 @@ window.onload = function () {
     }, 1000);
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=25')
+        navigator.serviceWorker.register('sw.js?v=41')
             .then(reg => {
                 console.log('PWA Service Worker attivo');
                 reg.update();
@@ -4785,18 +4782,16 @@ window.onload = function () {
 
 // TAB NAVIGATION
 function showTab(tabName) {
-    // Update Active Tab Button
     document.querySelectorAll('.nav-tab').forEach(tab => {
-        const isActive = tab.getAttribute('onclick').includes(tabName);
+        const onclickAttr = tab.getAttribute('onclick') || '';
+        const isActive = onclickAttr.includes(tabName);
         tab.classList.toggle('active', isActive);
     });
 
-    // Update Tab Content Visibility
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.toggle('active', content.id === `${tabName}-tab`);
     });
 
-    // Load Tab-Specific Data
     const tabLoaders = {
         'dashboard': loadDashboardData,
         'products': loadProductsTab,
@@ -4809,7 +4804,6 @@ function showTab(tabName) {
 
     if (tabLoaders[tabName]) tabLoaders[tabName]();
 
-    // On mobile, scroll to top when changing tabs
     if (window.innerWidth <= 768) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -4821,8 +4815,7 @@ function loadDashboardData() {
 }
 
 function loadProductsTab() {
-    populateCategoryDropdown('productCategory');
-    populateSupplierDropdown('productSupplier');
+    updateAllDropdowns();
     renderAllProductsTable();
 }
 
@@ -4835,7 +4828,6 @@ function loadSuppliersTab() {
 }
 
 function loadReportsTab() {
-    // Give time for display: block to take effect before rendering charts
     setTimeout(renderCharts, 50);
 }
 
@@ -4864,24 +4856,48 @@ function populateCategoryDropdown(selectId) {
     const select = document.getElementById(selectId);
     if (!select) return;
 
-    if (selectId === 'monthlyCategoryFilter') {
+    const currentVal = select.value;
+    if (selectId === 'monthlyCategoryFilter' || selectId === 'filterCategorySelect') {
         select.innerHTML = '<option value="">Tutte le Categorie</option>';
+        (appData.categories || []).forEach(category => {
+            const val = typeof category === 'object' ? category.name : category;
+            select.innerHTML += `<option value="${val}">${val}</option>`;
+        });
     } else {
         select.innerHTML = '<option value="">Seleziona categoria</option>';
+        (appData.categories || []).forEach(category => {
+            if (typeof category === 'object') {
+                select.innerHTML += `<option value="${category.id}">${category.name}</option>`;
+            } else {
+                select.innerHTML += `<option value="${category}">${category}</option>`;
+            }
+        });
     }
-
-    appData.categories.forEach(category => {
-        select.innerHTML += `<option value="${category.id}">${category.name}</option>`;
-    });
+    if (currentVal) select.value = currentVal;
 }
 
 function populateSupplierDropdown(selectId) {
     const select = document.getElementById(selectId);
     if (!select) return;
-    select.innerHTML = '<option value="">Seleziona fornitore</option>';
-    appData.suppliers.forEach(supplier => {
-        select.innerHTML += `<option value="${supplier.id}">${supplier.name}</option>`;
-    });
+
+    const currentVal = select.value;
+    if (selectId === 'filterSupplierSelect') {
+        select.innerHTML = '<option value="">Tutti i Fornitori</option>';
+        (appData.suppliers || []).forEach(supplier => {
+            const val = typeof supplier === 'object' ? supplier.name : supplier;
+            select.innerHTML += `<option value="${val}">${val}</option>`;
+        });
+    } else {
+        select.innerHTML = '<option value="">Seleziona fornitore</option>';
+        (appData.suppliers || []).forEach(supplier => {
+            if (typeof supplier === 'object') {
+                select.innerHTML += `<option value="${supplier.id}">${supplier.name}</option>`;
+            } else {
+                select.innerHTML += `<option value="${supplier}">${supplier}</option>`;
+            }
+        });
+    }
+    if (currentVal) select.value = currentVal;
 }
 
 // CORE RENDERING ENGINE
@@ -4897,19 +4913,16 @@ function updateStatistics() {
 
     const currency = appData.settings.currency === 'EUR' ? '€' : appData.settings.currency === 'USD' ? '$' : '£';
 
-    // Dashboard Main Stats
     const totalProdElem = document.getElementById('total-products');
     const totalValElem = document.getElementById('total-value');
     if (totalProdElem) totalProdElem.textContent = stats.totalProducts;
     if (totalValElem) totalValElem.textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-    // Settings Stats (if present)
     const settingsTotal = document.getElementById('settings-total-products');
     const settingsValue = document.getElementById('settings-total-value');
     if (settingsTotal) settingsTotal.textContent = stats.totalProducts;
     if (settingsValue) settingsValue.textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-    // Dashboard Stats
     const inStockElem = document.getElementById('inStockCount');
     const lowStockElem = document.getElementById('lowStockCount');
     const outOfStockElem = document.getElementById('outOfStockCount');
@@ -4917,19 +4930,19 @@ function updateStatistics() {
     if (inStockElem) inStockElem.textContent = stats.inStock;
     if (lowStockElem) lowStockElem.textContent = stats.lowStock;
     if (outOfStockElem) outOfStockElem.textContent = stats.outOfStock;
-    document.getElementById('categoriesCount').textContent = stats.categories;
+    const catCountElem = document.getElementById('categoriesCount');
+    if (catCountElem) catCountElem.textContent = stats.categories;
 }
 
 let currentDashboardFilter = null;
 
 function filterDashboardByStatus(status) {
     if (currentDashboardFilter === status) {
-        currentDashboardFilter = null; // Toggle off
+        currentDashboardFilter = null;
     } else {
         currentDashboardFilter = status;
     }
 
-    // Update card styling
     document.querySelectorAll('.dashboard-stat-filter').forEach(card => {
         card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
         card.style.border = '1px solid var(--border)';
@@ -4962,10 +4975,8 @@ function renderRecentProducts() {
         productsList = productsList.filter(p => p.quantity === 0);
     }
 
-    // Mostriamo gli ultimi 10 se non c'è il filtro, altrimenti li mostriamo tutti quelli del filtro
     const recent = currentDashboardFilter ? productsList : productsList.slice(0, 10);
 
-    // Update the title
     const tableHeader = document.getElementById('dashboardTableTitle');
     if (tableHeader) {
         if (currentDashboardFilter === 'in-stock') {
@@ -4982,7 +4993,7 @@ function renderRecentProducts() {
     if (recent.length > 0) {
         tbody.innerHTML = recent.map(p => createProductRow(p)).join('');
     } else {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato in questo stato</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato in questo stato</td></tr>';
     }
 }
 
@@ -4991,7 +5002,6 @@ let currentProductDeptFilter = 'tutti';
 function filterProductsByDepartment(dept) {
     currentProductDeptFilter = dept;
 
-    // Aggiorna stato attivo dei pulsanti
     ['tutti', 'cucina', 'bar', 'consumabili'].forEach(d => {
         const btn = document.getElementById(`prod-dept-btn-${d}`);
         if (btn) btn.classList.toggle('active', d === dept);
@@ -5027,10 +5037,16 @@ function renderAllProductsTable() {
     const searchInput = document.getElementById('productSearchInput');
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
+    const catSelect = document.getElementById('filterCategorySelect');
+    const selectedCategory = catSelect ? catSelect.value : '';
+
+    const supSelect = document.getElementById('filterSupplierSelect');
+    const selectedSupplier = supSelect ? supSelect.value : '';
+
     let filtered = appData.products || [];
 
-    // Filtro per Reparto
-    if (currentProductDeptFilter !== 'tutti') {
+    // 1. Filtro Rapido per Reparto (Cucina / Bar / Consumabili)
+    if (currentProductDeptFilter && currentProductDeptFilter !== 'tutti') {
         filtered = filtered.filter(p => {
             const pDept = (p.department || '').toLowerCase();
             const pCat = (p.category || '').toLowerCase();
@@ -5041,7 +5057,17 @@ function renderAllProductsTable() {
         });
     }
 
-    // Filtro di ricerca per testo
+    // 2. Filtro Categoria
+    if (selectedCategory) {
+        filtered = filtered.filter(p => (p.category || '') === selectedCategory);
+    }
+
+    // 3. Filtro Fornitore
+    if (selectedSupplier) {
+        filtered = filtered.filter(p => (p.supplier || '') === selectedSupplier);
+    }
+
+    // 4. Filtro di ricerca testuale
     if (searchTerm) {
         filtered = filtered.filter(p =>
             (p.name && p.name.toLowerCase().includes(searchTerm)) ||
@@ -5052,37 +5078,11 @@ function renderAllProductsTable() {
     }
 
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato per questo reparto o ricerca</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato per i filtri selezionati</td></tr>';
         return;
     }
 
-    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
-
-    // Ordine richiesto: REPARTO, CATEGORIA, SOTTOCATEGORIA, PRODOTTO, PREZZO, GIACENZA, FORNITORE, AZIONI
-    tbody.innerHTML = filtered.map(p => {
-        return `
-                <tr class="fade-in">
-                    <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
-                    <td><span class="badge badge-category">${p.category || '-'}</span></td>
-                    <td><span class="subcategory-text">${p.subcategory || '-'}</span></td>
-                    <td class="product-cell">
-                        <span class="product-name" style="font-weight: 600; color: var(--dark); font-size: 0.95rem;">${p.name}</span>
-                    </td>
-                    <td class="price-cell" style="font-weight: 600;">${currency} ${Number(p.price || 0).toFixed(2)}</td>
-                    <td class="quantity-cell">
-                        <span class="quantity-value" style="font-weight: 700;">${p.quantity}</span>
-                        <span class="quantity-unit" style="color: var(--gray); font-size: 0.85rem;">${p.unit}</span>
-                    </td>
-                    <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
-                    <td>
-                        <div class="table-actions">
-                            <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
-                            <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </td>
-                </tr>`;
-    }).join('');
+    tbody.innerHTML = filtered.map(p => createProductRow(p)).join('');
 }
 
 function filterProductsTable() {
@@ -5090,45 +5090,30 @@ function filterProductsTable() {
 }
 
 function createProductRow(p) {
-    const totalValue = p.quantity * p.price;
     const currency = appData.settings.currency === 'EUR' ? '€' : '$';
 
-    let statusClass = 'badge-success';
-    let statusText = 'In Stock';
-    let statusIcon = 'fa-check-circle';
-
-    if (p.quantity === 0) {
-        statusClass = 'badge-danger';
-        statusText = 'Esaurito';
-        statusIcon = 'fa-times-circle';
-    } else if (p.quantity <= appData.settings.lowStockLimit) {
-        statusClass = 'badge-warning';
-        statusText = 'Stock Basso';
-        statusIcon = 'fa-exclamation-triangle';
-    }
-
     return `
-            <tr class="fade-in">
-                <td class="product-cell">
-                    <span class="product-name" style="font-weight: 600; color: var(--dark);">${p.name}</span>
-                </td>
-                <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
-                <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
-                <td><span class="badge badge-category">${p.category}</span></td>
-                <td class="quantity-cell">
-                    <span class="quantity-value">${p.quantity}</span>
-                    <span class="quantity-unit">${p.unit}</span>
-                </td>
-                <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
-                <td class="price-cell"><strong>${currency} ${totalValue.toFixed(2)}</strong></td>
-                <td><span class="badge ${statusClass}"><i class="fas ${statusIcon}"></i>${statusText}</span></td>
-                <td>
-                    <div class="table-actions">
-                        <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </td>
-            </tr>`;
+        <tr class="fade-in">
+            <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
+            <td><span class="badge badge-category">${p.category || '-'}</span></td>
+            <td><span class="subcategory-text">${p.subcategory || '-'}</span></td>
+            <td class="product-cell">
+                <span class="product-name" style="font-weight: 600; color: var(--dark); font-size: 0.95rem;">${p.name}</span>
+            </td>
+            <td class="price-cell" style="font-weight: 600;">${currency} ${Number(p.price || 0).toFixed(2)}</td>
+            <td class="quantity-cell">
+                <span class="quantity-value" style="font-weight: 700;">${p.quantity}</span>
+                <span class="quantity-unit" style="color: var(--gray); font-size: 0.85rem;">${p.unit || ''}</span>
+            </td>
+            <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
+            <td>
+                <div class="table-actions">
+                    <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
+                    <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </td>
+        </tr>`;
 }
 
 // FUNZIONI PRODOTTI
@@ -5184,7 +5169,7 @@ function saveProduct() {
     const newProduct = {
         id: Date.now(),
         name: name,
-        category: category.name,
+        category: category ? category.name : 'Generico',
         subcategory: subcategory,
         department: department || 'entrambi',
         quantity: quantity,
@@ -5195,8 +5180,8 @@ function saveProduct() {
     };
 
     appData.products.push(newProduct);
-    category.productCount++;
-    if (supplier) supplier.productCount++;
+    if (category) category.productCount = (category.productCount || 0) + 1;
+    if (supplier) supplier.productCount = (supplier.productCount || 0) + 1;
 
     saveToCloud();
     closeAddProductModal();
@@ -5225,7 +5210,7 @@ function addProductFromForm() {
     const newProduct = {
         id: Date.now(),
         name: name,
-        category: category.name,
+        category: category ? category.name : 'Generico',
         subcategory: subcategory,
         department: department || 'entrambi',
         quantity: quantity,
@@ -5236,8 +5221,8 @@ function addProductFromForm() {
     };
 
     appData.products.push(newProduct);
-    category.productCount++;
-    if (supplier) supplier.productCount++;
+    if (category) category.productCount = (category.productCount || 0) + 1;
+    if (supplier) supplier.productCount = (supplier.productCount || 0) + 1;
 
     // Reset form
     document.getElementById('productName').value = '';
@@ -5258,7 +5243,6 @@ function editProduct(productId) {
 
     showAddProductModal();
 
-    // Popola i campi con i dati del prodotto
     document.getElementById('modalProductName').value = product.name;
     document.getElementById('modalProductDepartment').value = product.department || 'entrambi';
 
@@ -5267,9 +5251,8 @@ function editProduct(productId) {
         document.getElementById('modalProductCategory').value = category.id;
         updateSubcategories('modal');
 
-        // Imposta la sottocategoria dopo un breve ritardo per permettere il caricamento
         setTimeout(() => {
-            document.getElementById('modalProductSubcategory').value = product.subcategory;
+            document.getElementById('modalProductSubcategory').value = product.subcategory || '';
         }, 100);
     }
 
@@ -5282,10 +5265,8 @@ function editProduct(productId) {
         document.getElementById('modalProductSupplier').value = supplier.id;
     }
 
-    // Cambia il titolo del modal
     document.querySelector('#addProductModal .modal-title').innerHTML = '<i class="fas fa-edit"></i>Modifica Prodotto';
 
-    // Cambia l'azione del pulsante Salva
     const saveButton = document.querySelector('#addProductModal .btn-primary');
     if (saveButton) {
         saveButton.textContent = 'Aggiorna Prodotto';
@@ -5312,10 +5293,10 @@ function updateProduct(productId) {
     if (productIndex === -1) return;
 
     const oldCategory = appData.categories.find(c => c.name === appData.products[productIndex].category);
-    if (oldCategory) oldCategory.productCount--;
+    if (oldCategory) oldCategory.productCount = Math.max(0, (oldCategory.productCount || 1) - 1);
 
     const oldSupplier = appData.suppliers.find(s => s.name === appData.products[productIndex].supplier);
-    if (oldSupplier) oldSupplier.productCount--;
+    if (oldSupplier) oldSupplier.productCount = Math.max(0, (oldSupplier.productCount || 1) - 1);
 
     const category = appData.categories.find(cat => cat.id == categoryId);
     const supplier = appData.suppliers.find(sup => sup.id == supplierId);
@@ -5323,7 +5304,7 @@ function updateProduct(productId) {
     appData.products[productIndex] = {
         id: productId,
         name: name,
-        category: category.name,
+        category: category ? category.name : 'Generico',
         subcategory: subcategory,
         department: department || 'entrambi',
         quantity: quantity,
@@ -5333,8 +5314,8 @@ function updateProduct(productId) {
         status: quantity === 0 ? 'out-of-stock' : quantity <= appData.settings.lowStockLimit ? 'low-stock' : 'in-stock'
     };
 
-    category.productCount++;
-    if (supplier) supplier.productCount++;
+    if (category) category.productCount = (category.productCount || 0) + 1;
+    if (supplier) supplier.productCount = (supplier.productCount || 0) + 1;
 
     saveToCloud();
     closeAddProductModal();
@@ -5357,11 +5338,12 @@ function openQuickQuantityModal(productId) {
 
     document.getElementById('quickQuantityModal').classList.add('show');
 
-    // Focus on input
     setTimeout(() => {
         const input = document.getElementById('quickNewQuantity');
-        input.focus();
-        input.select();
+        if (input) {
+            input.focus();
+            input.select();
+        }
     }, 100);
 }
 
@@ -5386,7 +5368,6 @@ function saveQuickQuantity() {
     const oldQuantity = appData.products[productIndex].quantity;
     appData.products[productIndex].quantity = newQuantity;
 
-    // Update status
     appData.products[productIndex].status =
         newQuantity === 0 ? 'out-of-stock' :
             newQuantity <= appData.settings.lowStockLimit ? 'low-stock' : 'in-stock';
@@ -5396,45 +5377,6 @@ function saveQuickQuantity() {
 
     const productName = appData.products[productIndex].name;
     showNotification(`Quantità aggiornata: ${productName} (${oldQuantity} → ${newQuantity})`, 'success');
-}
-
-// PRODUCT TABLE FILTER
-function filterProductsTable() {
-    const searchTerm = document.getElementById('productSearchInput').value.toLowerCase();
-    const tbody = document.getElementById('allProductsTableBody');
-    if (!tbody) return;
-
-    const filteredProducts = appData.products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm) ||
-        product.category.toLowerCase().includes(searchTerm) ||
-        product.subcategory.toLowerCase().includes(searchTerm) ||
-        (product.supplier && product.supplier.toLowerCase().includes(searchTerm))
-    );
-
-    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
-    tbody.innerHTML = filteredProducts.map(p => {
-        return `
-                <tr class="fade-in">
-                    <td class="product-cell">
-                        <span class="product-name" style="font-weight: 600; color: var(--dark);">${p.name}</span>
-                    </td>
-                    <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
-                    <td><span class="badge badge-category">${p.category}</span></td>
-                    <td><span class="subcategory-text">${p.subcategory || '-'}</span></td>
-                    <td class="quantity-cell">
-                        <span class="quantity-value">${p.quantity}</span>
-                        <span class="quantity-unit">${p.unit}</span>
-                    </td>
-                    <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
-                    <td>
-                        <div class="table-actions">
-                            <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
-                            <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </td>
-                </tr>`;
-    }).join('');
 }
 
 function deleteProduct(productId) {
