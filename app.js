@@ -1,5 +1,6 @@
 // DATI
 let appData = {
+    "dataVersion": "v_2026_09_21_prod_185",
     "products": [
         {
             "id": 1,
@@ -2379,8 +2380,7 @@ let appData = {
         "currency": "EUR",
         "decimalPlaces": 2,
         "lowStockLimit": 5,
-        "stockNotifications": "all",
-        "googleScriptUrl": ""
+        "stockNotifications": "all"
     },
     "monthlySnapshots": [
         {
@@ -2393,1899 +2393,2261 @@ let appData = {
                     "name": "Levissima naturale 0,5 lt",
                     "category": "Beverage",
                     "subcategory": "Acque",
+                    "department": "bar",
                     "quantity": 224.0,
                     "unit": "pezzi",
                     "price": 0.2717,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 2,
                     "name": "Levissima gasssata 0,5 lt",
                     "category": "Beverage",
                     "subcategory": "Acque",
+                    "department": "bar",
                     "quantity": 97.0,
                     "unit": "pezzi",
                     "price": 0.2717,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 3,
                     "name": "Levissima naturale 1 lt",
                     "category": "Beverage",
                     "subcategory": "Acque",
+                    "department": "bar",
                     "quantity": 68.0,
                     "unit": "pezzi",
                     "price": 0.6217,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 4,
                     "name": "Levissima gassata 1 lt",
                     "category": "Beverage",
                     "subcategory": "Acque",
+                    "department": "bar",
                     "quantity": 39.0,
                     "unit": "pezzi",
                     "price": 0.6342,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 5,
                     "name": "Coca Cola 0,45 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 77.0,
                     "unit": "pezzi",
                     "price": 0.9283,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 6,
                     "name": "Coca Cola 1,5 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 17.0,
                     "unit": "pezzi",
                     "price": 1.6967,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 7,
                     "name": "Fanta 0,45 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 47.0,
                     "unit": "pezzi",
                     "price": 0.9275,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 8,
                     "name": "Fanta Lemon 0,45 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 30.0,
                     "unit": "pezzi",
                     "price": 0.895,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 9,
                     "name": "Coca Zero 0,45 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 64.0,
                     "unit": "pezzi",
                     "price": 0.945,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 10,
                     "name": "Esta Thè Pesca 0,4 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 50.0,
                     "unit": "pezzi",
                     "price": 0.8,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 11,
                     "name": "Esta Thè Limone 0,4 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 40.0,
                     "unit": "pezzi",
                     "price": 0.8,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 12,
                     "name": "Lurisia varie",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 62.0,
                     "unit": "pezzi",
                     "price": 1.2517,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 13,
                     "name": "Red Bull",
                     "category": "Beverage",
                     "subcategory": "Energy Drink",
+                    "department": "bar",
                     "quantity": 28.0,
                     "unit": "pezzi",
                     "price": 1.16,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 14,
                     "name": "Esta Thè Pesca 1,5 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 20.0,
                     "unit": "pezzi",
                     "price": 1.61,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 15,
                     "name": "San Bitter",
                     "category": "Beverage",
                     "subcategory": "Analcolici",
+                    "department": "bar",
                     "quantity": 53.0,
                     "unit": "pezzi",
                     "price": 0.47,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 16,
                     "name": "Ginger Beer",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 12.0,
                     "unit": "pezzi",
                     "price": 1.31,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "in-stock"
                 },
                 {
                     "id": 17,
                     "name": "Ginger Ale",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 6.0,
                     "unit": "pezzi",
                     "price": 0.5792,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 18,
                     "name": "Acqua Brillante Recoaro vetro 0,20 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 33.0,
                     "unit": "pezzi",
                     "price": 0.61,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 19,
                     "name": "Acqua Brillante  Recoaro Litro",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 5.0,
                     "unit": "pezzi",
                     "price": 1.0583,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 20,
                     "name": "Ananas lt",
                     "category": "Beverage",
                     "subcategory": "Succhi",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 1.79,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 21,
                     "name": "Pera lt",
                     "category": "Beverage",
                     "subcategory": "Succhi",
+                    "department": "bar",
                     "quantity": 2.0,
                     "unit": "pezzi",
                     "price": 1.18,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 22,
                     "name": "Arancia lt",
                     "category": "Beverage",
                     "subcategory": "Succhi",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 2.39,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 23,
                     "name": "Zucchero",
                     "category": "Beverage",
                     "subcategory": "Scirioppi",
+                    "department": "bar",
                     "quantity": 0.7,
                     "unit": "pezzi",
                     "price": 0.0,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 24,
                     "name": "Fragola",
                     "category": "Beverage",
                     "subcategory": "Scirioppi",
+                    "department": "bar",
                     "quantity": 0.2,
                     "unit": "pezzi",
                     "price": 6.49,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 25,
                     "name": "Cocco",
                     "category": "Beverage",
                     "subcategory": "Scirioppi",
+                    "department": "bar",
                     "quantity": 0.3,
                     "unit": "pezzi",
                     "price": 6.49,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 26,
                     "name": "Granatina",
                     "category": "Beverage",
                     "subcategory": "Scirioppi",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 6.17,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 27,
                     "name": "Passion Fruit",
                     "category": "Beverage",
                     "subcategory": "Scirioppi",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 6.49,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 28,
                     "name": "Sweet & Sour",
                     "category": "Beverage",
                     "subcategory": "Scirioppi",
+                    "department": "bar",
                     "quantity": 1.8,
                     "unit": "pezzi",
                     "price": 5.09,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 29,
                     "name": "ACQUA DI SELTZ REVOLTOSA SIFONE L1,5",
                     "category": "Beverage",
                     "subcategory": "Acque",
+                    "department": "bar",
                     "quantity": 7.0,
                     "unit": "pezzi",
                     "price": 2.99,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "in-stock"
                 },
                 {
                     "id": 30,
                     "name": "Campari Soda",
                     "category": "Beverage",
                     "subcategory": "Aperitivi",
+                    "department": "bar",
                     "quantity": 4.0,
                     "unit": "pezzi",
                     "price": 0.769,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 31,
                     "name": "Sprite 0,45 lt",
                     "category": "Beverage",
                     "subcategory": "Bibite",
+                    "department": "bar",
                     "quantity": 27.0,
                     "unit": "pezzi",
                     "price": 0.9275,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 32,
                     "name": "Ponce Mandarino",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.4,
                     "unit": "pezzi",
                     "price": 0.0,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 33,
                     "name": "Sambuca molinari",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 16.53,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 34,
                     "name": "Kahlua",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.9,
                     "unit": "pezzi",
                     "price": 15.35,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 35,
                     "name": "Martini Rosso",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 1.3,
                     "unit": "pezzi",
                     "price": 7.95,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 36,
                     "name": "Amaro Averna",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.7,
                     "unit": "pezzi",
                     "price": 16.49,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 37,
                     "name": "Jagermaister",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 3.4,
                     "unit": "pezzi",
                     "price": 21.22,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 38,
                     "name": "Baylei's",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 16.0,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 39,
                     "name": "Rum Kraken",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 19.04,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 40,
                     "name": "Rum Diplomatico Riserva",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.5,
                     "unit": "pezzi",
                     "price": 24.7,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 41,
                     "name": "Rum Diplomatico Mantuano",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.4,
                     "unit": "pezzi",
                     "price": 22.9,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 42,
                     "name": "Cachaca",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.7,
                     "unit": "pezzi",
                     "price": 0.0,
-                    "supplier": "Fornitore Generico"
+                    "supplier": "Fornitore Generico",
+                    "status": "low-stock"
                 },
                 {
                     "id": 43,
                     "name": "Grappa Belluva Bariccata",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.3,
                     "unit": "pezzi",
                     "price": 13.59,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 44,
                     "name": "Grappa Belluva Bianca",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.5,
                     "unit": "pezzi",
                     "price": 11.49,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 45,
                     "name": "Gran Marnier",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.8,
                     "unit": "pezzi",
                     "price": 21.49,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 46,
                     "name": "Gin Bulldog",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 2.4,
                     "unit": "pezzi",
                     "price": 14.4,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 47,
                     "name": "Gin Tanqueray Ten",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.9,
                     "unit": "pezzi",
                     "price": 25.9,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 48,
                     "name": "Gin Tanqueray Lime",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.6,
                     "unit": "pezzi",
                     "price": 18.9,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 49,
                     "name": "Gin Mare",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.2,
                     "unit": "pezzi",
                     "price": 30.0,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 50,
                     "name": "Gin Roku",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 0.0,
-                    "supplier": "Fornitore Generico"
+                    "supplier": "Fornitore Generico",
+                    "status": "low-stock"
                 },
                 {
                     "id": 51,
                     "name": "Jack Danile's Honey",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.3,
                     "unit": "pezzi",
                     "price": 23.84,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 52,
                     "name": "Jack Danile's Apple",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.4,
                     "unit": "pezzi",
                     "price": 21.9,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 53,
                     "name": "Jack Danile's Fire",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.6,
                     "unit": "pezzi",
                     "price": 30.82,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 54,
                     "name": "Jack Danile's",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.2,
                     "unit": "pezzi",
                     "price": 29.14,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 55,
                     "name": "Wild Turkey",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.1,
                     "unit": "pezzi",
                     "price": 29.32,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 56,
                     "name": "Busker",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.1,
                     "unit": "pezzi",
                     "price": 0.0,
-                    "supplier": "Fornitore Generico"
+                    "supplier": "Fornitore Generico",
+                    "status": "low-stock"
                 },
                 {
                     "id": 57,
                     "name": "Gin Santoni",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.9,
                     "unit": "pezzi",
                     "price": 12.7,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "low-stock"
                 },
                 {
                     "id": 58,
                     "name": "Campari",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 18.5,
                     "unit": "pezzi",
                     "price": 11.99,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 59,
                     "name": "Triple Sec Bol's",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 9.48,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 60,
                     "name": "Absolute Vodka",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 3.0,
                     "unit": "pezzi",
                     "price": 17.68,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 61,
                     "name": "Aperol",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 8.0,
                     "unit": "pezzi",
                     "price": 11.28,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 62,
                     "name": "Tequila Espolon",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.6,
                     "unit": "pezzi",
                     "price": 16.4,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 63,
                     "name": "Vodka Pesca Iceberg",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 0.0,
-                    "supplier": "Fornitore Generico"
+                    "supplier": "Fornitore Generico",
+                    "status": "low-stock"
                 },
                 {
                     "id": 64,
                     "name": "Vodka Fragola Iceberg",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.9,
                     "unit": "pezzi",
                     "price": 0.0,
-                    "supplier": "Fornitore Generico"
+                    "supplier": "Fornitore Generico",
+                    "status": "low-stock"
                 },
                 {
                     "id": 65,
                     "name": "Malibu",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.3,
                     "unit": "pezzi",
                     "price": 17.19,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 66,
                     "name": "Rum Pampero Scuro",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.1,
                     "unit": "pezzi",
                     "price": 12.6,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "low-stock"
                 },
                 {
                     "id": 67,
                     "name": "Rum Barcelo Blanco",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.9,
                     "unit": "pezzi",
                     "price": 13.6,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "low-stock"
                 },
                 {
                     "id": 68,
                     "name": "Blu Curacao Bol'sSathenay Sambuco",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.7,
                     "unit": "pezzi",
                     "price": 0.0,
-                    "supplier": "Fornitore Generico"
+                    "supplier": "Fornitore Generico",
+                    "status": "low-stock"
                 },
                 {
                     "id": 69,
                     "name": "Amaro del Capo 1,5 lt",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.7,
                     "unit": "pezzi",
                     "price": 23.24,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 70,
                     "name": "Amaro Montenegro",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 19.05,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 71,
                     "name": "Limoncello",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.6,
                     "unit": "pezzi",
                     "price": 10.02,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 72,
                     "name": "Amaro Tattico",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.2,
                     "unit": "pezzi",
                     "price": 19.95,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 73,
                     "name": "Triple Sec Ciemme",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 0.4,
                     "unit": "pezzi",
                     "price": 9.48,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 74,
                     "name": "Sathenay Sambuco",
                     "category": "Beverage",
                     "subcategory": "Liquori",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 17.78,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 75,
                     "name": "Bud 30 lt",
                     "category": "Beverage",
                     "subcategory": "Birre in Fusti",
+                    "department": "bar",
                     "quantity": 0.8,
                     "unit": "pezzi",
                     "price": 103.0,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 76,
                     "name": "Maisel 30 lt",
                     "category": "Beverage",
                     "subcategory": "Birre in Fusti",
+                    "department": "bar",
                     "quantity": 0.1,
                     "unit": "pezzi",
                     "price": 109.26,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "low-stock"
                 },
                 {
                     "id": 77,
                     "name": "Dolomiti non filtrata 24 lt",
                     "category": "Beverage",
                     "subcategory": "Birre in Fusti",
+                    "department": "bar",
                     "quantity": 0.2,
                     "unit": "pezzi",
                     "price": 97.43,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "low-stock"
                 },
                 {
                     "id": 78,
                     "name": "Heineken",
                     "category": "Beverage",
                     "subcategory": "Birre in Bottiglia",
+                    "department": "bar",
                     "quantity": 41.0,
                     "unit": "pezzi",
                     "price": 1.0283,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 79,
                     "name": "Ichnuesa",
                     "category": "Beverage",
                     "subcategory": "Birre in Bottiglia",
+                    "department": "bar",
                     "quantity": 53.0,
                     "unit": "pezzi",
                     "price": 0.87,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 80,
                     "name": "HACKER MUN. DUNKEL VAR 50 clX 24",
                     "category": "Beverage",
                     "subcategory": "Birre in Bottiglia",
+                    "department": "bar",
                     "quantity": 7.0,
                     "unit": "pezzi",
                     "price": 1.2725,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "in-stock"
                 },
                 {
                     "id": 81,
                     "name": "HACKER WEISSE VAR 50 CL X 24",
                     "category": "Beverage",
                     "subcategory": "Birre in Bottiglia",
+                    "department": "bar",
                     "quantity": 12.0,
                     "unit": "pezzi",
                     "price": 0.7583,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "in-stock"
                 },
                 {
                     "id": 82,
                     "name": "KAPUZINER WEISSEMCL 50 X 20",
                     "category": "Beverage",
                     "subcategory": "Birre in Bottiglia",
+                    "department": "bar",
                     "quantity": 18.0,
                     "unit": "pezzi",
                     "price": 1.997,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "in-stock"
                 },
                 {
                     "id": 83,
                     "name": "Leffe Rossa",
                     "category": "Beverage",
                     "subcategory": "Birre in Bottiglia",
+                    "department": "bar",
                     "quantity": 5.0,
                     "unit": "pezzi",
                     "price": 1.88,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 84,
                     "name": "Dolimiti Pils",
                     "category": "Beverage",
                     "subcategory": "Birre in Bottiglia",
+                    "department": "bar",
                     "quantity": 36.0,
                     "unit": "pezzi",
                     "price": 1.1467,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "in-stock"
                 },
                 {
                     "id": 85,
                     "name": "Tennent's",
                     "category": "Beverage",
                     "subcategory": "Birre in Bottiglia",
+                    "department": "bar",
                     "quantity": 46.0,
                     "unit": "pezzi",
                     "price": 1.2358,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 86,
                     "name": "Corona",
                     "category": "Beverage",
                     "subcategory": "Birre in Bottiglia",
+                    "department": "bar",
                     "quantity": 58.0,
                     "unit": "pezzi",
                     "price": 1.2921,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 87,
                     "name": "PROSECCO MILLESIMATO BRUT SPUM. 11% 75 cl",
                     "category": "Beverage",
                     "subcategory": "Vini e Spumanti",
+                    "department": "bar",
                     "quantity": 6.0,
                     "unit": "pezzi",
                     "price": 3.5,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "in-stock"
                 },
                 {
                     "id": 88,
                     "name": "PROSECCO MILLESIMATO ROSE' 11% 75cl",
                     "category": "Beverage",
                     "subcategory": "Vini e Spumanti",
+                    "department": "bar",
                     "quantity": 15.0,
                     "unit": "pezzi",
                     "price": 5.95,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "in-stock"
                 },
                 {
                     "id": 89,
                     "name": "PROSECCO DOC TREVISO BRUT 11% 75 cl",
                     "category": "Beverage",
                     "subcategory": "Vini e Spumanti",
+                    "department": "bar",
                     "quantity": 14.0,
                     "unit": "pezzi",
                     "price": 5.87,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "in-stock"
                 },
                 {
                     "id": 90,
                     "name": "BOTTEGA RIBOLLA GIALLA SPUMANTE 75 cl",
                     "category": "Beverage",
                     "subcategory": "Vini e Spumanti",
+                    "department": "bar",
                     "quantity": 13.0,
                     "unit": "pezzi",
                     "price": 6.2,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "in-stock"
                 },
                 {
                     "id": 91,
                     "name": "SPUM. PROSECCO VALD. DAMA DOCG 75 cl X 6",
                     "category": "Beverage",
                     "subcategory": "Vini e Spumanti",
+                    "department": "bar",
                     "quantity": 4.0,
                     "unit": "pezzi",
                     "price": 7.4067,
-                    "supplier": "Prinz"
+                    "supplier": "Prinz",
+                    "status": "low-stock"
                 },
                 {
                     "id": 92,
                     "name": "VINO BIANCO VERMENTINO IGT 75 cl STG COLLESANO X 6 BOTT.",
                     "category": "Beverage",
                     "subcategory": "Vini e Spumanti",
+                    "department": "bar",
                     "quantity": 11.0,
                     "unit": "pezzi",
                     "price": 5.6933,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 93,
                     "name": "VINO MORELLINO DI SCANSANNO IGT 75 cl STG COLLESANO X 6 BOTT",
                     "category": "Beverage",
                     "subcategory": "Vini e Spumanti",
+                    "department": "bar",
                     "quantity": 3.0,
                     "unit": "pezzi",
                     "price": 6.065,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 94,
                     "name": "VINO ROSSO TOSCANO IGT 75 cl STG CASAL DI LEO X 6 BOTT.",
                     "category": "Beverage",
                     "subcategory": "Vini e Spumanti",
+                    "department": "bar",
                     "quantity": 5.0,
                     "unit": "pezzi",
                     "price": 4.2283,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "low-stock"
                 },
                 {
                     "id": 95,
                     "name": "VINO PASSERINA IGT COLLI PESCARESI 75 cl STG LAUDET TERRE DI POGGIO x 6",
                     "category": "Beverage",
                     "subcategory": "Vini e Spumanti",
+                    "department": "bar",
                     "quantity": 7.0,
                     "unit": "pezzi",
                     "price": 5.3333,
-                    "supplier": "Glou Glou"
+                    "supplier": "Glou Glou",
+                    "status": "in-stock"
                 },
                 {
                     "id": 96,
                     "name": "Caffè Corposo",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 4070.0,
                     "unit": "pezzi",
                     "price": 0.28,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "in-stock"
                 },
                 {
                     "id": 97,
                     "name": "Caffè Decaffeninato",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 590.0,
                     "unit": "pezzi",
                     "price": 0.28,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "in-stock"
                 },
                 {
                     "id": 98,
                     "name": "Zucchero di Canna",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 1.5,
                     "unit": "pezzi",
                     "price": 2.79,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 99,
                     "name": "Zucchero Bianco",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 0.3,
                     "unit": "pezzi",
                     "price": 1.72,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 100,
                     "name": "Dieteico",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 0.8,
                     "unit": "pezzi",
                     "price": 6.75,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 101,
                     "name": "Preparato per Crepes 800 gr",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 19.8,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "low-stock"
                 },
                 {
                     "id": 102,
                     "name": "Kit Kat/Snickers/M&M'S",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 53.0,
                     "unit": "pezzi",
                     "price": 0.69,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "in-stock"
                 },
                 {
                     "id": 103,
                     "name": "Lay's Patatine",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 85.0,
                     "unit": "pezzi",
                     "price": 0.6,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "in-stock"
                 },
                 {
                     "id": 104,
                     "name": "Biscotti nostra produzione",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 2.0,
                     "unit": "kg",
                     "price": 0.0,
-                    "supplier": "Nostra"
+                    "supplier": "Nostra",
+                    "status": "low-stock"
                 },
                 {
                     "id": 105,
                     "name": "Frutta",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 4.0,
                     "unit": "kg",
                     "price": 5.0,
-                    "supplier": "Nostra"
+                    "supplier": "Nostra",
+                    "status": "low-stock"
                 },
                 {
                     "id": 106,
                     "name": "Patatine Aperitivo",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 3.0,
                     "unit": "pezzi",
                     "price": 2.2,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "low-stock"
                 },
                 {
                     "id": 107,
                     "name": "Arachidi Aperitivo",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 9.0,
                     "unit": "pezzi",
                     "price": 4.2,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "in-stock"
                 },
                 {
                     "id": 108,
                     "name": "oli e condimenti",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 30.0,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 109,
                     "name": "Topping vari",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 30.0,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 110,
                     "name": "Nutella3 Kg",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 0.7,
                     "unit": "pezzi",
                     "price": 22.59,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 111,
                     "name": "FrappeShake preparato 1 Kg",
                     "category": "Beverage",
                     "subcategory": "Caffetteria",
+                    "department": "bar",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 30.0,
-                    "supplier": "O.V.D."
+                    "supplier": "O.V.D.",
+                    "status": "low-stock"
                 },
                 {
                     "id": 112,
                     "name": "Pirottino in Alluminio T8 Performance x 100",
                     "category": "Consumabili",
                     "subcategory": "Altro",
+                    "department": "entrambi",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 4.74,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 113,
                     "name": "VASSOIO CARTONCINO ANTIGRAS.12X16CM PZ50",
                     "category": "Consumabili",
                     "subcategory": "Contenitori",
+                    "department": "entrambi",
                     "quantity": 11.0,
                     "unit": "pezzi",
                     "price": 4.01,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "in-stock"
                 },
                 {
                     "id": 114,
                     "name": "VASSOIO CARTONCINO ANTIGR.21,5X18CM PZ50",
                     "category": "Consumabili",
                     "subcategory": "Contenitori",
+                    "department": "entrambi",
                     "quantity": 11.0,
                     "unit": "pezzi",
                     "price": 5.91,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "in-stock"
                 },
                 {
                     "id": 115,
                     "name": "BICCHIERI PER PATATINE 50 pzX20",
                     "category": "Consumabili",
                     "subcategory": "Contenitori",
+                    "department": "entrambi",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 4.13,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "low-stock"
                 },
                 {
                     "id": 116,
                     "name": "SGRASSATORE MATRIX 750 ML",
                     "category": "Consumabili",
                     "subcategory": "Detergenti",
+                    "department": "entrambi",
                     "quantity": 12.0,
                     "unit": "pezzi",
                     "price": 1.56,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "in-stock"
                 },
                 {
                     "id": 117,
                     "name": "BRILLANTANTE MATRIX 5 KG",
                     "category": "Consumabili",
                     "subcategory": "Detergenti",
+                    "department": "entrambi",
                     "quantity": 0.5,
                     "unit": "pezzi",
                     "price": 9.74,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 118,
                     "name": "LAVASTOVIGLIE DETERGENTE MATRIX 5,5 KG",
                     "category": "Consumabili",
                     "subcategory": "Detergenti",
+                    "department": "entrambi",
                     "quantity": 0.5,
                     "unit": "pezzi",
                     "price": 9.72,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 119,
                     "name": "DETERSIVO PIATTI MATRIX 5 KG",
                     "category": "Consumabili",
                     "subcategory": "Detergenti",
+                    "department": "entrambi",
                     "quantity": 0.5,
                     "unit": "pezzi",
                     "price": 5.16,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 120,
                     "name": "DTERSIVO UNOX CONF.10 BOTTIGLIE DA 1L",
                     "category": "Consumabili",
                     "subcategory": "Detergenti",
+                    "department": "entrambi",
                     "quantity": 5.0,
                     "unit": "pezzi",
                     "price": 9.5,
-                    "supplier": "Tagòiagambe"
+                    "supplier": "Tagòiagambe",
+                    "status": "low-stock"
                 },
                 {
                     "id": 121,
                     "name": "Tovagliete carta cena",
                     "category": "Consumabili",
                     "subcategory": "Tovaglie e Tovaglioli",
+                    "department": "entrambi",
                     "quantity": 300.0,
                     "unit": "pezzi",
                     "price": 0.11,
-                    "supplier": "IAGRAPH"
+                    "supplier": "IAGRAPH",
+                    "status": "in-stock"
                 },
                 {
                     "id": 122,
                     "name": "Tovaglioli neri 38x38",
                     "category": "Consumabili",
                     "subcategory": "Tovaglie e Tovaglioli",
+                    "department": "entrambi",
                     "quantity": 13.0,
                     "unit": "pezzi",
                     "price": 2.19,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "in-stock"
                 },
                 {
                     "id": 123,
                     "name": "Tovalgioli neri 25x25",
                     "category": "Consumabili",
                     "subcategory": "Tovaglie e Tovaglioli",
+                    "department": "entrambi",
                     "quantity": 3.0,
                     "unit": "pezzi",
                     "price": 2.56,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 124,
                     "name": "Cannucce Lunghe 500pz",
                     "category": "Consumabili",
                     "subcategory": "Altro",
+                    "department": "entrambi",
                     "quantity": 2.0,
                     "unit": "pezzi",
                     "price": 8.82,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 125,
                     "name": "Cannucce Corte",
                     "category": "Consumabili",
                     "subcategory": "Altro",
+                    "department": "entrambi",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 2.59,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 126,
                     "name": "Candeline",
                     "category": "Consumabili",
                     "subcategory": "Altro",
+                    "department": "entrambi",
                     "quantity": 13.0,
                     "unit": "pezzi",
                     "price": 1.1,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "in-stock"
                 },
                 {
                     "id": 127,
                     "name": "CANDELA FONTANA ARGENTO PZ15 PYROGIOCHI",
                     "category": "Consumabili",
                     "subcategory": "Altro",
+                    "department": "entrambi",
                     "quantity": 9.0,
                     "unit": "pezzi",
                     "price": 0.7233,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "in-stock"
                 },
                 {
                     "id": 128,
                     "name": "Rotolino Cassa",
                     "category": "Consumabili",
                     "subcategory": "Altro",
+                    "department": "entrambi",
                     "quantity": 38.0,
                     "unit": "pezzi",
                     "price": 1.067,
-                    "supplier": "Pino Margherita"
+                    "supplier": "Pino Margherita",
+                    "status": "in-stock"
                 },
                 {
                     "id": 129,
                     "name": "Rorolini POS",
                     "category": "Consumabili",
                     "subcategory": "Altro",
+                    "department": "entrambi",
                     "quantity": 113.0,
                     "unit": "pezzi",
                     "price": 0.2716,
-                    "supplier": "Pino Margherita"
+                    "supplier": "Pino Margherita",
+                    "status": "in-stock"
                 },
                 {
                     "id": 130,
                     "name": "TOV. 2V 16X24 PZ 150X40 NATURAL dispenser",
                     "category": "Consumabili",
                     "subcategory": "Tovaglie e Tovaglioli",
+                    "department": "entrambi",
                     "quantity": 15.0,
                     "unit": "pezzi",
                     "price": 1.1575,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "in-stock"
                 },
                 {
                     "id": 131,
                     "name": "PIATTI DESSERT PZ.125",
                     "category": "Consumabili",
                     "subcategory": "Piatti-Bicchieri-Posate",
+                    "department": "entrambi",
                     "quantity": 3.0,
                     "unit": "pezzi",
                     "price": 6.87,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "low-stock"
                 },
                 {
                     "id": 132,
                     "name": "BICCHIERI CARTONCINO PE CC200 50pzX20",
                     "category": "Consumabili",
                     "subcategory": "Piatti-Bicchieri-Posate",
+                    "department": "entrambi",
                     "quantity": 10.0,
                     "unit": "pezzi",
                     "price": 2.885,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "in-stock"
                 },
                 {
                     "id": 133,
                     "name": "FORCHETTA LEGNO SFUSA 165 pz 100",
                     "category": "Consumabili",
                     "subcategory": "Piatti-Bicchieri-Posate",
+                    "department": "entrambi",
                     "quantity": 9.0,
                     "unit": "pezzi",
                     "price": 3.59,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "in-stock"
                 },
                 {
                     "id": 134,
                     "name": "TOVAGLIOLI 33X33 3V PZ. 30X44 ROSA/BLU CIEN",
                     "category": "Consumabili",
                     "subcategory": "Tovaglie e Tovaglioli",
+                    "department": "entrambi",
                     "quantity": 2.0,
                     "unit": "pezzi",
                     "price": 0.7967,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "low-stock"
                 },
                 {
                     "id": 135,
                     "name": "Tovaglie tavolo compleanno",
                     "category": "Consumabili",
                     "subcategory": "Tovaglie e Tovaglioli",
+                    "department": "entrambi",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 7.0,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 136,
                     "name": "Asciugamani intercalat (15 pezzi)",
                     "category": "Consumabili",
                     "subcategory": "Carta servizio",
+                    "department": "entrambi",
                     "quantity": 15.0,
                     "unit": "pezzi",
                     "price": 1.5333,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "in-stock"
                 },
                 {
                     "id": 137,
                     "name": "Carta Igenica intercalata(40 pezzi)",
                     "category": "Consumabili",
                     "subcategory": "Carta servizio",
+                    "department": "entrambi",
                     "quantity": 40.0,
                     "unit": "pezzi",
                     "price": 0.6225,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "in-stock"
                 },
                 {
                     "id": 138,
                     "name": "BOBINA WE SUPER 800 ECOLABEL PZ.2",
                     "category": "Consumabili",
                     "subcategory": "Carta servizio",
+                    "department": "entrambi",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 6.5,
-                    "supplier": "Montechimica"
+                    "supplier": "Montechimica",
+                    "status": "low-stock"
                 },
                 {
                     "id": 139,
                     "name": "SALE ADDOLCITORE ACQUE IN PASTIGLIE 25 KG",
                     "category": "Consumabili",
                     "subcategory": "Altro",
+                    "department": "entrambi",
                     "quantity": 2.0,
                     "unit": "pezzi",
                     "price": 7.5,
-                    "supplier": "POLO"
+                    "supplier": "POLO",
+                    "status": "low-stock"
                 },
                 {
                     "id": 140,
                     "name": "DEODORANTE SCARPE BOWLING",
                     "category": "Consumabili",
                     "subcategory": "Altro",
+                    "department": "entrambi",
                     "quantity": 12.0,
                     "unit": "pezzi",
                     "price": 4.9,
-                    "supplier": "CLEAN BY"
+                    "supplier": "CLEAN BY",
+                    "status": "in-stock"
                 },
                 {
                     "id": 141,
                     "name": "Mattonella Lav. A metà",
                     "category": "Cucina",
                     "subcategory": "Salumi",
+                    "department": "cucina",
                     "quantity": 1.16,
                     "unit": "kg",
                     "price": 9.79,
-                    "supplier": "EsseBi"
+                    "supplier": "EsseBi",
+                    "status": "low-stock"
                 },
                 {
                     "id": 142,
                     "name": "Mortadella",
                     "category": "Cucina",
                     "subcategory": "Salumi",
+                    "department": "cucina",
                     "quantity": 0.3,
                     "unit": "kg",
                     "price": 6.98,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 143,
                     "name": "Salame Napoli",
                     "category": "Cucina",
                     "subcategory": "Salumi",
+                    "department": "cucina",
                     "quantity": 0.88,
                     "unit": "kg",
                     "price": 8.19,
-                    "supplier": "EsseBi"
+                    "supplier": "EsseBi",
+                    "status": "low-stock"
                 },
                 {
                     "id": 144,
                     "name": "Pancetta Stesa",
                     "category": "Cucina",
                     "subcategory": "Salumi",
+                    "department": "cucina",
                     "quantity": 0.35,
                     "unit": "kg",
                     "price": 9.12,
-                    "supplier": "EsseBi"
+                    "supplier": "EsseBi",
+                    "status": "low-stock"
                 },
                 {
                     "id": 145,
                     "name": "Prosciutto Cotto",
                     "category": "Cucina",
                     "subcategory": "Salumi",
+                    "department": "cucina",
                     "quantity": 2.62,
                     "unit": "kg",
                     "price": 6.07,
-                    "supplier": "EsseBi"
+                    "supplier": "EsseBi",
+                    "status": "low-stock"
                 },
                 {
                     "id": 146,
                     "name": "PECORINO PIENZA NERO",
                     "category": "Cucina",
                     "subcategory": "Formaggi",
+                    "department": "cucina",
                     "quantity": 0.43,
                     "unit": "kg",
                     "price": 18.59,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 147,
                     "name": "GRANA PADANO 10-12 MESI DOP",
                     "category": "Cucina",
                     "subcategory": "Formaggi",
+                    "department": "cucina",
                     "quantity": 2.32,
                     "unit": "kg",
                     "price": 15.89,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 148,
                     "name": "Mascarpone  500 Gr",
                     "category": "Cucina",
                     "subcategory": "Formaggi",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 4.33,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 149,
                     "name": "Burro 1 Kg Performance",
                     "category": "Cucina",
                     "subcategory": "Formaggi",
+                    "department": "cucina",
                     "quantity": 0.35,
                     "unit": "kg",
                     "price": 6.49,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 150,
                     "name": "CIOCCOLATO FONDENTE 1 KG",
                     "category": "Cucina",
                     "subcategory": "Dolci",
+                    "department": "cucina",
                     "quantity": 0.2,
                     "unit": "kg",
                     "price": 19.16,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 151,
                     "name": "NDUJA",
                     "category": "Cucina",
                     "subcategory": "Salumi",
+                    "department": "cucina",
                     "quantity": 0.333,
                     "unit": "kg",
                     "price": 13.19,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 152,
                     "name": "Bacon",
                     "category": "Cucina",
                     "subcategory": "Salumi",
+                    "department": "cucina",
                     "quantity": 0.61,
                     "unit": "kg",
                     "price": 10.98,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 153,
                     "name": "Cheddar a fette",
                     "category": "Cucina",
                     "subcategory": "Formaggi",
+                    "department": "cucina",
                     "quantity": 0.623,
                     "unit": "pezzi",
                     "price": 9.36,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 154,
                     "name": "Maionese 5 Kg",
                     "category": "Cucina",
                     "subcategory": "Salse",
+                    "department": "cucina",
                     "quantity": 0.2,
                     "unit": "pezzi",
                     "price": 14.9,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 155,
                     "name": "Crema al Pisacchio DEMETRA",
                     "category": "Cucina",
                     "subcategory": "Dolci",
+                    "department": "cucina",
                     "quantity": 0.66,
                     "unit": "pezzi",
                     "price": 49.51,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 156,
                     "name": "Crema al Tarufo Perfomance",
                     "category": "Cucina",
                     "subcategory": "Salse",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 5.99,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 157,
                     "name": "Salsa Burger",
                     "category": "Cucina",
                     "subcategory": "Salse",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 6.09,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 158,
                     "name": "Senape",
                     "category": "Cucina",
                     "subcategory": "Salse",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 5.59,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 159,
                     "name": "Salsa DIP",
                     "category": "Cucina",
                     "subcategory": "Salse",
+                    "department": "cucina",
                     "quantity": 2.0,
                     "unit": "pezzi",
                     "price": 3.9,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 160,
                     "name": "Salsa BBQ",
                     "category": "Cucina",
                     "subcategory": "Salse",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 5.38,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 161,
                     "name": "Salsa Guacamole BIFFI",
                     "category": "Cucina",
                     "subcategory": "Salse",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 8.14,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 162,
                     "name": "Panna Cotta CAMEL",
                     "category": "Cucina",
                     "subcategory": "Dolci",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 7.59,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 163,
                     "name": "Patate fritte Lambweston 6x6",
                     "category": "Cucina",
                     "subcategory": "Apetizer",
+                    "department": "cucina",
                     "quantity": 6.0,
                     "unit": "kg",
                     "price": 1.876,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "in-stock"
                 },
                 {
                     "id": 164,
                     "name": "Veggie Burger Salomon",
                     "category": "Cucina",
                     "subcategory": "Burger",
+                    "department": "cucina",
                     "quantity": 0.3,
                     "unit": "pezzi",
                     "price": 10.04,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 165,
                     "name": "Base senza Glutine",
                     "category": "Cucina",
                     "subcategory": "Panificati",
+                    "department": "cucina",
                     "quantity": 2.0,
                     "unit": "pezzi",
                     "price": 2.99,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 166,
                     "name": "Alette di Pollo DIA",
                     "category": "Cucina",
                     "subcategory": "Apetizer",
+                    "department": "cucina",
                     "quantity": 6.07,
                     "unit": "kg",
                     "price": 3.0,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "in-stock"
                 },
                 {
                     "id": 167,
                     "name": "Mozzarella Stick",
                     "category": "Cucina",
                     "subcategory": "Apetizer",
+                    "department": "cucina",
                     "quantity": 5.0,
                     "unit": "kg",
                     "price": 11.52,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 168,
                     "name": "Anello di Cipolla",
                     "category": "Cucina",
                     "subcategory": "Apetizer",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "kg",
                     "price": 4.67,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 169,
                     "name": "Jalapenso",
                     "category": "Cucina",
                     "subcategory": "Apetizer",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "kg",
                     "price": 14.84,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 170,
                     "name": "Pollo",
                     "category": "Cucina",
                     "subcategory": "Carni",
+                    "department": "cucina",
                     "quantity": 0.7,
                     "unit": "kg",
                     "price": 9.59,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 171,
                     "name": "Olio EVO",
                     "category": "Cucina",
                     "subcategory": "Condimenti",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "litri",
                     "price": 8.42,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 172,
                     "name": "GRAN PESTO GENOVESE TIGULLIO",
                     "category": "Cucina",
                     "subcategory": "Salse",
+                    "department": "cucina",
                     "quantity": 4.0,
                     "unit": "pezzi",
                     "price": 2.69,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 173,
                     "name": "Fagioi Red Kidney",
                     "category": "Cucina",
                     "subcategory": "Condimenti",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 2.05,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 174,
                     "name": "Tonno 80 gr",
                     "category": "Cucina",
                     "subcategory": "Pizza",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 4.35,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 175,
                     "name": "Pomodoro Ardita",
                     "category": "Cucina",
                     "subcategory": "Pizza",
+                    "department": "cucina",
                     "quantity": 10.0,
                     "unit": "kg",
                     "price": 3.34,
-                    "supplier": "EsseBi"
+                    "supplier": "EsseBi",
+                    "status": "in-stock"
                 },
                 {
                     "id": 176,
                     "name": "Tortilla Durum",
                     "category": "Cucina",
                     "subcategory": "Panificati",
+                    "department": "cucina",
                     "quantity": 3.0,
                     "unit": "pezzi",
                     "price": 4.76,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 177,
                     "name": "Nacho's Amica Chips 200 gr",
                     "category": "Cucina",
                     "subcategory": "Apetizer",
+                    "department": "cucina",
                     "quantity": 4.0,
                     "unit": "pezzi",
                     "price": 1.93,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 178,
                     "name": "Nutella 3 Kg",
                     "category": "Cucina",
                     "subcategory": "Dolci",
+                    "department": "cucina",
                     "quantity": 1.0,
                     "unit": "pezzi",
                     "price": 22.59,
-                    "supplier": "SIDAL"
+                    "supplier": "SIDAL",
+                    "status": "low-stock"
                 },
                 {
                     "id": 179,
                     "name": "Pinsa 250 gr",
                     "category": "Cucina",
                     "subcategory": "Panificati",
+                    "department": "cucina",
                     "quantity": 5.0,
                     "unit": "pezzi",
                     "price": 1.93,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 180,
                     "name": "Pala 650 gr",
                     "category": "Cucina",
                     "subcategory": "Panificati",
+                    "department": "cucina",
                     "quantity": 25.0,
                     "unit": "pezzi",
                     "price": 3.7,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "in-stock"
                 },
                 {
                     "id": 181,
                     "name": "Pulled Pork n. prod",
                     "category": "Cucina",
                     "subcategory": "Carni",
+                    "department": "cucina",
                     "quantity": 2.0,
                     "unit": "kg",
                     "price": 7.0,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 182,
                     "name": "Stinco Suino",
                     "category": "Cucina",
                     "subcategory": "Carni",
+                    "department": "cucina",
                     "quantity": 4.0,
                     "unit": "kg",
                     "price": 4.76,
-                    "supplier": "Polo"
+                    "supplier": "Polo",
+                    "status": "low-stock"
                 },
                 {
                     "id": 183,
                     "name": "Tortino al cioccolato ns prod.",
                     "category": "Cucina",
                     "subcategory": "Dolci",
+                    "department": "cucina",
                     "quantity": 15.0,
                     "unit": "pezzi",
                     "price": 1.0,
-                    "supplier": "Fornitore Generico"
+                    "supplier": "Fornitore Generico",
+                    "status": "in-stock"
                 },
                 {
                     "id": 184,
                     "name": "Chili ns prod.",
                     "category": "Cucina",
                     "subcategory": "Carne",
+                    "department": "cucina",
                     "quantity": 2.0,
                     "unit": "kg",
                     "price": 12.0,
-                    "supplier": "Fornitore Generico"
+                    "supplier": "Fornitore Generico",
+                    "status": "low-stock"
                 },
                 {
                     "id": 185,
                     "name": "Hamburger",
                     "category": "Cucina",
                     "subcategory": "Carne",
+                    "department": "cucina",
                     "quantity": 0.5,
                     "unit": "kg",
                     "price": 12.0,
-                    "supplier": "Fornitore Generico"
+                    "supplier": "Fornitore Generico",
+                    "status": "low-stock"
                 }
             ]
         }
     ],
     "monthlyInventoryChanges": {},
-    "dataVersion": "2026-09-21"
+    "lastModified": 1790010810970
 };
 
 // INITIALIZATION
 window.onload = function () {
-    // Load data from localStorage
+    const CURRENT_VERSION = 'v_2026_09_21_prod_185';
     const savedData = localStorage.getItem('inventarioData');
+    let shouldResetToDefault = true;
+
     if (savedData) {
         try {
             const parsedData = JSON.parse(savedData);
-            const isOldDemo = parsedData.products && parsedData.products.length <= 4 && parsedData.products.some(p => p.name === 'iPhone 14 Pro');
-            const isEmpty = !parsedData.products || parsedData.products.length === 0;
-            
-            if (isOldDemo || isEmpty || parsedData.dataVersion !== appData.dataVersion) {
-                // Keep user settings if any, but ensure the 185 products are loaded
-                appData.settings = { ...appData.settings, ...(parsedData.settings || {}) };
-                localStorage.setItem('inventarioData', JSON.stringify(appData));
-            } else {
-                appData = {
-                    ...appData,
-                    ...parsedData,
-                    settings: { ...appData.settings, ...parsedData.settings }
-                };
+            if (parsedData && parsedData.dataVersion === CURRENT_VERSION && parsedData.products && parsedData.products.length > 50) {
+                appData = parsedData;
+                shouldResetToDefault = false;
             }
         } catch (e) {
-            console.error('Error loading data:', e);
+            console.error('Error parsing localStorage:', e);
         }
-    } else {
+    }
+
+    if (shouldResetToDefault) {
+        appData.dataVersion = CURRENT_VERSION;
         localStorage.setItem('inventarioData', JSON.stringify(appData));
     }
 
     // Set default view
     showTab('dashboard');
 
-    // Add Global Event Listeners
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', handleSearch);
     }
 
-    // Initial render
     updateAll();
 
-    // Inizializza Cloud Sync
     if (typeof CloudSyncService !== 'undefined') {
         CloudSyncService.init();
     }
@@ -4294,9 +4656,8 @@ window.onload = function () {
         isInitialLoad = false;
     }, 1000);
 
-    // Registrazione Service Worker per PWA
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=20')
+        navigator.serviceWorker.register('sw.js?v=25')
             .then(reg => {
                 console.log('PWA Service Worker attivo');
                 reg.update();
