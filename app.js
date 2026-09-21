@@ -4733,8 +4733,12 @@ const CloudSyncService = {
     channel: null,
     isSyncing: false,
     _pushTimeout: null,
+    _pollInterval: null,
+    endpoint: '/api/sync',
+    lastSyncTimestamp: Date.now(),
 
     init() {
+        // 1. Canale locale per sync istantaneo tra schede dello stesso dispositivo
         if (typeof BroadcastChannel !== 'undefined') {
             try {
                 this.channel = new BroadcastChannel('inventario_sync_channel');
@@ -4743,9 +4747,7 @@ const CloudSyncService = {
                         this.handleRemoteUpdate(event.data.payload);
                     }
                 };
-            } catch (e) {
-                console.warn('BroadcastChannel non supportato:', e);
-            }
+            } catch (e) { }
         }
 
         window.addEventListener('storage', (e) => {
@@ -4757,20 +4759,64 @@ const CloudSyncService = {
             }
         });
 
-        updateCloudStatus('online', 'Multi-Dispositivo Attivo');
+        // 2. Fetch iniziale dal server cloud
+        this.fetchRemoteChanges(true);
+
+        // 3. Polling periodico ogni 4 secondi per catturare modifiche da PC/Telefoni
+        if (this._pollInterval) clearInterval(this._pollInterval);
+        this._pollInterval = setInterval(() => {
+            this.fetchRemoteChanges(false);
+        }, 4000);
+
+        // 4. Aggiorna subito quando l'utente torna sull'app/telefono
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.fetchRemoteChanges(true);
+            }
+        });
+        window.addEventListener('focus', () => {
+            this.fetchRemoteChanges(false);
+        });
+
+        updateCloudStatus('online', 'Cloud Live');
     },
 
-    handleRemoteUpdate(remoteData) {
-        if (!remoteData || !remoteData.lastModified) return;
-        const localMod = appData.lastModified || 0;
-        if (remoteData.lastModified > localMod) {
-            appData = remoteData;
-            updateAll();
-            showNotification('Dati sincronizzati con un altro dispositivo', 'info');
+    async fetchRemoteChanges(showToast = false) {
+        if (this.isSyncing) return;
+        try {
+            const res = await fetch(this.endpoint + '?t=' + Date.now(), {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                cache: 'no-store'
+            });
+
+            if (res.ok) {
+                const remoteData = await res.json();
+                if (remoteData && remoteData.products && Array.isArray(remoteData.products) && remoteData.products.length > 0) {
+                    const localMod = appData.lastModified || 0;
+                    const remoteMod = remoteData.lastModified || 0;
+
+                    if (remoteMod > localMod) {
+                        console.log('Nuovi dati cloud rilevati! Aggiornamento in corso...');
+                        appData = remoteData;
+                        localStorage.setItem('inventario_pro_data', JSON.stringify(appData));
+                        updateAll();
+                        this.lastSyncTimestamp = Date.now();
+                        this.updateModalSyncTime();
+                        if (showToast) {
+                            showNotification('Dati sincronizzati con il Cloud!', 'info');
+                        }
+                    }
+                }
+                updateCloudStatus('online', 'Cloud Live');
+            }
+        } catch (err) {
+            // Se offline o errore di rete, continua a funzionare in locale
+            updateCloudStatus('offline', 'Locale');
         }
     },
 
-    pushLocalChanges() {
+    async pushLocalChanges() {
         appData.lastModified = Date.now();
         localStorage.setItem('inventario_pro_data', JSON.stringify(appData));
 
@@ -4783,9 +4829,110 @@ const CloudSyncService = {
             } catch (e) { }
         }
 
-        updateCloudStatus('online', 'Sincronizzato');
+        // Invia al Cloud in background
+        clearTimeout(this._pushTimeout);
+        this._pushTimeout = setTimeout(async () => {
+            try {
+                this.isSyncing = true;
+                updateCloudStatus('syncing', 'Invio...');
+                const res = await fetch(this.endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(appData)
+                });
+                if (res.ok) {
+                    this.lastSyncTimestamp = Date.now();
+                    this.updateModalSyncTime();
+                    updateCloudStatus('online', 'Cloud Live');
+                } else {
+                    updateCloudStatus('online', 'Salvato');
+                }
+            } catch (e) {
+                updateCloudStatus('offline', 'Salvato (Locale)');
+            } finally {
+                this.isSyncing = false;
+            }
+        }, 300);
+    },
+
+    handleRemoteUpdate(remoteData) {
+        if (!remoteData || !remoteData.lastModified) return;
+        const localMod = appData.lastModified || 0;
+        if (remoteData.lastModified > localMod) {
+            appData = remoteData;
+            updateAll();
+            this.lastSyncTimestamp = Date.now();
+            this.updateModalSyncTime();
+        }
+    },
+
+    updateModalSyncTime() {
+        const timeEl = document.getElementById('modalLastSyncTime');
+        if (timeEl) {
+            timeEl.textContent = 'Ultimo invio: ' + new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
     }
 };
+
+function openCloudSyncModal() {
+    const modal = document.getElementById('cloudSyncModal');
+    if (modal) {
+        CloudSyncService.updateModalSyncTime();
+        modal.classList.add('show');
+    }
+}
+
+function closeCloudSyncModal() {
+    const modal = document.getElementById('cloudSyncModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function triggerManualSync() {
+    showNotification('Sincronizzazione manuale in corso...', 'info');
+    CloudSyncService.pushLocalChanges();
+    setTimeout(() => {
+        CloudSyncService.fetchRemoteChanges(true);
+    }, 400);
+}
+
+function exportDataStringToClipboard() {
+    try {
+        const payload = JSON.stringify(appData);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(payload).then(() => {
+                showNotification('Dati copiati negli appunti! Ora incollali sul telefono.', 'success');
+            }).catch(() => {
+                prompt('Copia questo codice per trasferirlo sul telefono:', payload);
+            });
+        } else {
+            prompt('Copia questo codice per trasferirlo sul telefono:', payload);
+        }
+    } catch (e) {
+        showNotification('Errore durante la copia dati', 'error');
+    }
+}
+
+function showImportDataPrompt() {
+    const pasted = prompt('Incolla qui il codice dati copiato dal PC:');
+    if (pasted && pasted.trim().length > 0) {
+        try {
+            const parsed = JSON.parse(pasted.trim());
+            if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0) {
+                parsed.lastModified = Date.now() + 1000;
+                appData = parsed;
+                localStorage.setItem('inventario_pro_data', JSON.stringify(appData));
+                CloudSyncService.pushLocalChanges();
+                updateAll();
+                closeCloudSyncModal();
+                showNotification('Dati importati e sincronizzati con successo!', 'success');
+            } else {
+                alert('Il codice incollato non è valido.');
+            }
+        } catch (e) {
+            alert('Formato dati non valido: ' + e.message);
+        }
+    }
+}
 
 function saveToCloud() {
     CloudSyncService.pushLocalChanges();
@@ -5223,7 +5370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v60';
+const CURRENT_APP_BUILD = 'v61';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5271,7 +5418,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=60')
+        navigator.serviceWorker.register('sw.js?v=61')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
