@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=51">
+    <link rel="stylesheet" href="styles.css?v=52">
 
 </head>
 
@@ -107,7 +107,7 @@
                         <div class="search-container">
                             <i class="fas fa-search search-icon"></i>
                             <input type="text" id="searchInput" class="search-input"
-                                placeholder="Cerca per nome, categoria o fornitore..." onkeyup="handleSearch()">
+                                placeholder="Cerca per nome, categoria o fornitore..." oninput="handleSearch()">
                         </div>
                     </div>
 
@@ -318,7 +318,7 @@
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--dark); margin-bottom: 0.3rem; display: block;">🔍 Cerca Prodotto</label>
                                 <input type="text" id="productSearchInput" class="form-input"
                                     placeholder="Scrivi nome prodotto o sottocategoria..."
-                                    onkeyup="filterProductsTable()" style="font-size: 1rem; padding: 0.75rem 1rem;">
+                                    oninput="renderAllProductsTable()" style="font-size: 1rem; padding: 0.75rem 1rem;">
                             </div>
                         </div>
 
@@ -600,7 +600,7 @@
                                 <i class="fas fa-search search-icon"></i>
                                 <input type="text" id="monthlySearchInput" class="search-input"
                                     placeholder="Cerca prodotto per nome, categoria o fornitore..."
-                                    onkeyup="filterMonthlyInventory()">
+                                    oninput="filterMonthlyInventory()">
                             </div>
                         </div>
 
@@ -1167,7 +1167,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=51"></script>
+    <script src="app.js?v=52"></script>
 </body>
 
 </html>

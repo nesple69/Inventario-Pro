@@ -5146,7 +5146,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=51')
+        navigator.serviceWorker.register('sw.js?v=52')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -5223,6 +5223,31 @@ function populateCategoryDatalist() {
     datalist.innerHTML = (appData.categories || []).map(c => `<option value="${typeof c === 'object' ? c.name : c}">`).join('');
 }
 
+// Table row template matching: Reparto, Categoria, Sottocategoria, Prodotto, Prezzo, Giacenza, Fornitore, Azioni
+function createProductTableRow(p) {
+    const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
+    return `
+        <tr>
+            <td><span class="badge ${getDepartmentBadgeClass(p.department)}">${getDepartmentIcon(p.department)}</span></td>
+            <td>${p.category || '-'}</td>
+            <td>${p.subcategory || '-'}</td>
+            <td><strong style="color: var(--dark); font-size: 0.95rem;">${p.name}</strong></td>
+            <td>${currency} ${Number(p.price || 0).toFixed(2)}</td>
+            <td><strong>${p.quantity}</strong> ${p.unit || 'pz'}</td>
+            <td><span style="font-size: 0.85rem; color: var(--gray);">${p.supplier || '-'}</span></td>
+            <td>
+                <div class="table-actions">
+                    <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità"><i class="fas fa-plus-minus"></i></button>
+                    ${currentRole === 'admin' ? `
+                    <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
+                    ` : ''}
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
 let searchTimeout;
 function handleSearch() {
     clearTimeout(searchTimeout);
@@ -5238,7 +5263,7 @@ function handleSearch() {
             (product.supplier && product.supplier.toLowerCase().includes(searchTerm))
         );
 
-        const tbody = document.getElementById('productsTableBody');
+        const tbody = document.getElementById('productsTableBody') || document.getElementById('recentProductsTableBody');
         if (tbody) {
             if (filteredProducts.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato</td></tr>';
@@ -5246,7 +5271,7 @@ function handleSearch() {
                 tbody.innerHTML = filteredProducts.map(p => createProductTableRow(p)).join('');
             }
         }
-    }, 200);
+    }, 150);
 }
 
 function populateCategoryDropdown(dropdownId) {
@@ -5321,42 +5346,25 @@ function updateStatistics() {
 }
 
 function renderRecentProducts() {
-    const tbody = document.getElementById('recentProductsTableBody');
+    const tbody = document.getElementById('productsTableBody') || document.getElementById('recentProductsTableBody');
     if (!tbody) return;
 
     let productsList = [...getProductsForRole(currentRole)].reverse();
-    const recent = productsList.slice(0, 8);
+    const recent = productsList.slice(0, 10);
 
     if (recent.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto disponibile</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto disponibile</td></tr>';
         return;
     }
 
-    tbody.innerHTML = recent.map(p => `
-        <tr>
-            <td>
-                <strong>${p.name}</strong>
-                <div style="font-size: 0.8rem; color: var(--gray);">${p.supplier || ''}</div>
-            </td>
-            <td><span class="badge ${getDepartmentBadgeClass(p.department)}">${getDepartmentIcon(p.department)}</span></td>
-            <td>${p.category || '-'}</td>
-            <td>${p.subcategory || '-'}</td>
-            <td><strong>${p.quantity}</strong> ${p.unit}</td>
-            <td><span class="badge ${getStatusBadgeClass(p.status)}"><i class="fas ${getStatusIcon(p.status)}"></i> ${getStatusText(p.status)}</span></td>
-            <td>
-                <div class="table-actions">
-                    <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità"><i class="fas fa-plus-minus"></i></button>
-                    ${currentRole === 'admin' ? `
-                    <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                    <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                    ` : ''}
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = recent.map(p => createProductTableRow(p)).join('');
 }
 
 function filterProducts() {
+    renderAllProductsTable();
+}
+
+function filterProductsTable() {
     renderAllProductsTable();
 }
 
@@ -5434,7 +5442,7 @@ function renderAllProductsTable() {
         filtered = filtered.filter(p => (p.supplier || '') === selectedSupplier);
     }
 
-    // 4. Ricerca Testuale
+    // 4. Ricerca Testuale (Nome, Categoria, Sottocategoria, Fornitore)
     if (searchTerm) {
         filtered = filtered.filter(p =>
             (p.name && p.name.toLowerCase().includes(searchTerm)) ||
@@ -5449,30 +5457,7 @@ function renderAllProductsTable() {
         return;
     }
 
-    const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
-
-    tbody.innerHTML = filtered.map(p => `
-        <tr>
-            <td>
-                <strong>${p.name}</strong>
-            </td>
-            <td><span class="badge ${getDepartmentBadgeClass(p.department)}">${getDepartmentIcon(p.department)}</span></td>
-            <td>${p.category || '-'}</td>
-            <td>${p.subcategory || '-'}</td>
-            <td><strong>${p.quantity}</strong> ${p.unit}</td>
-            <td>${currency} ${Number(p.price || 0).toFixed(2)}</td>
-            <td><span class="badge ${getStatusBadgeClass(p.status)}"><i class="fas ${getStatusIcon(p.status)}"></i> ${getStatusText(p.status)}</span></td>
-            <td>
-                <div class="table-actions">
-                    <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità"><i class="fas fa-plus-minus"></i></button>
-                    ${currentRole === 'admin' ? `
-                    <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                    <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                    ` : ''}
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = filtered.map(p => createProductTableRow(p)).join('');
 }
 
 function addProductFromForm() {
