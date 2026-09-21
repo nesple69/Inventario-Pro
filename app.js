@@ -4759,7 +4759,12 @@ const CloudSyncService = {
             }
         });
 
-        // 2. Fetch iniziale dal server cloud
+        // 2. Invia i dati locali attuali al cloud per renderli subito disponibili agli altri dispositivi
+        if (appData && appData.products && appData.products.length > 0) {
+            this.pushLocalChanges();
+        }
+
+        // 3. Fetch iniziale dal server cloud
         this.fetchRemoteChanges(true);
 
         // 3. Polling periodico ogni 4 secondi per catturare modifiche da PC/Telefoni
@@ -5370,7 +5375,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v61';
+const CURRENT_APP_BUILD = 'v62';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5418,7 +5423,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=61')
+        navigator.serviceWorker.register('sw.js?v=62')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
