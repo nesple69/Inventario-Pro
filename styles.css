@@ -504,19 +504,20 @@ body {
 
 .data-table th {
     text-align: left;
-    padding: 1rem 1.5rem;
-    font-size: 0.8rem;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--gray);
     background: #fafafa;
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
 }
 
 .data-table td {
-    padding: 1rem 1.5rem;
-    font-size: 0.95rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.88rem;
     border-bottom: 1px solid var(--border);
     color: var(--dark);
     vertical-align: middle;
@@ -527,36 +528,38 @@ body {
 }
 
 .data-table tr:hover {
-    background: #fdfdfd;
+    background: #f8faff;
 }
 
 .product-name-td {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     font-weight: 600;
 }
 
 .product-icon-cell {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #f0f2f5;
     color: var(--primary);
+    font-size: 0.85rem;
 }
 
 .badge {
-    padding: 0.5rem 1rem;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    min-height: 32px;
+    gap: 0.3rem;
+    min-height: 24px;
+    line-height: 1.2;
 }
 
 .badge-success {
@@ -579,70 +582,65 @@ body {
     color: #4a5568;
 }
 
-.actions-cell {
-    display: flex;
-    gap: 0.5rem;
-    min-width: 140px;
-}
-
-.btn-action {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-    display: flex;
+/* Action Buttons Container & Buttons */
+.table-actions {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    border: 2px solid var(--border);
-    background: white;
-    cursor: pointer;
-    transition: var(--transition);
-    color: var(--gray);
-    font-size: 1.3rem;
-    flex-shrink: 0;
+    gap: 5px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
 }
 
-.btn-action:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: rgba(67, 97, 238, 0.05);
-    transform: scale(1.08);
-}
-
-.btn-delete:hover {
-    border-color: var(--danger);
-    color: var(--danger);
-    background: rgba(230, 57, 70, 0.05);
-}
-
-/* Action buttons - ACTUAL class used in tables */
 .action-btn {
-    width: 52px !important;
-    height: 52px !important;
-    border-radius: 12px;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px;
+    min-height: 30px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--border);
+    border: 1px solid var(--border);
     background: white;
     cursor: pointer;
     transition: var(--transition);
     color: var(--gray);
-    font-size: 1.3rem;
+    font-size: 0.82rem;
     flex-shrink: 0;
-    margin: 0 4px;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
 .action-btn:hover {
     border-color: var(--primary);
     color: var(--primary);
-    background: rgba(67, 97, 238, 0.05);
-    transform: scale(1.08);
+    background: rgba(67, 97, 238, 0.08);
+    transform: translateY(-1px);
+}
+
+.action-btn.edit {
+    color: #4361ee;
+    background: rgba(67, 97, 238, 0.06);
+    border-color: rgba(67, 97, 238, 0.2);
+}
+
+.action-btn.edit:hover {
+    border-color: #4361ee;
+    background: #4361ee;
+    color: white;
+}
+
+.action-btn.delete {
+    color: #e63946;
+    background: rgba(230, 57, 70, 0.06);
+    border-color: rgba(230, 57, 70, 0.2);
 }
 
 .action-btn.delete:hover {
-    border-color: var(--danger);
-    color: var(--danger);
-    background: rgba(230, 57, 70, 0.05);
+    border-color: #e63946;
+    background: #e63946;
+    color: white;
 }
 
 /* Modals */
