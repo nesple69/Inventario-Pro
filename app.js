@@ -4890,6 +4890,7 @@ function applyRolePermissions() {
 
     updateAll();
     renderDashboardRecentSnapshots();
+    renderDepartmentStatusBox();
 }
 
 function showProfileSelectorModal() {
@@ -4947,6 +4948,91 @@ function verifyAdminPin() {
             pinInput.focus();
         }
     }
+}
+
+// ==========================================
+// 🚦 STATO INVENTARI DEI REPARTI (SEMAFORI)
+// ==========================================
+function renderDepartmentStatusBox() {
+    const container = document.getElementById('departmentStatusGrid');
+    if (!container) return;
+
+    const badgeMonth = document.getElementById('currentMonthYearBadge');
+    const now = new Date();
+    const monthName = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+    if (badgeMonth) {
+        badgeMonth.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+    }
+
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const snapshots = appData.monthlySnapshots || [];
+
+    const depts = [
+        { id: 'cucina', name: 'Cucina', icon: '🍳', roleName: 'cucina' },
+        { id: 'bar', name: 'Bar', icon: '🍹', roleName: 'bar' },
+        { id: 'bowling', name: 'Bowling', icon: '🎳', roleName: 'bowling' }
+    ];
+
+    container.innerHTML = depts.map(dept => {
+        // Trova l'ultimo snapshot valido registrato per questo reparto
+        const deptSnaps = snapshots.filter(s => {
+            const d = (s.department || '').toLowerCase();
+            const op = (s.operator || '').toLowerCase();
+            return d === dept.id || op.includes(dept.id);
+        }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const lastSnap = deptSnaps[0];
+        let isDoneThisMonth = false;
+        let lastDateFormatted = 'Mai eseguito';
+        let productsCountText = '';
+
+        if (lastSnap) {
+            const snapDate = new Date(lastSnap.date);
+            if (!isNaN(snapDate)) {
+                isDoneThisMonth = (snapDate.getMonth() === currentMonth && snapDate.getFullYear() === currentYear);
+                lastDateFormatted = snapDate.toLocaleDateString('it-IT', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                productsCountText = `${lastSnap.productsCount || 0} articoli`;
+            }
+        }
+
+        const isDone = isDoneThisMonth && lastSnap;
+
+        return `
+            <div class="dept-status-card ${isDone ? 'status-done' : 'status-missing'}">
+                <div style="display: flex; align-items: center; gap: 0.85rem;">
+                    <div style="font-size: 1.75rem;">${dept.icon}</div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                            <strong style="font-size: 1.05rem; color: var(--dark);">${dept.name}</strong>
+                            <span class="status-indicator-badge ${isDone ? 'done' : 'missing'}">
+                                <i class="fas ${isDone ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                                ${isDone ? 'Completato' : 'In Attesa'}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray);">
+                            ${isDone ? `Ultimo: ${lastDateFormatted} (${productsCountText})` : (lastSnap ? `Ultimo: ${lastDateFormatted}` : 'Nessun inventario')}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn ${isDone ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="quickStartDepartmentInventory('${dept.roleName}')" style="white-space: nowrap; border-radius: 10px; font-weight: 600;">
+                        <i class="fas ${isDone ? 'fa-redo-alt' : 'fa-play'}"></i> ${isDone ? 'Rifai' : 'Avvia'}
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function quickStartDepartmentInventory(role) {
+    setUserRole(role);
+    startGuidedInventory();
 }
 
 // ==========================================
@@ -5040,6 +5126,7 @@ function completeAndSaveInventory() {
     showTab('dashboard');
     updateAll();
     renderDashboardRecentSnapshots();
+    renderDepartmentStatusBox();
     showNotification(`🎉 Inventario ${roleLabel} salvato con successo nell'archivio!`, 'success');
 }
 
@@ -5064,11 +5151,12 @@ function createMonthlySnapshot() {
 
     saveToCloud();
     renderDashboardRecentSnapshots();
+    renderDepartmentStatusBox();
     showNotification('Snapshot inventario salvato con successo!');
 }
 
 function renderDashboardRecentSnapshots() {
-    const listEl = document.getElementById('dashboardSnapshotsList');
+    const listEl = document.getElementById('dashboardRecentSnapshotsContainer');
     if (!listEl) return;
 
     let snapshots = appData.monthlySnapshots || [];
@@ -5146,7 +5234,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=56')
+        navigator.serviceWorker.register('sw.js?v=57')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -5176,6 +5264,7 @@ function showTab(tabName) {
         updateStatistics();
         renderRecentProducts();
         renderDashboardRecentSnapshots();
+        renderDepartmentStatusBox();
     } else if (tabName === 'products') {
         renderAllProductsTable();
     } else if (tabName === 'monthly-inventory') {
@@ -5198,6 +5287,9 @@ function updateAll() {
     renderMonthlyInventoryTable();
     if (typeof renderDashboardRecentSnapshots === 'function') {
         renderDashboardRecentSnapshots();
+    }
+    if (typeof renderDepartmentStatusBox === 'function') {
+        renderDepartmentStatusBox();
     }
     if (typeof updateMonthlyStats === 'function') {
         updateMonthlyStats();
@@ -5319,18 +5411,15 @@ function updateStatistics() {
 
     const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
 
-    const totalProdEl = document.getElementById('totalProducts');
-    const totalValEl = document.getElementById('totalValue');
-    const lowStockEl = document.getElementById('lowStock');
-    const outOfStockEl = document.getElementById('outOfStock');
+    const totalProdEl = document.getElementById('totalProducts') || document.getElementById('total-products');
+    const totalValEl = document.getElementById('totalValue') || document.getElementById('total-value');
+    const lowStockEl = document.getElementById('lowStock') || document.getElementById('inStockCount');
+    const outOfStockEl = document.getElementById('outOfStock') || document.getElementById('outOfStockCount');
 
     if (totalProdEl) totalProdEl.textContent = totalCount;
     if (totalValEl) totalValEl.textContent = `${currency} ${totalVal.toFixed(2)}`;
-    if (lowStockEl) lowStockEl.textContent = lowStockCount;
+    if (lowStockEl) lowStockEl.textContent = roleProducts.filter(p => p.status === 'in-stock').length;
     if (outOfStockEl) outOfStockEl.textContent = outOfStockCount;
-
-    const totalProductsCountEl = document.getElementById('totalProductsCount');
-    if (totalProductsCountEl) totalProductsCountEl.textContent = totalCount;
 
     const roleLabel = getRoleLabel();
     const statCardsSub = document.querySelectorAll('.stat-card .stat-subtitle');
@@ -5962,6 +6051,7 @@ function deleteSnapshot(id) {
         saveToCloud();
         renderSnapshotsList();
         renderDashboardRecentSnapshots();
+        renderDepartmentStatusBox();
         showNotification('Snapshot eliminato');
     }
 }

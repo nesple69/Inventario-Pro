@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=56">
+    <link rel="stylesheet" href="styles.css?v=57">
 
 </head>
 
@@ -159,6 +159,21 @@
                                     style="font-size: 0.85rem; color: var(--gray); font-weight: 600;">Categorie</span>
                             </div>
                         </div>
+                    </div>
+
+                    
+                    <!-- BOX STATO INVENTARI REPARTI (SEMAFORI) -->
+                    <div class="card" style="margin-bottom: 1.5rem; border-radius: 16px;">
+                        <div class="section-header" style="margin-bottom: 0.5rem;">
+                            <div>
+                                <h3 style="display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1.15rem;">
+                                    <span>🚦 Stato Inventari del Mese</span>
+                                    <span id="currentMonthYearBadge" class="badge badge-neutral" style="font-size: 0.8rem; font-weight: 600;">Settembre 2026</span>
+                                </h3>
+                                <p style="font-size: 0.85rem; color: var(--gray); margin: 0.2rem 0 0 0;">Controlla subito quale reparto ha completato l'inventario e chi deve ancora eseguirlo</p>
+                            </div>
+                        </div>
+                        <div id="departmentStatusGrid" class="dept-status-grid"></div>
                     </div>
 
                     <!-- STORICO RECENTI INVENTARI NELLA DASHBOARD -->
@@ -1167,7 +1182,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=56"></script>
+    <script src="app.js?v=57"></script>
 </body>
 
 </html>
