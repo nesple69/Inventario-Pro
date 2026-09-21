@@ -1105,3 +1105,27 @@ body {
     border-color: var(--primary);
     background: #f8faff;
 }
+
+.badge-cucina {
+    background: rgba(255, 159, 28, 0.15);
+    color: #e76f51;
+    border: 1px solid rgba(255, 159, 28, 0.3);
+}
+
+.badge-bar {
+    background: rgba(76, 201, 240, 0.15);
+    color: #4361ee;
+    border: 1px solid rgba(76, 201, 240, 0.3);
+}
+
+.badge-bowling {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-entrambi {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}

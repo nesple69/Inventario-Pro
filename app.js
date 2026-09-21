@@ -2225,6 +2225,19 @@ let appData = {
     ],
     "categories": [
         {
+            "id": 4,
+            "name": "Bowling",
+            "productCount": 0,
+            "subcategories": [
+                "Calzature e Calzini",
+                "Palle e Birilli",
+                "Accessori e Pulizia",
+                "Ricambi Piste",
+                "Consumabili Bowling",
+                "Altro"
+            ]
+        },
+        {
             "id": 1,
             "name": "Beverage",
             "productCount": 111,
@@ -4622,6 +4635,7 @@ function getDepartmentIcon(department) {
     switch (String(department).toLowerCase()) {
         case 'cucina': return '🍳 Cucina';
         case 'bar': return '🍹 Bar';
+        case 'bowling': return '🎳 Bowling';
         default: return '🏢 Entrambi';
     }
 }
@@ -4630,6 +4644,7 @@ function getDepartmentBadgeClass(department) {
     switch (String(department).toLowerCase()) {
         case 'cucina': return 'badge-cucina';
         case 'bar': return 'badge-bar';
+        case 'bowling': return 'badge-bowling';
         default: return 'badge-entrambi';
     }
 }
@@ -4718,145 +4733,81 @@ const CloudSyncService = {
     channel: null,
     isSyncing: false,
     _pushTimeout: null,
-    pollInterval: null,
 
-    init: function () {
-        if ('BroadcastChannel' in window) {
+    init() {
+        if (typeof BroadcastChannel !== 'undefined') {
             try {
-                this.channel = new BroadcastChannel('inventario_pro_broadcast_bus');
+                this.channel = new BroadcastChannel('inventario_sync_channel');
                 this.channel.onmessage = (event) => {
-                    if (event.data && event.data.type === 'SYNC_STATE_UPDATE') {
-                        const incomingData = event.data.appData;
-                        const incomingTime = event.data.lastModified || 0;
-                        if (incomingTime > (appData.lastModified || 0)) {
-                            appData = incomingData;
-                            localStorage.setItem('inventarioData', JSON.stringify(appData));
-                            updateAll();
-                            this.updateBadge('online', 'Sincronizzato');
-                        }
+                    if (event.data && event.data.type === 'DATA_UPDATED') {
+                        this.handleRemoteUpdate(event.data.payload);
                     }
                 };
             } catch (e) {
-                console.warn('BroadcastChannel non disponibile:', e);
+                console.warn('BroadcastChannel non supportato:', e);
             }
         }
 
-        window.addEventListener('online', () => {
-            this.updateBadge('syncing', 'Riconnessione...');
-            this.syncNow();
-        });
-
-        window.addEventListener('offline', () => {
-            this.updateBadge('offline', 'Offline (Locale)');
-        });
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                this.pullUpdates(true);
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'inventario_pro_data' && e.newValue) {
+                try {
+                    const parsed = JSON.parse(e.newValue);
+                    this.handleRemoteUpdate(parsed);
+                } catch (err) { }
             }
         });
 
-        window.addEventListener('focus', () => {
-            this.pullUpdates(true);
-        });
-
-        this.updateBadge(navigator.onLine ? 'online' : 'offline', navigator.onLine ? 'Sincronizzato' : 'Offline (Locale)');
-        this.startHeartbeat();
+        updateCloudStatus('online', 'Multi-Dispositivo Attivo');
     },
 
-    startHeartbeat: function () {
-        if (this.pollInterval) clearInterval(this.pollInterval);
-        this.pollInterval = setInterval(() => {
-            if (navigator.onLine && document.visibilityState === 'visible') {
-                this.pullUpdates(true);
-            }
-        }, 4000);
+    handleRemoteUpdate(remoteData) {
+        if (!remoteData || !remoteData.lastModified) return;
+        const localMod = appData.lastModified || 0;
+        if (remoteData.lastModified > localMod) {
+            appData = remoteData;
+            updateAll();
+            showNotification('Dati sincronizzati con un altro dispositivo', 'info');
+        }
     },
 
-    notifyMutation: function () {
+    pushLocalChanges() {
         appData.lastModified = Date.now();
-        try {
-            localStorage.setItem('inventarioData', JSON.stringify(appData));
-        } catch (e) {
-            console.error('Errore salvataggio localStorage:', e);
-        }
+        localStorage.setItem('inventario_pro_data', JSON.stringify(appData));
 
         if (this.channel) {
             try {
                 this.channel.postMessage({
-                    type: 'SYNC_STATE_UPDATE',
-                    lastModified: appData.lastModified,
-                    appData: appData
+                    type: 'DATA_UPDATED',
+                    payload: appData
                 });
-            } catch (e) {
-                console.warn('Broadcast post error:', e);
-            }
+            } catch (e) { }
         }
 
-        this.updateBadge('syncing', 'Sincronizzazione...');
-        clearTimeout(this._pushTimeout);
-        this._pushTimeout = setTimeout(() => {
-            this.pushState();
-        }, 500);
-    },
-
-    pushState: async function () {
-        if (!navigator.onLine) {
-            this.updateBadge('offline', 'Offline (Locale)');
-            return;
-        }
-        try {
-            this.isSyncing = true;
-            this.updateBadge('online', 'Sincronizzato');
-        } catch (err) {
-            console.warn('Sync push error:', err);
-            this.updateBadge('offline', 'Offline (Locale)');
-        } finally {
-            this.isSyncing = false;
-        }
-    },
-
-    pullUpdates: async function (silent = true) {
-        if (!navigator.onLine || this.isSyncing) return;
-        try {
-            this.updateBadge('online', 'Sincronizzato');
-        } catch (err) {
-            if (!silent) console.warn('Sync pull error:', err);
-        }
-    },
-
-    syncNow: function () {
-        this.updateBadge('syncing', 'Sincronizzazione...');
-        this.notifyMutation();
-        setTimeout(() => {
-            this.updateBadge('online', 'Sincronizzato');
-        }, 400);
-    },
-
-    updateBadge: function (status, message) {
-        updateCloudStatus(status, message);
+        updateCloudStatus('online', 'Sincronizzato');
     }
 };
 
-function saveData() {
-    appData.lastModified = Date.now();
-    try {
-        localStorage.setItem('inventarioData', JSON.stringify(appData));
-    } catch (e) {
-        console.error('Errore salvataggio localStorage:', e);
-    }
-    if (typeof CloudSyncService !== 'undefined' && CloudSyncService.notifyMutation) {
-        CloudSyncService.notifyMutation();
-    }
-}
-
 function saveToCloud() {
-    saveData();
+    CloudSyncService.pushLocalChanges();
 }
 
-// ===================================================
-// 👥 MULTI-ROLE & USER ACCESS MANAGEMENT
-// ===================================================
+function loadLocalData() {
+    const saved = localStorage.getItem('inventario_pro_data');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0) {
+                appData = parsed;
+            }
+        } catch (e) {
+            console.error('Errore parsing dati locali:', e);
+        }
+    }
+}
+
+// ==========================================
+// 👥 GESTIONE RUOLI: ADMIN, CUCINA, BAR, BOWLING
+// ==========================================
 let currentRole = localStorage.getItem('inventario_user_role') || 'admin';
 
 function getProductsForRole(role = currentRole) {
@@ -4865,13 +4816,19 @@ function getProductsForRole(role = currentRole) {
         return all.filter(p => {
             const dept = (p.department || '').toLowerCase();
             const cat = (p.category || '').toLowerCase();
-            return dept === 'cucina' || dept === 'entrambi' || cat === 'cucina' || cat === 'consumabili';
+            return dept === 'cucina' || dept === 'entrambi' || dept === 'tutti' || cat === 'cucina' || cat === 'consumabili';
         });
     } else if (role === 'bar') {
         return all.filter(p => {
             const dept = (p.department || '').toLowerCase();
             const cat = (p.category || '').toLowerCase();
-            return dept === 'bar' || dept === 'entrambi' || cat === 'beverage' || cat === 'consumabili';
+            return dept === 'bar' || dept === 'entrambi' || dept === 'tutti' || cat === 'beverage' || cat === 'consumabili';
+        });
+    } else if (role === 'bowling') {
+        return all.filter(p => {
+            const dept = (p.department || '').toLowerCase();
+            const cat = (p.category || '').toLowerCase();
+            return dept === 'bowling' || dept === 'entrambi' || dept === 'tutti' || cat === 'bowling' || cat === 'consumabili';
         });
     }
     return all;
@@ -4902,6 +4859,14 @@ function applyRolePermissions() {
         if (startSubtitle) startSubtitle.textContent = 'Conta e registra le giacenze per Bar e prodotti in comune';
         if (dashMainTitle) dashMainTitle.textContent = 'Panoramica Bar';
         if (dashMainSubtitle) dashMainSubtitle.textContent = 'Giacenze e merci del reparto Bar e Condivisi';
+    } else if (currentRole === 'bowling') {
+        if (userProfileIcon) userProfileIcon.textContent = '🎳';
+        if (userProfileName) userProfileName.textContent = 'Bowling';
+        if (bannerRoleBadge) bannerRoleBadge.textContent = '🎳 Operatore Bowling';
+        if (startTitle) startTitle.textContent = '🚀 Inizia Inventario Bowling';
+        if (startSubtitle) startSubtitle.textContent = 'Conta e registra le giacenze per Bowling e prodotti in comune';
+        if (dashMainTitle) dashMainTitle.textContent = 'Panoramica Bowling';
+        if (dashMainSubtitle) dashMainSubtitle.textContent = 'Giacenze e merci del reparto Bowling e Condivisi';
     } else {
         if (userProfileIcon) userProfileIcon.textContent = '👑';
         if (userProfileName) userProfileName.textContent = 'Admin';
@@ -4928,7 +4893,7 @@ function applyRolePermissions() {
 }
 
 function showProfileSelectorModal() {
-    ['admin', 'cucina', 'bar'].forEach(r => {
+    ['admin', 'cucina', 'bar', 'bowling'].forEach(r => {
         const card = document.getElementById(`role-card-${r}`);
         if (card) card.classList.toggle('active', r === currentRole);
     });
@@ -4952,7 +4917,8 @@ function setUserRole(role) {
     currentRole = role;
     localStorage.setItem('inventario_user_role', role);
     applyRolePermissions();
-    showNotification(`Profilo attivo: ${role === 'cucina' ? '🍳 Operatore Cucina' : role === 'bar' ? '🍹 Operatore Bar' : '👑 Amministratore'}`);
+    const label = role === 'cucina' ? '🍳 Operatore Cucina' : role === 'bar' ? '🍹 Operatore Bar' : role === 'bowling' ? '🎳 Operatore Bowling' : '👑 Amministratore';
+    showNotification(`Profilo attivo: ${label}`);
 }
 
 function showAdminPinModal() {
@@ -4983,9 +4949,30 @@ function verifyAdminPin() {
     }
 }
 
-// INVENTORY SESSION WORKFLOW
+// ==========================================
+// 🚀 INVENTORY SESSION WORKFLOW
+// ==========================================
+function getRoleLabel() {
+    switch (currentRole) {
+        case 'cucina': return 'Cucina';
+        case 'bar': return 'Bar';
+        case 'bowling': return 'Bowling';
+        default: return 'Globale';
+    }
+}
+
+function getOperatorName() {
+    switch (currentRole) {
+        case 'cucina': return 'Operatore Cucina';
+        case 'bar': return 'Operatore Bar';
+        case 'bowling': return 'Operatore Bowling';
+        default: return 'Amministratore';
+    }
+}
+
 function startGuidedInventory() {
-    const roleLabel = currentRole === 'cucina' ? 'Cucina' : currentRole === 'bar' ? 'Bar' : 'Globale';
+    const roleLabel = getRoleLabel();
+    const opName = getOperatorName();
     
     // 1. Salva automaticamente uno snapshot di sicurezza del vecchio inventario
     const oldProducts = getProductsForRole(currentRole);
@@ -4995,14 +4982,14 @@ function startGuidedInventory() {
             id: Date.now() - 1000,
             date: new Date().toISOString(),
             department: currentRole,
-            operator: `${currentRole === 'cucina' ? 'Operatore Cucina' : currentRole === 'bar' ? 'Operatore Bar' : 'Amministratore'} (Pre-Conteggio)`,
+            operator: `${opName} (Pre-Conteggio)`,
             productsCount: oldProducts.filter(p => p.quantity > 0).length,
             totalValue: oldProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0),
             products: JSON.parse(JSON.stringify(oldProducts))
         });
     }
 
-    // 2. Azzera le quantità per il reparto attivo (così l'operatore scrive direttamente il nuovo numero)
+    // 2. Azzera le quantità per il reparto attivo
     const targetProducts = getProductsForRole(currentRole);
     targetProducts.forEach(p => {
         p.quantity = 0;
@@ -5013,10 +5000,8 @@ function startGuidedInventory() {
 
     // 3. Vai alla scheda inventario
     showTab('monthly-inventory');
-    if (currentRole === 'cucina') {
-        setDepartmentFilter('cucina');
-    } else if (currentRole === 'bar') {
-        setDepartmentFilter('bar');
+    if (currentRole === 'cucina' || currentRole === 'bar' || currentRole === 'bowling') {
+        setDepartmentFilter(currentRole);
     } else {
         setDepartmentFilter('tutti');
     }
@@ -5026,7 +5011,8 @@ function startGuidedInventory() {
 }
 
 function completeAndSaveInventory() {
-    const roleLabel = currentRole === 'cucina' ? 'Cucina' : currentRole === 'bar' ? 'Bar' : 'Globale';
+    const roleLabel = getRoleLabel();
+    const opName = getOperatorName();
     const relevantProducts = getProductsForRole(currentRole);
     const countedProducts = relevantProducts.filter(p => p.quantity > 0);
     const totalVal = relevantProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0);
@@ -5035,7 +5021,7 @@ function completeAndSaveInventory() {
         id: Date.now(),
         date: new Date().toISOString(),
         department: currentRole,
-        operator: currentRole === 'cucina' ? 'Operatore Cucina' : currentRole === 'bar' ? 'Operatore Bar' : 'Amministratore',
+        operator: opName,
         productsCount: countedProducts.length,
         totalProductsInDept: relevantProducts.length,
         totalValue: totalVal,
@@ -5058,12 +5044,32 @@ function completeAndSaveInventory() {
 }
 
 function createMonthlySnapshot() {
-    completeAndSaveInventory();
+    const snapshot = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        department: currentRole,
+        operator: getOperatorName(),
+        productsCount: getProductsForRole(currentRole).filter(p => p.quantity > 0).length,
+        totalValue: getProductsForRole(currentRole).reduce((sum, p) => sum + (p.quantity * p.price), 0),
+        products: JSON.parse(JSON.stringify(getProductsForRole(currentRole)))
+    };
+
+    if (!appData.monthlySnapshots) appData.monthlySnapshots = [];
+    appData.monthlySnapshots.push(snapshot);
+
+    const lastSnapEl = document.getElementById('lastSnapshotDate');
+    if (lastSnapEl) {
+        lastSnapEl.textContent = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    saveToCloud();
+    renderDashboardRecentSnapshots();
+    showNotification('Snapshot inventario salvato con successo!');
 }
 
 function renderDashboardRecentSnapshots() {
-    const container = document.getElementById('dashboardRecentSnapshotsContainer');
-    if (!container) return;
+    const listEl = document.getElementById('dashboardSnapshotsList');
+    if (!listEl) return;
 
     let snapshots = appData.monthlySnapshots || [];
     if (currentRole !== 'admin') {
@@ -5071,39 +5077,50 @@ function renderDashboardRecentSnapshots() {
     }
 
     if (snapshots.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; color: var(--gray); padding: 1.5rem; background: #f8fafc; border-radius: 12px; border: 1px dashed var(--border);">
-                <i class="fas fa-clipboard" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
-                <p style="margin: 0; font-size: 0.95rem;">Nessun inventario registrato in archivio per questo reparto.</p>
-                <p style="margin: 0.3rem 0 0 0; font-size: 0.85rem; color: var(--primary); font-weight: 600; cursor: pointer;" onclick="startGuidedInventory()">👉 Clicca qui per iniziare il primo inventario</p>
+        listEl.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--gray);">
+                <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                <p>Nessun inventario registrato in archivio.</p>
+                <button class="btn btn-outline btn-sm" onclick="startGuidedInventory()" style="margin-top: 0.5rem;">
+                    <i class="fas fa-play"></i> Inizia Primo Inventario
+                </button>
             </div>
         `;
         return;
     }
 
-    const recent = snapshots.slice(-5).reverse();
     const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
 
-    container.innerHTML = recent.map(s => {
+    listEl.innerHTML = snapshots.slice(-5).reverse().map(s => {
         const dateObj = new Date(s.date);
-        const formattedDate = isNaN(dateObj) ? s.date : dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-        const operatorLabel = s.operator || (s.department === 'cucina' ? 'Operatore Cucina' : s.department === 'bar' ? 'Operatore Bar' : 'Amministratore');
-        const badgeIcon = s.department === 'cucina' ? '🍳' : s.department === 'bar' ? '🍹' : '🏢';
+        const dateFormatted = isNaN(dateObj) ? s.date : dateObj.toLocaleDateString('it-IT', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const deptIcon = s.department === 'cucina' ? '🍳' : s.department === 'bar' ? '🍹' : s.department === 'bowling' ? '🎳' : '🏢';
+        const opName = s.operator || 'Inventario';
 
         return `
             <div class="snapshot-item-card">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div style="font-size: 1.6rem;">${badgeIcon}</div>
+                    <div style="font-size: 1.4rem;">${deptIcon}</div>
                     <div>
-                        <div style="font-weight: 700; color: var(--dark); font-size: 0.95rem;">${operatorLabel} - ${formattedDate}</div>
-                        <div style="font-size: 0.82rem; color: var(--gray); margin-top: 0.2rem;">
-                            <span class="badge badge-unit" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;">${s.products ? s.products.length : (s.productsCount || 0)} articoli</span>
-                            ${s.totalValue ? `<span style="font-weight: 600; color: var(--success); margin-left: 0.5rem;">Valore: ${currency} ${Number(s.totalValue).toFixed(2)}</span>` : ''}
-                        </div>
+                        <strong style="color: var(--dark); font-size: 0.95rem;">${opName}</strong>
+                        <div style="font-size: 0.8rem; color: var(--gray);">${dateFormatted}</div>
                     </div>
                 </div>
-                <div class="table-actions">
-                    <button class="action-btn" onclick="exportSnapshot(${s.id})" title="Esporta Excel" style="background: rgba(46, 196, 182, 0.1); color: var(--success);"><i class="fas fa-file-excel"></i></button>
+                <div style="text-align: right; display: flex; align-items: center; gap: 0.75rem;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--primary); font-size: 0.95rem;">${currency} ${Number(s.totalValue || 0).toFixed(2)}</div>
+                        <div style="font-size: 0.75rem; color: var(--gray);">${s.productsCount || 0} prodotti contati</div>
+                    </div>
+                    <button class="action-btn" onclick="exportSnapshot(${s.id})" title="Esporta Excel" style="background: rgba(46, 196, 182, 0.1); color: var(--secondary);">
+                        <i class="fas fa-file-excel"></i>
+                    </button>
                     ${currentRole === 'admin' ? `<button class="action-btn delete" onclick="deleteSnapshot(${s.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
             </div>
@@ -5111,47 +5128,68 @@ function renderDashboardRecentSnapshots() {
     }).join('');
 }
 
-// STEPPER & LIVE QUANTITY UPDATE
-function stepMonthlyQuantity(productId, delta) {
-    const product = appData.products.find(p => p.id == productId);
-    if (!product) return;
-    const currentVal = parseFloat(product.quantity || 0);
-    const newQty = Math.max(0, Number((currentVal + delta).toFixed(3)));
-    
-    product.quantity = newQty;
-    product.status = newQty === 0 ? 'out-of-stock' : newQty <= (appData.settings?.lowStockLimit || 5) ? 'low-stock' : 'in-stock';
+// ==========================================
+// 📊 INITIALIZATION & DASHBOARD LOGIC
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+});
 
-    const inputEl = document.getElementById(`qty-input-${productId}`);
-    const displayEl = document.getElementById(`qty-val-${productId}`);
-    if (inputEl) inputEl.value = newQty;
-    if (displayEl) displayEl.textContent = newQty;
-
-    updateMonthlyStats();
-    updateStatistics();
-    saveToCloud();
+function initApp() {
+    loadLocalData();
+    CloudSyncService.init();
+    applyRolePermissions();
+    updateAll();
+    setupEventListeners();
+    registerServiceWorker();
 }
 
-function updateMonthlyQuantity(productId, newQty) {
-    const qty = parseFloat(newQty);
-    if (isNaN(qty) || qty < 0) return;
-
-    const product = appData.products.find(p => p.id == productId);
-    if (!product) return;
-
-    product.quantity = qty;
-    product.status = qty === 0 ? 'out-of-stock' : qty <= (appData.settings?.lowStockLimit || 5) ? 'low-stock' : 'in-stock';
-
-    const inputEl = document.getElementById(`qty-input-${productId}`);
-    const displayEl = document.getElementById(`qty-val-${productId}`);
-    if (inputEl && inputEl.value != qty) inputEl.value = qty;
-    if (displayEl) displayEl.textContent = qty;
-
-    updateMonthlyStats();
-    updateStatistics();
-    saveToCloud();
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js?v=51')
+            .then(reg => console.log('ServiceWorker registrato:', reg.scope))
+            .catch(err => console.log('ServiceWorker fallito:', err));
+    }
 }
 
-// UPDATE CORE TABLES & DROPDOWNS
+function setupEventListeners() {
+    window.addEventListener('resize', () => {
+        // Adjust any UI on resize
+    });
+}
+
+function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    const targetTab = document.getElementById(`${tabName}-tab`);
+    if (targetTab) targetTab.classList.add('active');
+
+    const activeBtn = document.querySelector(`.nav-tab[onclick="showTab('${tabName}')"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    if (tabName === 'dashboard') {
+        updateStatistics();
+        renderRecentProducts();
+        renderDashboardRecentSnapshots();
+    } else if (tabName === 'products') {
+        renderAllProductsTable();
+    } else if (tabName === 'monthly-inventory') {
+        renderMonthlyInventoryTable();
+        updateMonthlyStats();
+    } else if (tabName === 'categories') {
+        renderCategories();
+    } else if (tabName === 'suppliers') {
+        renderSuppliers();
+    } else if (tabName === 'reports') {
+        renderReports();
+    }
+}
+
 function updateAll() {
     updateStatistics();
     renderRecentProducts();
@@ -5205,291 +5243,121 @@ function handleSearch() {
             if (filteredProducts.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato</td></tr>';
             } else {
-                tbody.innerHTML = filteredProducts.slice(0, 10).map(p => createProductRow(p)).join('');
-            }
-        }
-
-        const allTbody = document.getElementById('allProductsTableBody');
-        if (allTbody) {
-            if (filteredProducts.length === 0) {
-                allTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato</td></tr>';
-            } else {
-                allTbody.innerHTML = filteredProducts.map(p => createProductRow(p)).join('');
+                tbody.innerHTML = filteredProducts.map(p => createProductTableRow(p)).join('');
             }
         }
     }, 200);
 }
 
-// INITIALIZATION
-window.onload = function () {
-    const CURRENT_VERSION = 'v_2026_09_21_prod_185_v2';
-    const savedData = localStorage.getItem('inventarioData');
-    let shouldResetToDefault = true;
-
-    if (savedData) {
-        try {
-            const parsedData = JSON.parse(savedData);
-            if (parsedData && parsedData.dataVersion === CURRENT_VERSION && parsedData.products && parsedData.products.length > 50) {
-                appData = parsedData;
-                shouldResetToDefault = false;
-            }
-        } catch (e) {
-            console.error('Error parsing localStorage:', e);
-        }
-    }
-
-    if (shouldResetToDefault) {
-        appData.dataVersion = CURRENT_VERSION;
-        localStorage.setItem('inventarioData', JSON.stringify(appData));
-    }
-
-    // Imposta vista di default
-    showTab('dashboard');
-
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
-    }
-
-    applyRolePermissions();
-
-    if (typeof CloudSyncService !== 'undefined') {
-        CloudSyncService.init();
-    }
-
-    setTimeout(() => {
-        isInitialLoad = false;
-    }, 1000);
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=50')
-            .then(reg => {
-                console.log('PWA Service Worker attivo');
-                reg.update();
-            })
-            .catch(err => console.log('Errore Service Worker:', err));
-    }
-};
-
-// TAB NAVIGATION
-function showTab(tabName) {
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-        const onclickAttr = tab.getAttribute('onclick') || '';
-        const isActive = onclickAttr.includes(tabName);
-        tab.classList.toggle('active', isActive);
-    });
-
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.toggle('active', content.id === `${tabName}-tab`);
-    });
-
-    const tabLoaders = {
-        'dashboard': loadDashboardData,
-        'products': loadProductsTab,
-        'categories': loadCategoriesTab,
-        'suppliers': loadSuppliersTab,
-        'reports': loadReportsTab,
-        'monthly-inventory': loadMonthlyInventoryTab,
-        'settings': loadSettingsTab
-    };
-
-    if (tabLoaders[tabName]) tabLoaders[tabName]();
-
-    if (window.innerWidth <= 768) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-}
-
-function loadDashboardData() {
-    updateStatistics();
-    renderRecentProducts();
-    renderDashboardRecentSnapshots();
-}
-
-function loadProductsTab() {
-    updateAllDropdowns();
-    renderAllProductsTable();
-}
-
-function loadCategoriesTab() {
-    renderCategoriesTable();
-}
-
-function loadSuppliersTab() {
-    renderSuppliersTable();
-}
-
-function loadReportsTab() {
-    setTimeout(renderCharts, 50);
-}
-
-function loadMonthlyInventoryTab() {
-    renderMonthlyInventoryTable();
-    updateMonthlyStats();
-}
-
-function loadSettingsTab() {
-    const settings = appData.settings;
-    const fields = {
-        'lowStockNotifications': settings.stockNotifications,
-        'lowStockThreshold': settings.lowStockLimit,
-        'language': settings.language,
-        'currency': settings.currency,
-        'decimalPlaces': settings.decimalPlaces
-    };
-
-    for (const [id, value] of Object.entries(fields)) {
-        const el = document.getElementById(id);
-        if (el) el.value = value;
-    }
-}
-
-function populateCategoryDropdown(selectId) {
-    const select = document.getElementById(selectId);
+function populateCategoryDropdown(dropdownId) {
+    const select = document.getElementById(dropdownId);
     if (!select) return;
-
     const currentVal = select.value;
-    if (selectId === 'monthlyCategoryFilter' || selectId === 'filterCategorySelect') {
-        select.innerHTML = '<option value="">Tutte le Categorie</option>';
-        (appData.categories || []).forEach(category => {
-            const val = typeof category === 'object' ? category.name : category;
-            select.innerHTML += `<option value="${val}">${val}</option>`;
-        });
-    } else {
-        select.innerHTML = '<option value="">Seleziona categoria</option>';
-        (appData.categories || []).forEach(category => {
-            if (typeof category === 'object') {
-                select.innerHTML += `<option value="${category.id}">${category.name}</option>`;
-            } else {
-                select.innerHTML += `<option value="${category}">${category}</option>`;
-            }
-        });
+    
+    let options = '<option value="">Tutte le Categorie</option>';
+    if (dropdownId === 'productCategory' || dropdownId === 'modalProductCategory') {
+        options = '<option value="">Seleziona categoria</option>';
     }
+
+    (appData.categories || []).forEach(c => {
+        const name = typeof c === 'object' ? c.name : c;
+        options += `<option value="${name}">${name}</option>`;
+    });
+
+    select.innerHTML = options;
     if (currentVal) select.value = currentVal;
 }
 
-function populateSupplierDropdown(selectId) {
-    const select = document.getElementById(selectId);
+function populateSupplierDropdown(dropdownId) {
+    const select = document.getElementById(dropdownId);
     if (!select) return;
-
     const currentVal = select.value;
-    if (selectId === 'filterSupplierSelect') {
-        select.innerHTML = '<option value="">Tutti i Fornitori</option>';
-        (appData.suppliers || []).forEach(supplier => {
-            const val = typeof supplier === 'object' ? supplier.name : supplier;
-            select.innerHTML += `<option value="${val}">${val}</option>`;
-        });
-    } else {
-        select.innerHTML = '<option value="">Seleziona fornitore</option>';
-        (appData.suppliers || []).forEach(supplier => {
-            if (typeof supplier === 'object') {
-                select.innerHTML += `<option value="${supplier.id}">${supplier.name}</option>`;
-            } else {
-                select.innerHTML += `<option value="${supplier}">${supplier}</option>`;
-            }
-        });
+
+    let options = '<option value="">Tutti i Fornitori</option>';
+    if (dropdownId === 'productSupplier' || dropdownId === 'modalProductSupplier') {
+        options = '<option value="">Seleziona fornitore</option>';
     }
+
+    (appData.suppliers || []).forEach(s => {
+        const name = typeof s === 'object' ? s.name : s;
+        options += `<option value="${name}">${name}</option>`;
+    });
+
+    select.innerHTML = options;
     if (currentVal) select.value = currentVal;
 }
 
 function updateStatistics() {
     const roleProducts = getProductsForRole(currentRole);
-    const lowLimit = appData.settings?.lowStockLimit || 5;
+    const totalCount = roleProducts.length;
+    const lowStockCount = roleProducts.filter(p => p.status === 'low-stock').length;
+    const outOfStockCount = roleProducts.filter(p => p.status === 'out-of-stock' || p.quantity === 0).length;
+    const totalVal = roleProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0);
 
-    const stats = {
-        totalProducts: roleProducts.length,
-        totalValue: roleProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0),
-        inStock: roleProducts.filter(p => p.quantity > lowLimit).length,
-        lowStock: roleProducts.filter(p => p.quantity > 0 && p.quantity <= lowLimit).length,
-        outOfStock: roleProducts.filter(p => p.quantity === 0).length,
-        categories: Array.from(new Set(roleProducts.map(p => p.category))).length
-    };
+    const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
 
-    const currency = appData.settings?.currency === 'EUR' ? '€' : appData.settings?.currency === 'USD' ? '$' : '£';
+    const totalProdEl = document.getElementById('totalProducts');
+    const totalValEl = document.getElementById('totalValue');
+    const lowStockEl = document.getElementById('lowStock');
+    const outOfStockEl = document.getElementById('outOfStock');
 
-    const totalProdElem = document.getElementById('total-products');
-    const totalValElem = document.getElementById('total-value');
-    if (totalProdElem) totalProdElem.textContent = stats.totalProducts;
-    if (totalValElem) totalValElem.textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (totalProdEl) totalProdEl.textContent = totalCount;
+    if (totalValEl) totalValEl.textContent = `${currency} ${totalVal.toFixed(2)}`;
+    if (lowStockEl) lowStockEl.textContent = lowStockCount;
+    if (outOfStockEl) outOfStockEl.textContent = outOfStockCount;
 
-    const settingsTotal = document.getElementById('settings-total-products');
-    const settingsValue = document.getElementById('settings-total-value');
-    if (settingsTotal) settingsTotal.textContent = stats.totalProducts;
-    if (settingsValue) settingsValue.textContent = `${currency} ${stats.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const totalProductsCountEl = document.getElementById('totalProductsCount');
+    if (totalProductsCountEl) totalProductsCountEl.textContent = totalCount;
 
-    const inStockElem = document.getElementById('inStockCount');
-    const lowStockElem = document.getElementById('lowStockCount');
-    const outOfStockElem = document.getElementById('outOfStockCount');
-
-    if (inStockElem) inStockElem.textContent = stats.inStock;
-    if (lowStockElem) lowStockElem.textContent = stats.lowStock;
-    if (outOfStockElem) outOfStockElem.textContent = stats.outOfStock;
-    const catCountElem = document.getElementById('categoriesCount');
-    if (catCountElem) catCountElem.textContent = stats.categories;
-}
-
-let currentDashboardFilter = null;
-
-function filterDashboardByStatus(status) {
-    if (currentDashboardFilter === status) {
-        currentDashboardFilter = null;
-    } else {
-        currentDashboardFilter = status;
+    const roleLabel = getRoleLabel();
+    const statCardsSub = document.querySelectorAll('.stat-card .stat-subtitle');
+    if (statCardsSub && statCardsSub.length > 0) {
+        statCardsSub.forEach(sub => {
+            if (currentRole !== 'admin') {
+                sub.textContent = `Reparto ${roleLabel}`;
+            }
+        });
     }
-
-    document.querySelectorAll('.dashboard-stat-filter').forEach(card => {
-        card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
-        card.style.border = '1px solid var(--border)';
-        card.style.transform = 'translateY(0)';
-    });
-
-    if (currentDashboardFilter) {
-        const activeCard = document.getElementById(`filter-card-${status}`);
-        if (activeCard) {
-            activeCard.style.boxShadow = '0 8px 16px rgba(67, 97, 238, 0.15)';
-            activeCard.style.border = '2px solid var(--primary)';
-            activeCard.style.transform = 'translateY(-2px)';
-        }
-    }
-
-    renderRecentProducts();
 }
 
 function renderRecentProducts() {
-    const tbody = document.getElementById('productsTableBody');
+    const tbody = document.getElementById('recentProductsTableBody');
     if (!tbody) return;
 
     let productsList = [...getProductsForRole(currentRole)].reverse();
-    const lowLimit = appData.settings?.lowStockLimit || 5;
+    const recent = productsList.slice(0, 8);
 
-    if (currentDashboardFilter === 'in-stock') {
-        productsList = productsList.filter(p => p.quantity > lowLimit);
-    } else if (currentDashboardFilter === 'low-stock') {
-        productsList = productsList.filter(p => p.quantity > 0 && p.quantity <= lowLimit);
-    } else if (currentDashboardFilter === 'out-of-stock') {
-        productsList = productsList.filter(p => p.quantity === 0);
+    if (recent.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto disponibile</td></tr>';
+        return;
     }
 
-    const recent = currentDashboardFilter ? productsList : productsList.slice(0, 10);
+    tbody.innerHTML = recent.map(p => `
+        <tr>
+            <td>
+                <strong>${p.name}</strong>
+                <div style="font-size: 0.8rem; color: var(--gray);">${p.supplier || ''}</div>
+            </td>
+            <td><span class="badge ${getDepartmentBadgeClass(p.department)}">${getDepartmentIcon(p.department)}</span></td>
+            <td>${p.category || '-'}</td>
+            <td>${p.subcategory || '-'}</td>
+            <td><strong>${p.quantity}</strong> ${p.unit}</td>
+            <td><span class="badge ${getStatusBadgeClass(p.status)}"><i class="fas ${getStatusIcon(p.status)}"></i> ${getStatusText(p.status)}</span></td>
+            <td>
+                <div class="table-actions">
+                    <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità"><i class="fas fa-plus-minus"></i></button>
+                    ${currentRole === 'admin' ? `
+                    <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
+                    ` : ''}
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
 
-    const tableHeader = document.getElementById('dashboardTableTitle');
-    if (tableHeader) {
-        if (currentDashboardFilter === 'in-stock') {
-            tableHeader.innerHTML = '<i class="fas fa-box" style="margin-right: 0.5rem; color: #4cc9f0;"></i>Prodotti In Stock';
-        } else if (currentDashboardFilter === 'low-stock') {
-            tableHeader.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem; color: #f72585;"></i>Prodotti Sotto Soglia';
-        } else if (currentDashboardFilter === 'out-of-stock') {
-            tableHeader.innerHTML = '<i class="fas fa-clock" style="margin-right: 0.5rem; color: #e63946;"></i>Prodotti Esauriti';
-        } else {
-            tableHeader.innerHTML = '<i class="fas fa-history" style="margin-right: 0.5rem; color: var(--primary);"></i>Ultimi Prodotti Aggiunti';
-        }
-    }
-
-    if (recent.length > 0) {
-        tbody.innerHTML = recent.map(p => createProductRow(p)).join('');
-    } else {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato</td></tr>';
-    }
+function filterProducts() {
+    renderAllProductsTable();
 }
 
 let currentProductDeptFilter = 'tutti';
@@ -5497,7 +5365,7 @@ let currentProductDeptFilter = 'tutti';
 function filterProductsByDepartment(dept) {
     currentProductDeptFilter = dept;
 
-    ['tutti', 'cucina', 'bar', 'consumabili'].forEach(d => {
+    ['tutti', 'cucina', 'bar', 'bowling', 'consumabili'].forEach(d => {
         const btn = document.getElementById(`prod-dept-btn-${d}`);
         if (btn) btn.classList.toggle('active', d === dept);
     });
@@ -5510,16 +5378,19 @@ function updateProductDepartmentCounters() {
     const countAll = products.length;
     const countCucina = products.filter(p => (p.department || '').toLowerCase() === 'cucina' || (p.category || '').toLowerCase() === 'cucina').length;
     const countBar = products.filter(p => (p.department || '').toLowerCase() === 'bar' || (p.category || '').toLowerCase() === 'beverage').length;
+    const countBowling = products.filter(p => (p.department || '').toLowerCase() === 'bowling' || (p.category || '').toLowerCase() === 'bowling').length;
     const countConsumabili = products.filter(p => (p.department || '').toLowerCase() === 'entrambi' || (p.category || '').toLowerCase() === 'consumabili').length;
 
     const elAll = document.getElementById('prod-count-tutti');
     const elCucina = document.getElementById('prod-count-cucina');
     const elBar = document.getElementById('prod-count-bar');
+    const elBowling = document.getElementById('prod-count-bowling');
     const elCons = document.getElementById('prod-count-consumabili');
 
     if (elAll) elAll.textContent = countAll;
     if (elCucina) elCucina.textContent = countCucina;
     if (elBar) elBar.textContent = countBar;
+    if (elBowling) elBowling.textContent = countBowling;
     if (elCons) elCons.textContent = countConsumabili;
 }
 
@@ -5540,13 +5411,14 @@ function renderAllProductsTable() {
 
     let filtered = getProductsForRole(currentRole);
 
-    // 1. Filtro Rapido per Reparto (Cucina / Bar / Consumabili)
+    // 1. Filtro Rapido per Reparto (Cucina / Bar / Bowling / Consumabili)
     if (currentProductDeptFilter && currentProductDeptFilter !== 'tutti') {
         filtered = filtered.filter(p => {
             const pDept = (p.department || '').toLowerCase();
             const pCat = (p.category || '').toLowerCase();
             if (currentProductDeptFilter === 'cucina') return pDept === 'cucina' || pDept === 'entrambi' || pCat === 'cucina' || pCat === 'consumabili';
             if (currentProductDeptFilter === 'bar') return pDept === 'bar' || pDept === 'entrambi' || pCat === 'beverage' || pCat === 'consumabili';
+            if (currentProductDeptFilter === 'bowling') return pDept === 'bowling' || pDept === 'entrambi' || pCat === 'bowling' || pCat === 'consumabili';
             if (currentProductDeptFilter === 'consumabili') return pDept === 'entrambi' || pCat === 'consumabili';
             return true;
         });
@@ -5562,7 +5434,7 @@ function renderAllProductsTable() {
         filtered = filtered.filter(p => (p.supplier || '') === selectedSupplier);
     }
 
-    // 4. Filtro di ricerca testuale
+    // 4. Ricerca Testuale
     if (searchTerm) {
         filtered = filtered.filter(p =>
             (p.name && p.name.toLowerCase().includes(searchTerm)) ||
@@ -5573,82 +5445,87 @@ function renderAllProductsTable() {
     }
 
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato per i filtri selezionati</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato con i filtri selezionati</td></tr>';
         return;
     }
 
-    tbody.innerHTML = filtered.map(p => createProductRow(p)).join('');
-}
-
-function filterProductsTable() {
-    renderAllProductsTable();
-}
-
-function createProductRow(p) {
     const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
 
-    return `
-        <tr class="fade-in">
-            <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
-            <td><span class="badge badge-category">${p.category || '-'}</span></td>
-            <td><span class="subcategory-text">${p.subcategory || '-'}</span></td>
-            <td class="product-cell">
-                <span class="product-name" style="font-weight: 600; color: var(--dark); font-size: 0.95rem;">${p.name}</span>
+    tbody.innerHTML = filtered.map(p => `
+        <tr>
+            <td>
+                <strong>${p.name}</strong>
             </td>
-            <td class="price-cell" style="font-weight: 600;">${currency} ${Number(p.price || 0).toFixed(2)}</td>
-            <td class="quantity-cell">
-                <span class="quantity-value" style="font-weight: 700;">${p.quantity}</span>
-                <span class="quantity-unit" style="color: var(--gray); font-size: 0.85rem;">${p.unit || ''}</span>
-            </td>
-            <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
+            <td><span class="badge ${getDepartmentBadgeClass(p.department)}">${getDepartmentIcon(p.department)}</span></td>
+            <td>${p.category || '-'}</td>
+            <td>${p.subcategory || '-'}</td>
+            <td><strong>${p.quantity}</strong> ${p.unit}</td>
+            <td>${currency} ${Number(p.price || 0).toFixed(2)}</td>
+            <td><span class="badge ${getStatusBadgeClass(p.status)}"><i class="fas ${getStatusIcon(p.status)}"></i> ${getStatusText(p.status)}</span></td>
             <td>
                 <div class="table-actions">
-                    <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
+                    <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità"><i class="fas fa-plus-minus"></i></button>
                     ${currentRole === 'admin' ? `
                     <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
                     <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
                     ` : ''}
                 </div>
             </td>
-        </tr>`;
+        </tr>
+    `).join('');
 }
 
-// FUNZIONI CRUD PRODOTTI (ADMIN)
+function addProductFromForm() {
+    const name = document.getElementById('productName')?.value.trim();
+    const category = document.getElementById('productCategory')?.value;
+    const department = document.getElementById('productDepartment')?.value || 'entrambi';
+    const subcategory = document.getElementById('productSubcategory')?.value;
+    const quantity = parseFloat(document.getElementById('productQuantity')?.value) || 0;
+    const unit = document.getElementById('productUnit')?.value || 'pezzi';
+    const price = parseFloat(document.getElementById('productPrice')?.value) || 0;
+    const supplier = document.getElementById('productSupplier')?.value || '';
+
+    if (!name) {
+        showNotification('Inserisci il nome del prodotto', 'warning');
+        return;
+    }
+
+    const newProd = {
+        id: Date.now(),
+        name,
+        category: category || 'Consumabili',
+        department,
+        subcategory: subcategory || '',
+        quantity,
+        unit,
+        price,
+        supplier,
+        status: quantity > 10 ? 'in-stock' : (quantity > 0 ? 'low-stock' : 'out-of-stock')
+    };
+
+    if (!appData.products) appData.products = [];
+    appData.products.push(newProd);
+
+    saveToCloud();
+    updateAll();
+
+    // Reset Form
+    if (document.getElementById('productName')) document.getElementById('productName').value = '';
+    if (document.getElementById('productQuantity')) document.getElementById('productQuantity').value = '';
+    if (document.getElementById('productPrice')) document.getElementById('productPrice').value = '';
+
+    showNotification(`Prodotto "${name}" aggiunto con successo!`);
+}
+
 function showAddProductModal() {
-    populateCategoryDropdown('modalProductCategory');
-    populateSupplierDropdown('modalProductSupplier');
-
-    const nameEl = document.getElementById('modalProductName');
-    const catEl = document.getElementById('modalProductCategory');
-    const subcatEl = document.getElementById('modalProductSubcategory');
-    const deptEl = document.getElementById('modalProductDepartment');
-    const qtyEl = document.getElementById('modalProductQuantity');
-    const unitEl = document.getElementById('modalProductUnit');
-    const priceEl = document.getElementById('modalProductPrice');
-    const supEl = document.getElementById('modalProductSupplier');
-
-    if (nameEl) nameEl.value = '';
-    if (catEl) catEl.value = '';
-    if (subcatEl) subcatEl.value = '';
-    if (deptEl) deptEl.value = 'entrambi';
-    if (qtyEl) qtyEl.value = '';
-    if (unitEl) unitEl.value = 'pezzi';
-    if (priceEl) priceEl.value = '';
-    if (supEl) supEl.value = '';
-
-    const titleEl = document.querySelector('#addProductModal .modal-title');
-    if (titleEl) {
-        titleEl.innerHTML = '<i class="fas fa-plus-circle" style="color: var(--primary);"></i>Nuovo Prodotto';
-    }
-
-    const saveButton = document.querySelector('#addProductModal .btn-primary');
-    if (saveButton) {
-        saveButton.textContent = 'Salva Prodotto';
-        saveButton.onclick = saveProduct;
-    }
-
     const modal = document.getElementById('addProductModal');
-    if (modal) modal.classList.add('show');
+    if (modal) {
+        if (document.getElementById('modalProductName')) document.getElementById('modalProductName').value = '';
+        if (document.getElementById('modalProductQuantity')) document.getElementById('modalProductQuantity').value = '';
+        if (document.getElementById('modalProductPrice')) document.getElementById('modalProductPrice').value = '';
+        updateAllDropdowns();
+        modal.classList.add('show');
+    }
 }
 
 function closeAddProductModal() {
@@ -5656,684 +5533,163 @@ function closeAddProductModal() {
     if (modal) modal.classList.remove('show');
 }
 
-function saveProduct() {
-    const name = document.getElementById('modalProductName')?.value?.trim();
-    const categoryId = document.getElementById('modalProductCategory')?.value;
-    const subcategory = document.getElementById('modalProductSubcategory')?.value || '';
+function saveProductFromModal() {
+    const name = document.getElementById('modalProductName')?.value.trim();
+    const category = document.getElementById('modalProductCategory')?.value;
     const department = document.getElementById('modalProductDepartment')?.value || 'entrambi';
-    const quantity = parseFloat(document.getElementById('modalProductQuantity')?.value);
+    const subcategory = document.getElementById('modalProductSubcategory')?.value;
+    const quantity = parseFloat(document.getElementById('modalProductQuantity')?.value) || 0;
     const unit = document.getElementById('modalProductUnit')?.value || 'pezzi';
-    const price = parseFloat(document.getElementById('modalProductPrice')?.value);
-    const supplierId = document.getElementById('modalProductSupplier')?.value;
+    const price = parseFloat(document.getElementById('modalProductPrice')?.value) || 0;
+    const supplier = document.getElementById('modalProductSupplier')?.value || '';
 
-    if (!name || !categoryId || isNaN(quantity) || isNaN(price)) {
-        showNotification('Compila tutti i campi obbligatori', 'error');
+    if (!name) {
+        showNotification('Inserisci il nome del prodotto', 'warning');
         return;
     }
 
-    const category = appData.categories.find(cat => cat.id == categoryId);
-    const supplier = appData.suppliers.find(sup => sup.id == supplierId);
-
-    const newProduct = {
+    const newProd = {
         id: Date.now(),
-        name: name,
-        category: category ? category.name : 'Generico',
-        subcategory: subcategory,
-        department: department,
-        quantity: quantity,
-        unit: unit,
-        price: price,
-        supplier: supplier ? supplier.name : 'Default',
-        status: quantity === 0 ? 'out-of-stock' : quantity <= (appData.settings?.lowStockLimit || 5) ? 'low-stock' : 'in-stock'
+        name,
+        category: category || 'Consumabili',
+        department,
+        subcategory: subcategory || '',
+        quantity,
+        unit,
+        price,
+        supplier,
+        status: quantity > 10 ? 'in-stock' : (quantity > 0 ? 'low-stock' : 'out-of-stock')
     };
 
-    appData.products.push(newProduct);
-    if (category) category.productCount = (category.productCount || 0) + 1;
-    if (supplier) supplier.productCount = (supplier.productCount || 0) + 1;
+    if (!appData.products) appData.products = [];
+    appData.products.push(newProd);
 
     saveToCloud();
     closeAddProductModal();
     updateAll();
-    showNotification('Prodotto aggiunto con successo!');
+    showNotification(`Prodotto "${name}" salvato!`);
 }
 
-function addProductFromForm() {
-    const name = document.getElementById('productName')?.value?.trim();
-    const categoryId = document.getElementById('productCategory')?.value;
-    const subcategory = document.getElementById('productSubcategory')?.value || '';
-    const department = document.getElementById('productDepartment')?.value || 'entrambi';
-    const quantity = parseFloat(document.getElementById('productQuantity')?.value);
-    const unit = document.getElementById('productUnit')?.value || 'pezzi';
-    const price = parseFloat(document.getElementById('productPrice')?.value);
-    const supplierId = document.getElementById('productSupplier')?.value;
+function editProduct(id) {
+    const p = (appData.products || []).find(item => item.id === id);
+    if (!p) return;
 
-    if (!name || !categoryId || isNaN(quantity) || isNaN(price)) {
-        showNotification('Compila tutti i campi obbligatori', 'error');
-        return;
-    }
+    const newName = prompt('Nome prodotto:', p.name);
+    if (newName === null) return;
 
-    const category = appData.categories.find(cat => cat.id == categoryId);
-    const supplier = appData.suppliers.find(sup => sup.id == supplierId);
+    const newQtyStr = prompt('Quantità attuale:', p.quantity);
+    if (newQtyStr === null) return;
 
-    const newProduct = {
-        id: Date.now(),
-        name: name,
-        category: category ? category.name : 'Generico',
-        subcategory: subcategory,
-        department: department,
-        quantity: quantity,
-        unit: unit,
-        price: price,
-        supplier: supplier ? supplier.name : 'Default',
-        status: quantity === 0 ? 'out-of-stock' : quantity <= (appData.settings?.lowStockLimit || 5) ? 'low-stock' : 'in-stock'
-    };
+    const newPriceStr = prompt('Prezzo unitario (€):', p.price);
+    if (newPriceStr === null) return;
 
-    appData.products.push(newProduct);
-    if (category) category.productCount = (category.productCount || 0) + 1;
-    if (supplier) supplier.productCount = (supplier.productCount || 0) + 1;
-
-    document.getElementById('productName').value = '';
-    document.getElementById('productCategory').value = '';
-    document.getElementById('productDepartment').value = 'entrambi';
-    document.getElementById('productSubcategory').value = '';
-    document.getElementById('productQuantity').value = '';
-    document.getElementById('productPrice').value = '';
-    document.getElementById('productSupplier').value = '';
+    p.name = newName.trim() || p.name;
+    p.quantity = parseFloat(newQtyStr) || 0;
+    p.price = parseFloat(newPriceStr) || 0;
+    p.status = p.quantity > 10 ? 'in-stock' : (p.quantity > 0 ? 'low-stock' : 'out-of-stock');
 
     saveToCloud();
     updateAll();
-    showNotification('Prodotto aggiunto!');
+    showNotification('Prodotto modificato con successo!');
 }
 
-function editProduct(productId) {
-    const product = appData.products.find(p => p.id == productId);
-    if (!product) {
-        showNotification('Prodotto non trovato', 'error');
-        return;
-    }
-
-    showAddProductModal();
-
-    const nameEl = document.getElementById('modalProductName');
-    const deptEl = document.getElementById('modalProductDepartment');
-    const catEl = document.getElementById('modalProductCategory');
-    const subcatEl = document.getElementById('modalProductSubcategory');
-    const qtyEl = document.getElementById('modalProductQuantity');
-    const unitEl = document.getElementById('modalProductUnit');
-    const priceEl = document.getElementById('modalProductPrice');
-    const supEl = document.getElementById('modalProductSupplier');
-
-    if (nameEl) nameEl.value = product.name;
-    if (deptEl) deptEl.value = product.department || 'entrambi';
-
-    const category = appData.categories.find(c => c.name === product.category);
-    if (category && catEl) {
-        catEl.value = category.id;
-        updateSubcategories('modal');
-
-        setTimeout(() => {
-            if (subcatEl) subcatEl.value = product.subcategory || '';
-        }, 100);
-    }
-
-    if (qtyEl) qtyEl.value = product.quantity;
-    if (unitEl) unitEl.value = product.unit || 'pezzi';
-    if (priceEl) priceEl.value = product.price;
-
-    const supplier = appData.suppliers.find(s => s.name === product.supplier);
-    if (supplier && supEl) {
-        supEl.value = supplier.id;
-    }
-
-    const titleEl = document.querySelector('#addProductModal .modal-title');
-    if (titleEl) {
-        titleEl.innerHTML = '<i class="fas fa-edit"></i>Modifica Prodotto';
-    }
-
-    const saveButton = document.querySelector('#addProductModal .btn-primary');
-    if (saveButton) {
-        saveButton.textContent = 'Aggiorna Prodotto';
-        saveButton.onclick = function () { updateProduct(productId); };
-    }
-}
-
-function updateProduct(productId) {
-    const name = document.getElementById('modalProductName')?.value?.trim();
-    const categoryId = document.getElementById('modalProductCategory')?.value;
-    const subcategory = document.getElementById('modalProductSubcategory')?.value || '';
-    const department = document.getElementById('modalProductDepartment')?.value || 'entrambi';
-    const quantity = parseFloat(document.getElementById('modalProductQuantity')?.value);
-    const unit = document.getElementById('modalProductUnit')?.value || 'pezzi';
-    const price = parseFloat(document.getElementById('modalProductPrice')?.value);
-    const supplierId = document.getElementById('modalProductSupplier')?.value;
-
-    if (!name || !categoryId || isNaN(quantity) || isNaN(price)) {
-        showNotification('Compila tutti i campi obbligatori', 'error');
-        return;
-    }
-
-    const productIndex = appData.products.findIndex(p => p.id == productId);
-    if (productIndex === -1) {
-        showNotification('Prodotto non trovato', 'error');
-        return;
-    }
-
-    const oldCategory = appData.categories.find(c => c.name === appData.products[productIndex].category);
-    if (oldCategory) oldCategory.productCount = Math.max(0, (oldCategory.productCount || 1) - 1);
-
-    const oldSupplier = appData.suppliers.find(s => s.name === appData.products[productIndex].supplier);
-    if (oldSupplier) oldSupplier.productCount = Math.max(0, (oldSupplier.productCount || 1) - 1);
-
-    const category = appData.categories.find(cat => cat.id == categoryId);
-    const supplier = appData.suppliers.find(sup => sup.id == supplierId);
-
-    appData.products[productIndex] = {
-        id: productId,
-        name: name,
-        category: category ? category.name : 'Generico',
-        subcategory: subcategory,
-        department: department,
-        quantity: quantity,
-        unit: unit,
-        price: price,
-        supplier: supplier ? supplier.name : 'Default',
-        status: quantity === 0 ? 'out-of-stock' : quantity <= (appData.settings?.lowStockLimit || 5) ? 'low-stock' : 'in-stock'
-    };
-
-    if (category) category.productCount = (category.productCount || 0) + 1;
-    if (supplier) supplier.productCount = (supplier.productCount || 0) + 1;
-
-    saveToCloud();
-    closeAddProductModal();
-    updateAll();
-    showNotification('Prodotto aggiornato!');
-}
-
-// QUICK QUANTITY UPDATE MODAL
-let currentQuickEditProductId = null;
-
-function openQuickQuantityModal(productId) {
-    const product = appData.products.find(p => p.id == productId);
-    if (!product) {
-        showNotification('Prodotto non trovato', 'error');
-        return;
-    }
-
-    currentQuickEditProductId = productId;
-
-    const nameEl = document.getElementById('quickProductName');
-    const currEl = document.getElementById('quickCurrentQuantity');
-    const newEl = document.getElementById('quickNewQuantity');
-    const modal = document.getElementById('quickQuantityModal');
-
-    if (nameEl) nameEl.value = product.name;
-    if (currEl) currEl.value = `${product.quantity} ${product.unit || ''}`;
-    if (newEl) newEl.value = product.quantity;
-
-    if (modal) modal.classList.add('show');
-
-    setTimeout(() => {
-        if (newEl) {
-            newEl.focus();
-            newEl.select();
-        }
-    }, 100);
-}
-
-function closeQuickQuantityModal() {
-    const modal = document.getElementById('quickQuantityModal');
-    if (modal) modal.classList.remove('show');
-    currentQuickEditProductId = null;
-}
-
-function saveQuickQuantity() {
-    if (!currentQuickEditProductId) return;
-
-    const input = document.getElementById('quickNewQuantity');
-    if (!input) return;
-
-    const newQuantity = parseFloat(input.value);
-
-    if (isNaN(newQuantity) || newQuantity < 0) {
-        showNotification('Inserisci una quantità valida', 'error');
-        return;
-    }
-
-    const productIndex = appData.products.findIndex(p => p.id == currentQuickEditProductId);
-    if (productIndex === -1) return;
-
-    const oldQuantity = appData.products[productIndex].quantity;
-    appData.products[productIndex].quantity = newQuantity;
-
-    appData.products[productIndex].status =
-        newQuantity === 0 ? 'out-of-stock' :
-            newQuantity <= (appData.settings?.lowStockLimit || 5) ? 'low-stock' : 'in-stock';
-
-    saveToCloud();
-    closeQuickQuantityModal();
-    updateAll();
-
-    const productName = appData.products[productIndex].name;
-    showNotification(`Quantità aggiornata: ${productName} (${oldQuantity} → ${newQuantity})`, 'success');
-}
-
-function deleteProduct(productId) {
+function deleteProduct(id) {
     if (confirm('Sei sicuro di voler eliminare questo prodotto?')) {
-        const index = appData.products.findIndex(p => p.id == productId);
-        if (index !== -1) {
-            const product = appData.products[index];
-
-            const category = appData.categories.find(c => c.name === product.category);
-            if (category) category.productCount = Math.max(0, (category.productCount || 1) - 1);
-
-            const supplier = appData.suppliers.find(s => s.name === product.supplier);
-            if (supplier) supplier.productCount = Math.max(0, (supplier.productCount || 1) - 1);
-
-            appData.products.splice(index, 1);
-            saveToCloud();
-            updateAll();
-            showNotification('Prodotto eliminato con successo');
-        }
-    }
-}
-
-// CATEGORIES & SUPPLIERS RENDERING
-function renderCategoriesTable() {
-    const tbody = document.getElementById('categoriesTableBody');
-    if (!tbody) return;
-
-    const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
-
-    tbody.innerHTML = appData.categories.map(c => {
-        const catProducts = appData.products.filter(p => p.category === c.name);
-        const totalVal = catProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0);
-
-        return `
-                <tr class="fade-in">
-                    <td><strong>${c.name}</strong></td>
-                    <td><span class="badge badge-unit">${catProducts.length} Prodotti</span></td>
-                    <td><span class="badge badge-success">${currency} ${totalVal.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
-                    <td>
-                        <div class="subcategories-tags">
-                            ${(c.subcategories || []).map(s => `<span class="badge badge-sub">${s}</span>`).join(' ')}
-                        </div>
-                    </td>
-                    <td>
-                        <div class="table-actions">
-                            <button class="action-btn edit" onclick="editCategory(${c.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete" onclick="deleteCategory(${c.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </td>
-                </tr>`;
-    }).join('');
-}
-
-function renderSuppliersTable() {
-    const tbody = document.getElementById('suppliersTableBody');
-    if (!tbody) return;
-
-    tbody.innerHTML = appData.suppliers.map(s => `
-                <tr class="fade-in">
-                    <td>
-                        <div class="supplier-info">
-                            <span class="supplier-name" style="font-weight: 600;">${s.name}</span>
-                            <span class="supplier-address" style="font-size: 0.8rem; color: var(--gray);"><i class="fas fa-map-marker-alt"></i> ${s.address || '-'}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="d-flex flex-column">
-                            <span><i class="fas fa-phone"></i> ${s.phone || '-'}</span>
-                        </div>
-                    </td>
-                    <td><a href="mailto:${s.email}" class="supplier-email"><i class="fas fa-envelope"></i> ${s.email || '-'}</a></td>
-                    <td><span class="badge badge-unit">${s.productCount || 0} Articoli</span></td>
-                    <td>
-                        <div class="table-actions">
-                            <button class="action-btn edit" onclick="editSupplier(${s.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete" onclick="deleteSupplier(${s.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-}
-
-function showAddCategoryModal() {
-    document.getElementById('modalCategoryName').value = '';
-    document.getElementById('modalSubcategoryName').value = '';
-    document.getElementById('addCategoryModal').classList.add('show');
-}
-
-function closeAddCategoryModal() {
-    document.getElementById('addCategoryModal').classList.remove('show');
-}
-
-function saveCategory() {
-    const name = document.getElementById('modalCategoryName').value.trim();
-    const subcategories = document.getElementById('modalSubcategoryName').value.split(',').map(s => s.trim()).filter(s => s);
-
-    if (!name) {
-        showNotification('Inserisci il nome della categoria', 'error');
-        return;
-    }
-
-    const newCategory = {
-        id: Date.now(),
-        name: name,
-        subcategories: subcategories,
-        productCount: 0
-    };
-
-    appData.categories.push(newCategory);
-    saveToCloud();
-    closeAddCategoryModal();
-    updateAll();
-    showNotification('Categoria aggiunta!');
-}
-
-function addCategoryFromForm() {
-    const name = document.getElementById('categoryName').value.trim();
-    const subcategories = document.getElementById('subcategoryName').value.split(',').map(s => s.trim()).filter(s => s);
-
-    if (!name) {
-        showNotification('Inserisci il nome della categoria', 'error');
-        return;
-    }
-
-    const newCategory = {
-        id: Date.now(),
-        name: name,
-        subcategories: subcategories,
-        productCount: 0
-    };
-
-    appData.categories.push(newCategory);
-    document.getElementById('categoryName').value = '';
-    document.getElementById('subcategoryName').value = '';
-
-    saveToCloud();
-    updateAll();
-    showNotification('Categoria aggiunta!');
-}
-
-function editCategory(categoryId) {
-    const category = appData.categories.find(c => c.id === categoryId);
-    if (!category) return;
-
-    showAddCategoryModal();
-    document.getElementById('modalCategoryName').value = category.name;
-    document.getElementById('modalSubcategoryName').value = (category.subcategories || []).join(', ');
-
-    const saveBtn = document.querySelector('#addCategoryModal .btn-primary');
-    if (saveBtn) {
-        saveBtn.textContent = 'Aggiorna Categoria';
-        saveBtn.onclick = function () { updateCategory(categoryId); };
-    }
-}
-
-function updateCategory(categoryId) {
-    const name = document.getElementById('modalCategoryName').value.trim();
-    const subcategories = document.getElementById('modalSubcategoryName').value.split(',').map(s => s.trim()).filter(s => s);
-
-    if (!name) {
-        showNotification('Inserisci il nome della categoria', 'error');
-        return;
-    }
-
-    const categoryIndex = appData.categories.findIndex(c => c.id === categoryId);
-    if (categoryIndex !== -1) {
-        appData.categories[categoryIndex].name = name;
-        appData.categories[categoryIndex].subcategories = subcategories;
-
+        appData.products = (appData.products || []).filter(p => p.id !== id);
         saveToCloud();
-        closeAddCategoryModal();
         updateAll();
-        showNotification('Categoria aggiornata!');
+        showNotification('Prodotto eliminato!');
     }
 }
 
-function deleteCategory(categoryId) {
-    if (confirm('Eliminare questa categoria?')) {
-        const index = appData.categories.findIndex(c => c.id === categoryId);
-        if (index !== -1) {
-            appData.categories.splice(index, 1);
-            saveToCloud();
-            updateAll();
-            showNotification('Categoria eliminata');
-        }
-    }
-}
+function openQuickQuantityModal(id) {
+    const p = (appData.products || []).find(item => item.id === id);
+    if (!p) return;
 
-function showAddSupplierModal() {
-    document.getElementById('modalSupplierName').value = '';
-    document.getElementById('modalSupplierPhone').value = '';
-    document.getElementById('modalSupplierEmail').value = '';
-    document.getElementById('modalSupplierAddress').value = '';
-    document.getElementById('addSupplierModal').classList.add('show');
-}
+    const currentQty = p.quantity || 0;
+    const input = prompt(`Aggiorna giacenza per "${p.name}" (Attuale: ${currentQty} ${p.unit}):`, currentQty);
+    if (input === null) return;
 
-function closeAddSupplierModal() {
-    document.getElementById('addSupplierModal').classList.remove('show');
-}
-
-function saveSupplier() {
-    const name = document.getElementById('modalSupplierName').value.trim();
-    const phone = document.getElementById('modalSupplierPhone').value.trim();
-    const email = document.getElementById('modalSupplierEmail').value.trim();
-    const address = document.getElementById('modalSupplierAddress').value.trim();
-
-    if (!name) {
-        showNotification('Inserisci il nome del fornitore', 'error');
+    const val = parseFloat(input);
+    if (isNaN(val) || val < 0) {
+        showNotification('Valore non valido', 'error');
         return;
     }
 
-    const newSupplier = {
-        id: Date.now(),
-        name: name,
-        phone: phone,
-        email: email,
-        address: address,
-        productCount: 0
-    };
-
-    appData.suppliers.push(newSupplier);
-    saveToCloud();
-    closeAddSupplierModal();
-    updateAll();
-    showNotification('Fornitore aggiunto!');
-}
-
-function addSupplierFromForm() {
-    const name = document.getElementById('supplierName').value.trim();
-    const phone = document.getElementById('supplierPhone').value.trim();
-    const email = document.getElementById('supplierEmail').value.trim();
-    const address = document.getElementById('supplierAddress').value.trim();
-
-    if (!name) {
-        showNotification('Inserisci il nome del fornitore', 'error');
-        return;
-    }
-
-    const newSupplier = {
-        id: Date.now(),
-        name: name,
-        phone: phone,
-        email: email,
-        address: address,
-        productCount: 0
-    };
-
-    appData.suppliers.push(newSupplier);
-    document.getElementById('supplierName').value = '';
-    document.getElementById('supplierPhone').value = '';
-    document.getElementById('supplierEmail').value = '';
-    document.getElementById('supplierAddress').value = '';
-
+    p.quantity = val;
+    p.status = p.quantity > 10 ? 'in-stock' : (p.quantity > 0 ? 'low-stock' : 'out-of-stock');
     saveToCloud();
     updateAll();
-    showNotification('Fornitore aggiunto!');
+    showNotification(`Giacenza di "${p.name}" aggiornata a ${p.quantity} ${p.unit}`);
 }
 
-function editSupplier(supplierId) {
-    const supplier = appData.suppliers.find(s => s.id === supplierId);
-    if (!supplier) return;
+function updateSubcategories(prefix) {
+    const catSelect = document.getElementById(prefix === 'modal' ? 'modalProductCategory' : 'productCategory');
+    const subcatSelect = document.getElementById(prefix === 'modal' ? 'modalProductSubcategory' : 'productSubcategory');
+    if (!catSelect || !subcatSelect) return;
 
-    showAddSupplierModal();
-    document.getElementById('modalSupplierName').value = supplier.name;
-    document.getElementById('modalSupplierPhone').value = supplier.phone || '';
-    document.getElementById('modalSupplierEmail').value = supplier.email || '';
-    document.getElementById('modalSupplierAddress').value = supplier.address || '';
+    const catName = catSelect.value;
+    const category = (appData.categories || []).find(c => (typeof c === 'object' ? c.name : c) === catName);
 
-    const saveBtn = document.querySelector('#addSupplierModal .btn-primary');
-    if (saveBtn) {
-        saveBtn.textContent = 'Aggiorna Fornitore';
-        saveBtn.onclick = function () { updateSupplier(supplierId); };
-    }
-}
-
-function updateSupplier(supplierId) {
-    const name = document.getElementById('modalSupplierName').value.trim();
-    const phone = document.getElementById('modalSupplierPhone').value.trim();
-    const email = document.getElementById('modalSupplierEmail').value.trim();
-    const address = document.getElementById('modalSupplierAddress').value.trim();
-
-    if (!name) {
-        showNotification('Inserisci il nome del fornitore', 'error');
-        return;
-    }
-
-    const supplierIndex = appData.suppliers.findIndex(s => s.id === supplierId);
-    if (supplierIndex !== -1) {
-        appData.suppliers[supplierIndex].name = name;
-        appData.suppliers[supplierIndex].phone = phone;
-        appData.suppliers[supplierIndex].email = email;
-        appData.suppliers[supplierIndex].address = address;
-
-        saveToCloud();
-        closeAddSupplierModal();
-        updateAll();
-        showNotification('Fornitore aggiornato!');
-    }
-}
-
-function deleteSupplier(supplierId) {
-    if (confirm('Eliminare questo fornitore?')) {
-        const index = appData.suppliers.findIndex(s => s.id === supplierId);
-        if (index !== -1) {
-            appData.suppliers.splice(index, 1);
-            saveToCloud();
-            updateAll();
-            showNotification('Fornitore eliminato');
-        }
-    }
-}
-
-function updateSubcategories(type) {
-    const categorySelect = type === 'modal' ?
-        document.getElementById('modalProductCategory') :
-        document.getElementById('productCategory');
-
-    const subcategorySelect = type === 'modal' ?
-        document.getElementById('modalProductSubcategory') :
-        document.getElementById('productSubcategory');
-
-    if (!categorySelect || !subcategorySelect) return;
-
-    const categoryId = categorySelect.value;
-    const category = appData.categories.find(c => c.id == categoryId);
-
-    subcategorySelect.innerHTML = '<option value="">Seleziona sottocategoria</option>';
-
+    let options = '<option value="">Seleziona sottocategoria</option>';
     if (category && category.subcategories) {
-        category.subcategories.forEach(subcategory => {
-            subcategorySelect.innerHTML += `<option value="${subcategory}">${subcategory}</option>`;
+        category.subcategories.forEach(sub => {
+            options += `<option value="${sub}">${sub}</option>`;
         });
     }
+
+    subcatSelect.innerHTML = options;
 }
 
 // ==========================================
-// 📊 CHARTS & MONTHLY INVENTORY & EXPORT
+// 📋 INVENTARIO MENSILE / SCHEDA DEDICATA
 // ==========================================
-let categoryChart = null;
-let stockChart = null;
-
-function renderCharts() {
-    renderCategoryChart();
-    renderStockChart();
-}
-
-function renderCategoryChart() {
-    const ctx = document.getElementById('categoryChartCanvas');
-    if (!ctx) return;
-
-    const categories = appData.categories.map(c => c.name);
-    const data = appData.categories.map(c => {
-        return appData.products.filter(p => p.category === c.name).length;
-    });
-
-    if (categoryChart) {
-        categoryChart.destroy();
-    }
-
-    categoryChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: categories,
-            datasets: [{
-                data: data,
-                backgroundColor: ['#4361ee', '#4cc9f0', '#2ec4b6', '#ff9f1c', '#e71d36', '#7209b7', '#f72585']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-}
-
-function renderStockChart() {
-    const ctx = document.getElementById('stockChartCanvas');
-    if (!ctx) return;
-
-    const inStock = appData.products.filter(p => p.quantity > (appData.settings?.lowStockLimit || 5)).length;
-    const lowStock = appData.products.filter(p => p.quantity > 0 && p.quantity <= (appData.settings?.lowStockLimit || 5)).length;
-    const outOfStock = appData.products.filter(p => p.quantity === 0).length;
-
-    if (stockChart) {
-        stockChart.destroy();
-    }
-
-    stockChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: ['In Stock', 'Stock Basso', 'Esauriti'],
-            datasets: [{
-                data: [inStock, lowStock, outOfStock],
-                backgroundColor: ['#2ec4b6', '#ff9f1c', '#e71d36']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-}
-
-// MONTHLY INVENTORY MANAGEMENT
 let currentMonthlyDepartment = 'tutti';
 
 function setDepartmentFilter(dept) {
     currentMonthlyDepartment = dept;
-    ['tutti', 'cucina', 'bar'].forEach(d => {
+    ['tutti', 'cucina', 'bar', 'bowling'].forEach(d => {
         const btn = document.getElementById(`dept-btn-${d}`);
         if (btn) btn.classList.toggle('active', d === dept);
     });
     renderMonthlyInventoryTable();
+}
+
+function updateMonthlyQuantity(productId, newQty) {
+    const val = Math.max(0, parseFloat(newQty) || 0);
+    const product = (appData.products || []).find(p => p.id === productId);
+    if (product) {
+        product.quantity = val;
+        product.status = val > 10 ? 'in-stock' : (val > 0 ? 'low-stock' : 'out-of-stock');
+        saveToCloud();
+        
+        // Aggiorna indicatori live senza re-render
+        const inputEl = document.getElementById(`qty-input-${productId}`);
+        const displayEl = document.getElementById(`qty-val-${productId}`);
+        if (inputEl && inputEl.value !== String(val)) inputEl.value = val;
+        if (displayEl) displayEl.textContent = val;
+        
+        updateMonthlyStats();
+    }
+}
+
+function stepMonthlyQuantity(productId, delta) {
+    const product = (appData.products || []).find(p => p.id === productId);
+    if (product) {
+        const current = parseFloat(product.quantity) || 0;
+        const newQty = Math.max(0, roundToDecimals(current + delta, 3));
+        product.quantity = newQty;
+        product.status = newQty > 10 ? 'in-stock' : (newQty > 0 ? 'low-stock' : 'out-of-stock');
+        
+        // Aggiorna l'input a video in tempo reale
+        const inputEl = document.getElementById(`qty-input-${productId}`);
+        const displayEl = document.getElementById(`qty-val-${productId}`);
+        if (inputEl) inputEl.value = newQty;
+        if (displayEl) displayEl.textContent = newQty;
+        
+        saveToCloud();
+        updateMonthlyStats();
+    }
 }
 
 function renderMonthlyInventoryTable() {
@@ -6355,6 +5711,7 @@ function renderMonthlyInventoryTable() {
             const pCat = (p.category || '').toLowerCase();
             if (currentMonthlyDepartment === 'cucina') return pDept === 'cucina' || pDept === 'entrambi' || pCat === 'cucina' || pCat === 'consumabili';
             if (currentMonthlyDepartment === 'bar') return pDept === 'bar' || pDept === 'entrambi' || pCat === 'beverage' || pCat === 'consumabili';
+            if (currentMonthlyDepartment === 'bowling') return pDept === 'bowling' || pDept === 'entrambi' || pCat === 'bowling' || pCat === 'consumabili';
             return true;
         });
     }
@@ -6378,32 +5735,24 @@ function renderMonthlyInventoryTable() {
     }
 
     tbody.innerHTML = filtered.map(p => {
-        const isShared = (p.department || '').toLowerCase() === 'entrambi' || (p.category || '').toLowerCase() === 'consumabili';
-        const deptBadge = isShared ? 
-            `<span class="badge badge-shared" title="Prodotto condiviso tra Bar e Cucina">🏢 In comune</span>` :
-            `<span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span>`;
-
+        const qty = p.quantity !== undefined ? p.quantity : 0;
         return `
-            <tr class="fade-in">
-                <td class="product-cell">
-                    <span class="product-name" style="font-weight: 600; color: var(--dark); font-size: 0.95rem;">${p.name}</span>
-                    <div style="font-size: 0.78rem; color: var(--gray);">${p.subcategory || p.category}</div>
-                </td>
-                <td>${deptBadge}</td>
-                <td><span class="badge badge-category">${p.category || '-'}</span></td>
-                <td><span class="product-meta">${p.supplier || '-'}</span></td>
-                <td class="quantity-cell">
-                    <span class="quantity-value" id="qty-val-${p.id}" style="font-weight: 700;">${p.quantity}</span>
-                    <span class="quantity-unit" style="color: var(--gray); font-size: 0.85rem;">${p.unit || ''}</span>
-                </td>
+            <tr>
                 <td>
-                    <div class="qty-stepper">
-                        <button type="button" class="qty-step-btn" onclick="stepMonthlyQuantity(${p.id}, -1)">-</button>
-                        <input type="number" id="qty-input-${p.id}" class="qty-input-box" inputmode="decimal"
-                            value="${p.quantity}" min="0" step="any" oninput="updateMonthlyQuantity(${p.id}, this.value)">
-                        <button type="button" class="qty-step-btn" onclick="stepMonthlyQuantity(${p.id}, 1)">+</button>
+                    <div style="font-weight: 700; color: var(--dark); font-size: 0.95rem;">${p.name}</div>
+                    <div style="font-size: 0.8rem; color: var(--gray);">${p.supplier || 'N/D'} · ${p.subcategory || p.category || ''}</div>
+                </td>
+                <td><span class="badge ${getDepartmentBadgeClass(p.department)}">${getDepartmentIcon(p.department)}</span></td>
+                <td>${p.category || '-'}</td>
+                <td style="text-align: center;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 10px; border: 1px solid var(--border);">
+                        <button type="button" class="btn btn-outline" style="min-width: 38px; height: 38px; padding: 0; font-size: 1.1rem; font-weight: bold; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: white; cursor: pointer;" onclick="stepMonthlyQuantity(${p.id}, -1)">-</button>
+                        <input type="number" id="qty-input-${p.id}" class="form-input" style="width: 75px; text-align: center; font-weight: 700; font-size: 1.1rem; padding: 0.4rem; border-radius: 8px;" min="0" step="any" value="${qty}" oninput="updateMonthlyQuantity(${p.id}, this.value)">
+                        <button type="button" class="btn btn-outline" style="min-width: 38px; height: 38px; padding: 0; font-size: 1.1rem; font-weight: bold; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: white; cursor: pointer;" onclick="stepMonthlyQuantity(${p.id}, 1)">+</button>
                     </div>
                 </td>
+                <td>${p.unit || 'pz'}</td>
+                <td><span class="badge ${getStatusBadgeClass(p.status)}"><i class="fas ${getStatusIcon(p.status)}"></i> <span id="qty-val-${p.id}">${qty}</span></span></td>
                 <td>
                     <div class="table-actions">
                         <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Modifica Veloce" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
@@ -6454,7 +5803,7 @@ function confirmResetQuantities() {
         id: Date.now(),
         date: new Date().toISOString(),
         department: currentRole,
-        operator: currentRole === 'cucina' ? 'Operatore Cucina' : currentRole === 'bar' ? 'Operatore Bar' : 'Amministratore',
+        operator: getOperatorName(),
         products: JSON.parse(JSON.stringify(getProductsForRole(currentRole)))
     };
     if (!appData.monthlySnapshots) appData.monthlySnapshots = [];
