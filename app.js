@@ -1673,9 +1673,9 @@ let appData = {
         {
             "id": 140,
             "name": "DEODORANTE SCARPE BOWLING",
-            "category": "Consumabili",
-            "subcategory": "Altro",
-            "department": "entrambi",
+            "category": "Bowling",
+            "subcategory": "Accessori e Pulizia",
+            "department": "bowling",
             "quantity": 12.0,
             "unit": "pezzi",
             "price": 4.9,
@@ -4797,7 +4797,25 @@ function loadLocalData() {
         try {
             const parsed = JSON.parse(saved);
             if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0) {
-                appData = parsed;
+                // Sincronizza quantità/prezzi preservando la corretta classificazione dei reparti da catalogo
+                const savedMap = new Map(parsed.products.map(p => [p.id, p]));
+                appData.products.forEach(p => {
+                    const existing = savedMap.get(p.id);
+                    if (existing) {
+                        p.quantity = existing.quantity !== undefined ? existing.quantity : p.quantity;
+                        p.price = existing.price !== undefined ? existing.price : p.price;
+                        p.status = existing.status || p.status;
+                    }
+                });
+                // Includi eventuali prodotti personalizzati creati dall'utente
+                parsed.products.forEach(p => {
+                    if (!appData.products.some(orig => orig.id === p.id)) {
+                        appData.products.push(p);
+                    }
+                });
+                if (parsed.monthlySnapshots) appData.monthlySnapshots = parsed.monthlySnapshots;
+                if (parsed.settings) appData.settings = parsed.settings;
+                if (parsed.lastModified) appData.lastModified = parsed.lastModified;
             }
         } catch (e) {
             console.error('Errore parsing dati locali:', e);
@@ -5149,7 +5167,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=54')
+        navigator.serviceWorker.register('sw.js?v=55')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -5385,26 +5403,10 @@ function filterProductsByDepartment(dept) {
 function updateProductDepartmentCounters() {
     const products = appData.products || [];
     const countAll = products.length;
-    const countCucina = products.filter(p => {
-        const d = (p.department || '').toLowerCase();
-        const c = (p.category || '').toLowerCase();
-        return (d === 'cucina' || c === 'cucina') && d !== 'bar' && d !== 'bowling';
-    }).length;
-    const countBar = products.filter(p => {
-        const d = (p.department || '').toLowerCase();
-        const c = (p.category || '').toLowerCase();
-        return (d === 'bar' || c === 'beverage') && d !== 'cucina' && d !== 'bowling';
-    }).length;
-    const countBowling = products.filter(p => {
-        const d = (p.department || '').toLowerCase();
-        const c = (p.category || '').toLowerCase();
-        return (d === 'bowling' || c === 'bowling') && d !== 'cucina' && d !== 'bar';
-    }).length;
-    const countConsumabili = products.filter(p => {
-        const d = (p.department || '').toLowerCase();
-        const c = (p.category || '').toLowerCase();
-        return d === 'entrambi' || c === 'consumabili';
-    }).length;
+    const countCucina = products.filter(p => (p.department || '').toLowerCase() === 'cucina' || (p.category || '').toLowerCase() === 'cucina').length;
+    const countBar = products.filter(p => (p.department || '').toLowerCase() === 'bar' || (p.category || '').toLowerCase() === 'beverage').length;
+    const countBowling = products.filter(p => (p.department || '').toLowerCase() === 'bowling' || (p.category || '').toLowerCase() === 'bowling').length;
+    const countConsumabili = products.filter(p => (p.category || '').toLowerCase() === 'consumabili' || (p.department || '').toLowerCase() === 'entrambi').length;
 
     const elAll = document.getElementById('prod-count-tutti');
     const elCucina = document.getElementById('prod-count-cucina');
@@ -5434,7 +5436,7 @@ function renderAllProductsTable() {
     const supSelect = document.getElementById('filterSupplierSelect');
     const selectedSupplier = supSelect ? supSelect.value : '';
 
-    let filtered = getProductsForRole(currentRole);
+    let filtered = appData.products || [];
 
     // 1. Filtro Rapido per Reparto (Cucina / Bar / Bowling / Consumabili)
     if (currentProductDeptFilter && currentProductDeptFilter !== 'tutti') {
@@ -5442,19 +5444,21 @@ function renderAllProductsTable() {
             const pDept = (p.department || '').toLowerCase();
             const pCat = (p.category || '').toLowerCase();
             if (currentProductDeptFilter === 'cucina') {
-                return (pDept === 'cucina' || pCat === 'cucina') && pDept !== 'bar' && pDept !== 'bowling';
+                return pDept === 'cucina' || pCat === 'cucina';
             }
             if (currentProductDeptFilter === 'bar') {
-                return (pDept === 'bar' || pCat === 'beverage') && pDept !== 'cucina' && pDept !== 'bowling';
+                return pDept === 'bar' || pCat === 'beverage';
             }
             if (currentProductDeptFilter === 'bowling') {
-                return (pDept === 'bowling' || pCat === 'bowling') && pDept !== 'cucina' && pDept !== 'bar';
+                return pDept === 'bowling' || pCat === 'bowling';
             }
             if (currentProductDeptFilter === 'consumabili') {
-                return pDept === 'entrambi' || pCat === 'consumabili';
+                return pCat === 'consumabili' || pDept === 'entrambi';
             }
             return true;
         });
+    } else if (currentRole !== 'admin') {
+        filtered = getProductsForRole(currentRole);
     }
 
     // 2. Filtro Categoria
@@ -5780,24 +5784,25 @@ function renderMonthlyInventoryTable() {
     const catSelect = document.getElementById('monthlyCategoryFilter');
     const selectedCategory = catSelect ? catSelect.value : '';
 
-    // Filtraggio per ruolo attivo
-    let filtered = getProductsForRole(currentRole);
+    let filtered = appData.products || [];
 
     if (currentMonthlyDepartment !== 'tutti') {
         filtered = filtered.filter(p => {
             const pDept = (p.department || '').toLowerCase();
             const pCat = (p.category || '').toLowerCase();
             if (currentMonthlyDepartment === 'cucina') {
-                return (pDept === 'cucina' || pCat === 'cucina') && pDept !== 'bar' && pDept !== 'bowling';
+                return pDept === 'cucina' || pCat === 'cucina';
             }
             if (currentMonthlyDepartment === 'bar') {
-                return (pDept === 'bar' || pCat === 'beverage') && pDept !== 'cucina' && pDept !== 'bowling';
+                return pDept === 'bar' || pCat === 'beverage';
             }
             if (currentMonthlyDepartment === 'bowling') {
-                return (pDept === 'bowling' || pCat === 'bowling') && pDept !== 'cucina' && pDept !== 'bar';
+                return pDept === 'bowling' || pCat === 'bowling';
             }
             return true;
         });
+    } else if (currentRole !== 'admin') {
+        filtered = getProductsForRole(currentRole);
     }
 
     if (selectedCategory) {
