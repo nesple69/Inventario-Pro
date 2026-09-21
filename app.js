@@ -5234,7 +5234,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=57')
+        navigator.serviceWorker.register('sw.js?v=58')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -5475,19 +5475,19 @@ function updateProductDepartmentCounters() {
     const countCucina = products.filter(p => {
         const d = (p.department || '').toLowerCase();
         const c = (p.category || '').toLowerCase();
-        return d === 'cucina' || (d === '' && c === 'cucina');
+        return d === 'cucina' || (d === '' && c === 'cucina') || d === 'entrambi' || d === 'tutti';
     }).length;
 
     const countBar = products.filter(p => {
         const d = (p.department || '').toLowerCase();
         const c = (p.category || '').toLowerCase();
-        return d === 'bar' || (d === '' && c === 'beverage');
+        return d === 'bar' || (d === '' && c === 'beverage') || d === 'entrambi' || d === 'tutti';
     }).length;
 
     const countBowling = products.filter(p => {
         const d = (p.department || '').toLowerCase();
         const c = (p.category || '').toLowerCase();
-        return d === 'bowling' || (d === '' && c === 'bowling');
+        return d === 'bowling' || (d === '' && c === 'bowling') || d === 'entrambi' || d === 'tutti';
     }).length;
 
     const countConsumabili = products.filter(p => {
@@ -5531,13 +5531,13 @@ function renderAllProductsTable() {
             const pDept = (p.department || '').toLowerCase();
             const pCat = (p.category || '').toLowerCase();
             if (currentProductDeptFilter === 'cucina') {
-                return pDept === 'cucina' || (pDept === '' && pCat === 'cucina');
+                return pDept === 'cucina' || (pDept === '' && pCat === 'cucina') || pDept === 'entrambi' || pDept === 'tutti';
             }
             if (currentProductDeptFilter === 'bar') {
-                return pDept === 'bar' || (pDept === '' && pCat === 'beverage');
+                return pDept === 'bar' || (pDept === '' && pCat === 'beverage') || pDept === 'entrambi' || pDept === 'tutti';
             }
             if (currentProductDeptFilter === 'bowling') {
-                return pDept === 'bowling' || (pDept === '' && pCat === 'bowling');
+                return pDept === 'bowling' || (pDept === '' && pCat === 'bowling') || pDept === 'entrambi' || pDept === 'tutti';
             }
             if (currentProductDeptFilter === 'consumabili') {
                 return pDept === 'entrambi' || (pDept !== 'cucina' && pDept !== 'bar' && pDept !== 'bowling');
@@ -5822,6 +5822,7 @@ function setDepartmentFilter(dept) {
         if (btn) btn.classList.toggle('active', d === dept);
     });
     renderMonthlyInventoryTable();
+    updateMonthlyStats();
 }
 
 function updateMonthlyQuantity(productId, newQty) {
@@ -5878,13 +5879,13 @@ function renderMonthlyInventoryTable() {
             const pDept = (p.department || '').toLowerCase();
             const pCat = (p.category || '').toLowerCase();
             if (currentMonthlyDepartment === 'cucina') {
-                return pDept === 'cucina' || (pDept === '' && pCat === 'cucina');
+                return pDept === 'cucina' || (pDept === '' && pCat === 'cucina') || pDept === 'entrambi' || pDept === 'tutti';
             }
             if (currentMonthlyDepartment === 'bar') {
-                return pDept === 'bar' || (pDept === '' && pCat === 'beverage');
+                return pDept === 'bar' || (pDept === '' && pCat === 'beverage') || pDept === 'entrambi' || pDept === 'tutti';
             }
             if (currentMonthlyDepartment === 'bowling') {
-                return pDept === 'bowling' || (pDept === '' && pCat === 'bowling');
+                return pDept === 'bowling' || (pDept === '' && pCat === 'bowling') || pDept === 'entrambi' || pDept === 'tutti';
             }
             return true;
         });
@@ -5944,7 +5945,26 @@ function filterMonthlyInventory() {
 }
 
 function updateMonthlyStats() {
-    const relevant = getProductsForRole(currentRole);
+    let relevant = appData.products || [];
+    if (currentMonthlyDepartment !== 'tutti') {
+        relevant = relevant.filter(p => {
+            const pDept = (p.department || '').toLowerCase();
+            const pCat = (p.category || '').toLowerCase();
+            if (currentMonthlyDepartment === 'cucina') {
+                return pDept === 'cucina' || (pDept === '' && pCat === 'cucina') || pDept === 'entrambi' || pDept === 'tutti';
+            }
+            if (currentMonthlyDepartment === 'bar') {
+                return pDept === 'bar' || (pDept === '' && pCat === 'beverage') || pDept === 'entrambi' || pDept === 'tutti';
+            }
+            if (currentMonthlyDepartment === 'bowling') {
+                return pDept === 'bowling' || (pDept === '' && pCat === 'bowling') || pDept === 'entrambi' || pDept === 'tutti';
+            }
+            return true;
+        });
+    } else if (currentRole !== 'admin') {
+        relevant = getProductsForRole(currentRole);
+    }
+
     const counted = relevant.filter(p => p.quantity > 0).length;
     const remaining = relevant.length - counted;
 
