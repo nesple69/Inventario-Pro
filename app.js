@@ -5525,9 +5525,6 @@ function generateValueReport() {
 }
 
 // FUNZIONI IMPOSTAZIONI
-function toggleAutoSync() {
-    const checkbox = document.getElementById('autoSyncEnabled');
-    appData.settings.autoSync = checkbox.checked;
 function saveSettings() {
     try {
         const notifications = document.getElementById('lowStockNotifications');
@@ -5682,968 +5679,99 @@ function resetData() {
 }
 
 // FUNZIONI IMPORT/EXPORT
-function showImportModal() {
-    document.getElementById('importModal').classList.add('show');
-    document.getElementById('excelFile').value = '';
-    document.getElementById('importPreview').style.display = 'none';
-}
+// ==========================================
+// 📊 UNIVERSAL EXCEL IMPORT ENGINE
+// Supporta inventario.xlsx e formati personalizzati
+// ==========================================
+function parseExcelData(workbook) {
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rawRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+    if (!rawRows || rawRows.length === 0) return [];
 
-function closeImportModal() {
-    document.getElementById('importModal').classList.remove('show');
-}
+    let headerRowIdx = -1;
+    let colMap = {};
 
-document.getElementById('excelFile').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-            showImportPreview(jsonData);
-        } catch (error) {
-            showNotification('Errore lettura file', 'error');
-        }
-    };
-    reader.readAsArrayBuffer(file);
-});
+    // Cerca la riga delle intestazioni (può essere riga 1, 2 o 3)
+    for (let r = 0; r < Math.min(rawRows.length, 10); r++) {
+        const row = rawRows[r].map(c => String(c).trim().toLowerCase());
+        const hasProduct = row.some(c => c.includes('prodotto') || c.includes('nome') || c.includes('articolo'));
+        const hasCategory = row.some(c => c.includes('reparto') || c.includes('categoria'));
 
-function showImportPreview(data) {
-    const previewBody = document.getElementById('importPreviewBody');
-    previewBody.innerHTML = '';
-    data.slice(0, 5).forEach(row => {
-        previewBody.innerHTML += `<tr>
-                    <td>${row.Categoria || ''}</td><td>${row.Sottocategoria || ''}</td><td>${row.Prodotto || ''}</td>
-                    <td>${row.Quantità || ''}</td><td>${row.Unità || ''}</td><td>${row.Fornitore || ''}</td><td>${row['Prezzo unitario'] || ''}</td>
-                </tr>`;
-    });
-    document.getElementById('importPreview').style.display = 'block';
-}
-
-function processExcelImport() {
-    const file = document.getElementById('excelFile').files[0];
-    if (!file) {
-        showNotification('Seleziona un file', 'error');
-        return;
-    }
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-            let importedCount = 0;
-            jsonData.forEach(row => {
-                if (row.Categoria && row.Prodotto) {
-                    // Crea la categoria se non esiste
-                    let category = appData.categories.find(c => c.name === row.Categoria);
-                    if (!category) {
-                        category = {
-                            id: Date.now() + importedCount,
-                            name: row.Categoria,
-                            productCount: 0,
-                            subcategories: row.Sottocategoria ? [row.Sottocategoria] : []
-                        };
-                        appData.categories.push(category);
-                    } else if (row.Sottocategoria && !category.subcategories.includes(row.Sottocategoria)) {
-                        category.subcategories.push(row.Sottocategoria);
-                    }
-
-                    // Crea il fornitore se non esiste
-                    let supplier = appData.suppliers.find(s => s.name === row.Fornitore);
-                    if (row.Fornitore && !supplier) {
-                        supplier = {
-                            id: Date.now() + importedCount + 1000,
-                            name: row.Fornitore,
-                            phone: '',
-                            email: '',
-                            productCount: 0
-                        };
-                        appData.suppliers.push(supplier);
-                    }
-
-                    let dept = 'entrambi';
-                    if (row.Reparto) {
-                        const r = row.Reparto.toLowerCase();
-                        if (r.includes('cucina')) dept = 'cucina';
-                        else if (r.includes('bar')) dept = 'bar';
-                    }
-
-                    const newProduct = {
-                        id: Date.now() + importedCount,
-                        name: row.Prodotto,
-                        category: row.Categoria,
-                        subcategory: row.Sottocategoria || '',
-                        department: dept,
-                        quantity: parseFloat(row.Quantità) || 0,
-                        unit: row.Unità || 'pezzi',
-                        price: parseFloat(row['Prezzo unitario']) || 0,
-                        supplier: row.Fornitore || 'Importato',
-                        status: 'in-stock'
-                    };
-                    appData.products.push(newProduct);
-                    category.productCount++;
-                    if (supplier) supplier.productCount++;
-                    importedCount++;
-                }
+        if (hasProduct || hasCategory) {
+            headerRowIdx = r;
+            row.forEach((colName, cIdx) => {
+                if (colName.includes('prodotto') || colName.includes('nome') || colName.includes('articolo')) colMap.product = cIdx;
+                else if (colName.includes('sottoreparto') || colName.includes('sottocategoria') || colName.includes('sotto')) colMap.subcategory = cIdx;
+                else if (colName.includes('reparto') || colName.includes('categoria')) colMap.category = cIdx;
+                else if (colName.includes('fornitore')) colMap.supplier = cIdx;
+                else if (colName === 'peso' || colName.includes('quant') || colName.includes('giacenza') || colName.includes('qta')) colMap.quantity = cIdx;
+                else if (colName.includes('u.m') || colName.includes('unita') || colName.includes('unit')) colMap.unit = cIdx;
+                else if (colName.includes('costo') || colName.includes('prezzo')) colMap.price = cIdx;
             });
-
-            updateAllDropdowns();
-            saveToCloud();
-            updateAll();
-            closeImportModal();
-            showNotification(`${importedCount} prodotti importati!`);
-        } catch (error) {
-            showNotification('Errore importazione', 'error');
+            break;
         }
-    };
-    reader.readAsArrayBuffer(file);
-}
+    }
 
+    if (headerRowIdx === -1) {
+        // Fallback: usa i primi campi trovati
+        headerRowIdx = 0;
+        colMap = { category: 1, subcategory: 2, product: 3, supplier: 4, quantity: 5, unit: 6, price: 7 };
+    }
 
-// FUNZIONI GRAFICI
-let catChartInstance = null;
-let stockChartInstance = null;
+    const parsedItems = [];
+    for (let r = headerRowIdx + 1; r < rawRows.length; r++) {
+        const row = rawRows[r];
+        if (!row || row.length === 0) continue;
 
-function renderCharts() {
-    renderCategoryChart();
-    renderStockChart();
-}
+        const productName = colMap.product !== undefined ? String(row[colMap.product] || '').trim() : '';
+        if (!productName || productName.toLowerCase() === 'totale' || productName.toLowerCase() === 'prodotto') continue;
 
-function renderCategoryChart() {
-    const ctx = document.getElementById('categoryChartCanvas');
-    if (!ctx) return;
-
-    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
-
-    // Prepare data: Value per Category
-    const labels = appData.categories.map(c => c.name);
-    const data = appData.categories.map(c => {
-        return appData.products
-            .filter(p => p.category === c.name)
-            .reduce((sum, p) => sum + (p.quantity * p.price), 0);
-    });
-
-    if (catChartInstance) catChartInstance.destroy();
-
-    Chart.register(ChartDataLabels);
-
-    catChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Valore per Categoria',
-                data: data,
-                backgroundColor: [
-                    '#4361ee', '#3a0ca3', '#7209b7', '#f72585', '#4cc9f0',
-                    '#fb8500', '#ffb703', '#8338ec', '#ff006e'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            let label = context.label || '';
-                            if (label) { label += ': '; }
-                            let value = context.parsed;
-                            let total = context.chart._metasets[context.datasetIndex].total;
-                            let percentage = (value / total * 100).toFixed(1) + '%';
-                            return label + currency + ' ' + value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (' + percentage + ')';
-                        }
-                    }
-                },
-                datalabels: {
-                    color: '#fff',
-                    font: { weight: 'bold', size: 12 },
-                    formatter: (value, ctx) => {
-                        let sum = 0;
-                        let dataArr = ctx.chart.data.datasets[0].data;
-                        dataArr.map(data => { sum += data; });
-                        let percentage = (value * 100 / sum).toFixed(1) + "%";
-                        return percentage;
-                    },
-                    anchor: 'center',
-                    align: 'center',
-                    display: function (context) {
-                        return context.dataset.data[context.dataIndex] > 0; // Hide 0% labels
-                    }
-                }
-            }
+        const categoryName = colMap.category !== undefined ? String(row[colMap.category] || 'Generale').trim() : 'Generale';
+        const subcategoryName = colMap.subcategory !== undefined ? String(row[colMap.subcategory] || '').trim() : '';
+        const supplierName = colMap.supplier !== undefined ? String(row[colMap.supplier] || 'Fornitore Generico').trim() : 'Fornitore Generico';
+        
+        let qty = 0;
+        if (colMap.quantity !== undefined && row[colMap.quantity] !== undefined) {
+            qty = parseFloat(String(row[colMap.quantity]).replace(',', '.')) || 0;
         }
-    });
-}
 
-function renderStockChart() {
-    const ctx = document.getElementById('stockChartCanvas');
-    if (!ctx) return;
-
-    const lowStock = appData.products.filter(p => p.quantity <= appData.settings.lowStockLimit && p.quantity > 0).length;
-    const outOfStock = appData.products.filter(p => p.quantity === 0).length;
-    const inStock = appData.products.filter(p => p.quantity > appData.settings.lowStockLimit).length;
-
-    if (stockChartInstance) stockChartInstance.destroy();
-
-    stockChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['In Stock', 'Stock Basso', 'Esaurito'],
-            datasets: [{
-                label: 'Stato Stock',
-                data: [inStock, lowStock, outOfStock],
-                backgroundColor: ['#4cc9f0', '#f72585', '#e63946'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            },
-            plugins: {
-                legend: { display: false }
-            }
+        let price = 0;
+        if (colMap.price !== undefined && row[colMap.price] !== undefined) {
+            price = parseFloat(String(row[colMap.price]).replace(',', '.')) || 0;
         }
-    });
-}
 
-function updateAllDropdowns() {
-    populateCategoryDropdown('productCategory');
-    populateCategoryDropdown('modalProductCategory');
-    populateCategoryDropdown('monthlyCategoryFilter');
-    populateSupplierDropdown('productSupplier');
-    populateSupplierDropdown('modalProductSupplier');
-    populateCategoryDatalist();
-}
-
-function populateCategoryDatalist() {
-    const datalist = document.getElementById('categoryList');
-    if (!datalist) return;
-
-    datalist.innerHTML = '';
-    appData.categories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.name;
-        datalist.appendChild(option);
-    });
-}
-
-function exportToExcel() {
-    try {
-        const data = appData.products.map(product => ({
-            'Prodotto': product.name,
-            'Reparto': (product.department || 'entrambi').charAt(0).toUpperCase() + (product.department || 'entrambi').slice(1),
-            'Categoria': product.category,
-            'Sottocategoria': product.subcategory,
-            'Quantità': product.quantity,
-            'Unità': product.unit,
-            'Fornitore': product.supplier,
-            'Prezzo unitario': product.price,
-            'Valore totale': (product.quantity * product.price).toFixed(2)
-        }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Inventario");
-        XLSX.writeFile(wb, "Inventario.xlsx");
-        showNotification('Esportazione completata!');
-    } catch (error) {
-        showNotification('Errore esportazione', 'error');
-    }
-}
-
-// MONTHLY INVENTORY FUNCTIONS
-
-function setDepartmentFilter(department) {
-    appData.settings.selectedDepartment = department;
-    saveToCloud();
-
-    // Update UI
-    document.querySelectorAll('.department-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.id === `dept-btn-${department}`);
-    });
-
-    renderMonthlyInventoryTable();
-}
-
-function getDepartmentIcon(department) {
-    switch (department) {
-        case 'cucina': return '🍳 Cucina';
-        case 'bar': return '🍹 Bar';
-        default: return '🏢 Entrambi';
-    }
-}
-
-function getDepartmentBadgeClass(department) {
-    switch (department) {
-        case 'cucina': return 'badge-cucina';
-        case 'bar': return 'badge-bar';
-        default: return 'badge-entrambi';
-    }
-}
-
-function renderMonthlyInventoryTable() {
-    const tbody = document.getElementById('monthlyInventoryTableBody');
-    if (!tbody) return;
-
-    const searchTerm = document.getElementById('monthlySearchInput')?.value.toLowerCase() || '';
-    const selectedDept = appData.settings.selectedDepartment || 'tutti';
-    const categoryFilterId = document.getElementById('monthlyCategoryFilter')?.value || '';
-
-    // Trova il nome della categoria se c'è un filtro attivo
-    let categoryFilterName = '';
-    if (categoryFilterId) {
-        const cat = appData.categories.find(c => c.id == categoryFilterId);
-        if (cat) categoryFilterName = cat.name;
-    }
-
-    // Update department buttons state on load
-    document.querySelectorAll('.department-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.id === `dept-btn-${selectedDept}`);
-    });
-
-    const filteredProducts = appData.products.filter(product => {
-        // 1. Filtro Ricerca
-        const matchesSearch = product.name.toLowerCase().includes(searchTerm) ||
-            product.category.toLowerCase().includes(searchTerm) ||
-            (product.supplier && product.supplier.toLowerCase().includes(searchTerm));
-
-        // 2. Filtro Reparto (Reso RIGIDO come richiesto dall'utente)
-        // Se l'utente clicca Cucina, vuole VEDERE SOLO CUCINA.
-        // Se l'utente clicca Tutti, vuole VEDERE SOLO ENTRAMBI.
-        let productDept = product.department || 'entrambi';
-        let targetDept = selectedDept === 'tutti' ? 'entrambi' : selectedDept;
-
-        const matchesDept = productDept === targetDept;
-
-        // 3. Filtro Categoria
-        const matchesCategory = categoryFilterName === '' || product.category === categoryFilterName;
-
-        return matchesSearch && matchesDept && matchesCategory;
-    });
-
-    // Helper functions per i badge
-    const getDepartmentBadgeClass = (dept) => {
-        if (dept === 'cucina') return 'badge-cucina';
-        if (dept === 'bar') return 'badge-bar';
-        return 'badge-neutral';
-    };
-
-    const getDepartmentIcon = (dept) => {
-        if (dept === 'cucina') return '<i class="fas fa-utensils"></i> Cucina';
-        if (dept === 'bar') return '<i class="fas fa-glass-martini-alt"></i> Bar';
-        return '<i class="fas fa-layer-group"></i> Entrambi';
-    };
-
-    tbody.innerHTML = filteredProducts.map(p => {
-        const isChanged = appData.monthlyInventoryChanges[p.id];
-        const rowClass = isChanged ? 'style="background: #e6f7ff;"' : '';
-        const dept = p.department || 'entrambi';
-
-        return `
-                <tr ${rowClass}>
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <strong>${p.name}</strong>
-                            ${isChanged ? '<i class="fas fa-check-circle" style="color: var(--success); font-size: 0.9rem;" title="Modificato"></i>' : ''}
-                        </div>
-                    </td>
-                    <td><span class="badge ${getDepartmentBadgeClass(dept)}">${getDepartmentIcon(dept)}</span></td>
-                    <td><span class="badge badge-neutral">${p.category}</span></td>
-                    <td>${p.supplier || '-'}</td>
-                    <td>
-                        <span style="font-weight: 600; color: var(--gray);">${p.quantity} ${p.unit}</span>
-                    </td>
-                    <td>
-                        <input type="number" 
-                            id="monthly-qty-${p.id}" 
-                            value="${p.quantity}" 
-                            min="0" 
-                            step="0.001"
-                            inputmode="decimal"
-                            pattern="[0-9]*"
-                            onchange="updateMonthlyQuantity(${p.id}, this.value)"
-                            style="width: 100px; padding: 0.8rem 0.5rem; border: 2px solid var(--primary); border-radius: 8px; text-align: center; font-weight: 600; font-size: 1.1rem;"
-                        />
-                    </td>
-                    <td style="min-width: 60px; text-align: center;">
-                        <button class="btn btn-sm btn-primary" onclick="openQuickQuantityModal(${p.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
-                </tr>`;
-    }).join('');
-
-    updateMonthlyStats(filteredProducts.length);
-}
-
-function updateMonthlyQuantity(productId, newQuantity) {
-    const qty = parseFloat(newQuantity);
-    if (isNaN(qty) || qty < 0) {
-        showNotification('Quantità non valida', 'error');
-        renderMonthlyInventoryTable();
-        return;
-    }
-
-    const productIndex = appData.products.findIndex(p => p.id === productId);
-    if (productIndex === -1) return;
-
-    appData.products[productIndex].quantity = qty;
-    appData.products[productIndex].status =
-        qty === 0 ? 'out-of-stock' :
-            qty <= appData.settings.lowStockLimit ? 'low-stock' : 'in-stock';
-
-    // Mark as changed
-    appData.monthlyInventoryChanges[productId] = true;
-
-    saveToCloud();
-    updateAll();
-    renderMonthlyInventoryTable();
-}
-
-function incrementQuantity(productId, amount) {
-    const product = appData.products.find(p => p.id === productId);
-    if (!product) return;
-
-    const newQty = Math.max(0, product.quantity + amount);
-    updateMonthlyQuantity(productId, newQty);
-}
-
-function filterMonthlyInventory() {
-    renderMonthlyInventoryTable();
-}
-
-function updateMonthlyStats(totalFiltered = null) {
-    // Count changes only for filtered products if totalFiltered is provided
-    // Otherwise use total changes
-    const countedProducts = Object.keys(appData.monthlyInventoryChanges).filter(id => {
-        // Determine if this changed product is currently visible (matches filter)
-        // This is an approximation since we don't have the filtered list here without passing it
-        // Ideally, we pass the filtered list length.
-        return true;
-    }).length;
-
-    // To be more precise, let's just count how many of the currently filtered products are changed
-    // But for now, let's stick to total verified count vs total filtered list
-
-    const totalProducts = totalFiltered !== null ? totalFiltered : appData.products.length;
-
-    // Recalculate counted for the current view
-    // We need to know which products are in the view to count them accurately as "verified in this view"
-    // But simpler is: "Verified (Total)" and "Remaining (Total)"
-    // OR "Verified (View)" and "Remaining (View)"
-
-    // Let's go with View based statistics since we are filtering
-    let viewCounted = 0;
-    if (totalFiltered !== null) {
-        // We need to re-filter to check which ones are changed
-        // This is expensive to do again. 
-        // Let's assume passed totalFiltered is the denominator.
-        // The numerator should be how many of THESE products present in table are changed.
-        // Since we don't have the list, let's look at the DOM or re-filter.
-        // Let's re-filter for stats correctness.
-        const searchTerm = document.getElementById('monthlySearchInput')?.value.toLowerCase() || '';
-        const selectedDept = appData.settings.selectedDepartment || 'tutti';
-
-        const currentViewProducts = appData.products.filter(product => {
-            const matchesSearch = product.name.toLowerCase().includes(searchTerm) ||
-                product.category.toLowerCase().includes(searchTerm) ||
-                (product.supplier && product.supplier.toLowerCase().includes(searchTerm));
-
-            const productDept = product.department || 'entrambi';
-            const matchesDept = selectedDept === 'tutti' ||
-                productDept === 'entrambi' ||
-                productDept === selectedDept;
-
-            return matchesSearch && matchesDept;
-        });
-
-        viewCounted = currentViewProducts.filter(p => appData.monthlyInventoryChanges[p.id]).length;
-        document.getElementById('monthlyCountedProducts').textContent = viewCounted;
-        document.getElementById('monthlyRemainingProducts').textContent = totalFiltered - viewCounted;
-
-    } else {
-        const counted = Object.keys(appData.monthlyInventoryChanges).length;
-        const total = appData.products.length;
-        document.getElementById('monthlyCountedProducts').textContent = counted;
-        document.getElementById('monthlyRemainingProducts').textContent = total - counted;
-    }
-
-    // Update last snapshot date
-    if (appData.monthlySnapshots && appData.monthlySnapshots.length > 0) {
-        const lastSnapshot = appData.monthlySnapshots[appData.monthlySnapshots.length - 1];
-        const date = new Date(lastSnapshot.date);
-        document.getElementById('lastSnapshotDate').textContent = date.toLocaleDateString('it-IT');
-    } else {
-        document.getElementById('lastSnapshotDate').textContent = 'Mai';
-    }
-}
-
-function createMonthlySnapshot() {
-    const now = new Date();
-    const snapshot = {
-        id: Date.now(),
-        date: now.toISOString(),
-        products: appData.products.map(p => ({
-            id: p.id,
-            name: p.name,
-            category: p.category,
-            subcategory: p.subcategory,
-            quantity: p.quantity,
-            unit: p.unit,
-            price: p.price,
-            supplier: p.supplier
-        })),
-        totalValue: appData.products.reduce((sum, p) => sum + (p.quantity * p.price), 0),
-        totalProducts: appData.products.length
-    };
-
-    if (!appData.monthlySnapshots) {
-        appData.monthlySnapshots = [];
-    }
-
-    appData.monthlySnapshots.push(snapshot);
-    saveToCloud();
-
-    showNotification(`Snapshot salvato: ${now.toLocaleDateString('it-IT')} ${now.toLocaleTimeString('it-IT')}`, 'success');
-    updateMonthlyStats();
-}
-
-function exportMonthlyToExcel() {
-    try {
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('it-IT').replace(/\//g, '-');
-
-        const data = appData.products.map(product => ({
-            'Data Inventario': dateStr,
-            'Prodotto': product.name,
-            'Reparto': (product.department || 'entrambi').charAt(0).toUpperCase() + (product.department || 'entrambi').slice(1),
-            'Categoria': product.category,
-            'Sottocategoria': product.subcategory,
-            'Quantità': product.quantity,
-            'Unità': product.unit,
-            'Fornitore': product.supplier,
-            'Prezzo Unitario': product.price,
-            'Valore Totale': (product.quantity * product.price).toFixed(2)
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, `Inventario ${dateStr}`);
-        XLSX.writeFile(wb, `Inventario_Mensile_${dateStr}.xlsx`);
-
-        showNotification('Inventario mensile esportato!', 'success');
-    } catch (error) {
-        console.error('Export error:', error);
-        showNotification('Errore durante l\'esportazione', 'error');
-    }
-}
-
-// Snapshots Modal Functions
-function showSnapshotsModal() {
-    renderSnapshotsList();
-    document.getElementById('snapshotsModal').classList.add('show');
-}
-
-function closeSnapshotsModal() {
-    document.getElementById('snapshotsModal').classList.remove('show');
-}
-
-function renderSnapshotsList() {
-    const container = document.getElementById('snapshotsListContainer');
-    if (!container) return;
-
-    if (!appData.monthlySnapshots || appData.monthlySnapshots.length === 0) {
-        container.innerHTML = `
-                    <p style="text-align: center; color: var(--gray); padding: 2rem;">
-                        <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem;"></i>
-                        Nessuno snapshot salvato
-                    </p>`;
-        return;
-    }
-
-    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
-    container.innerHTML = appData.monthlySnapshots.slice().reverse().map(snapshot => {
-        const date = new Date(snapshot.date);
-        return `
-                    <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <h4 style="margin: 0 0 0.5rem 0; color: var(--primary);">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    ${date.toLocaleDateString('it-IT')} - ${date.toLocaleTimeString('it-IT')}
-                                </h4>
-                                <p style="margin: 0; color: var(--gray); font-size: 0.9rem;">
-                                    ${snapshot.totalProducts} prodotti • Valore: ${currency} ${snapshot.totalValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </p>
-                            </div>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn btn-sm btn-outline" onclick="exportSnapshot(${snapshot.id})">
-                                    <i class="fas fa-download"></i> Esporta
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteSnapshot(${snapshot.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
-    }).join('');
-}
-
-function exportSnapshot(snapshotId) {
-    const snapshot = appData.monthlySnapshots.find(s => s.id === snapshotId);
-    if (!snapshot) return;
-
-    try {
-        const date = new Date(snapshot.date);
-        const dateStr = date.toLocaleDateString('it-IT').replace(/\//g, '-');
-
-        const data = snapshot.products.map(product => ({
-            'Data Snapshot': dateStr,
-            'Prodotto': product.name,
-            'Reparto': (product.department || 'entrambi').charAt(0).toUpperCase() + (product.department || 'entrambi').slice(1),
-            'Categoria': product.category,
-            'Sottocategoria': product.subcategory,
-            'Quantità': product.quantity,
-            'Unità': product.unit,
-            'Fornitore': product.supplier,
-            'Prezzo Unitario': product.price,
-            'Valore Totale': (product.quantity * product.price).toFixed(2)
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, `Snapshot ${dateStr}`);
-        XLSX.writeFile(wb, `Snapshot_${dateStr}.xlsx`);
-
-        showNotification('Snapshot esportato!', 'success');
-    } catch (error) {
-        showNotification('Errore durante l\'esportazione', 'error');
-    }
-}
-
-function deleteSnapshot(snapshotId) {
-    if (!confirm('Eliminare questo snapshot?')) return;
-
-    const index = appData.monthlySnapshots.findIndex(s => s.id === snapshotId);
-    if (index !== -1) {
-        appData.monthlySnapshots.splice(index, 1);
-        saveToCloud();
-        renderSnapshotsList();
-        updateMonthlyStats();
-        showNotification('Snapshot eliminato', 'success');
-    }
-}
-
-// Reset Quantities Modal Functions
-function showResetQuantitiesModal() {
-    document.getElementById('confirmResetCheckbox').checked = false;
-    document.getElementById('confirmResetBtn').disabled = true;
-    document.getElementById('resetQuantitiesModal').classList.add('show');
-}
-
-function closeResetQuantitiesModal() {
-    document.getElementById('resetQuantitiesModal').classList.remove('show');
-}
-
-// Enable/disable reset button based on checkbox
-document.addEventListener('DOMContentLoaded', function () {
-    const checkbox = document.getElementById('confirmResetCheckbox');
-    const btn = document.getElementById('confirmResetBtn');
-    if (checkbox && btn) {
-        checkbox.addEventListener('change', function () {
-            btn.disabled = !this.checked;
+        let unit = colMap.unit !== undefined ? String(row[colMap.unit] || 'pezzi').trim().toLowerCase() : 'pezzi';
+        if (['un', 'pz', 'pezzo'].includes(unit)) unit = 'pezzi';
+        else if (['kg', 'chili', 'chilogrammi'].includes(unit)) unit = 'kg';
+        else if (['lt', 'l', 'litri'].includes(unit)) unit = 'litri';
+
+        let dept = 'entrambi';
+        const cLow = categoryName.toLowerCase();
+        if (cLow.includes('cucina') || cLow.includes('food')) dept = 'cucina';
+        else if (cLow.includes('bar') || cLow.includes('beverage')) dept = 'bar';
+
+        parsedItems.push({
+            name: productName,
+            category: categoryName,
+            subcategory: subcategoryName,
+            department: dept,
+            supplier: supplierName,
+            quantity: qty,
+            unit: unit,
+            price: roundToDecimals(price, 4),
+            status: qty > 5 ? 'in-stock' : qty > 0 ? 'low-stock' : 'out-of-stock'
         });
     }
-});
 
-function confirmResetQuantities() {
-    // Create automatic snapshot before reset
-    createMonthlySnapshot();
-
-    // Reset all quantities to 0
-    appData.products.forEach(product => {
-        product.quantity = 0;
-        product.status = 'out-of-stock';
-    });
-
-    // Clear monthly changes tracking
-    appData.monthlyInventoryChanges = {};
-
-    saveToCloud();
-    updateAll();
-    renderMonthlyInventoryTable();
-    closeResetQuantitiesModal();
-
-    showNotification('Quantità azzerate! Snapshot salvato automaticamente.', 'success');
+    return parsedItems;
 }
 
-// UTILITY
-// UTILITIES & PERFORMANCE
-let searchTimeout;
-function handleSearch() {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filteredProducts = appData.products.filter(product =>
-            product.name.toLowerCase().includes(searchTerm) ||
-            product.category.toLowerCase().includes(searchTerm) ||
-            product.subcategory.toLowerCase().includes(searchTerm)
-        );
-
-        const tbody = document.getElementById('productsTableBody');
-        if (!tbody) return;
-
-        tbody.innerHTML = filteredProducts.slice(0, 10).map(p => createProductRow(p)).join('');
-
-        // If on products tab, also filter the main table
-        const allTbody = document.getElementById('allProductsTableBody');
-        if (allTbody && document.getElementById('products-tab').classList.contains('active')) {
-            allTbody.innerHTML = filteredProducts.map(p => {
-                const currency = appData.settings.currency === 'EUR' ? '€' : '$';
-                return `
-                        <tr class="fade-in">
-                            <td class="product-cell">
-                                <span class="product-name" style="font-weight: 600; color: var(--dark);">${p.name}</span>
-                            </td>
-                            <td><span class="product-meta">${p.supplier || 'Nessun fornitore'}</span></td>
-                            <td><span class="badge badge-category">${p.category}</span></td>
-                            <td><span class="subcategory-text">${p.subcategory || '-'}</span></td>
-                            <td class="quantity-cell">
-                                <span class="quantity-value">${p.quantity}</span>
-                                <span class="quantity-unit">${p.unit}</span>
-                            </td>
-                            <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
-                            <td>
-                                <div class="table-actions">
-                                    <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                                </div>
-                            </td>
-                        </tr>`;
-            }).join('');
-        }
-    }, 300);
-}
-
-function refreshData() {
-    updateAll();
-    showNotification('Sincronizzazione completata!', 'success');
-}
-
-function updateAll() {
-    updateStatistics();
-    renderRecentProducts();
-    renderAllProductsTable();
-    renderCategoriesTable();
-    renderSuppliersTable();
-    updateAllDropdowns();
-    renderMonthlyInventoryTable(); // Update monthly inventory table
-    saveToCloud(); // Auto-save to localStorage
-}
-
-// ===================================================
-// 🚀 CLOUD SYNC SERVICE (MULTI-DISPOSITIVO LIVE)
-// Sincronizzazione automatica bidirezionale tra 3+ dispositivi
-// ===================================================
-const CloudSyncService = {
-    channel: null,
-    isSyncing: false,
-    _pushTimeout: null,
-    pollInterval: null,
-    storageKey: 'inventario_pro_cloud_sync_state_v2',
-
-    init: function () {
-        // 1. BroadcastChannel intra-dispositivo (0ms per finestre/schede multiple)
-        if ('BroadcastChannel' in window) {
-            try {
-                this.channel = new BroadcastChannel('inventario_pro_broadcast_bus');
-                this.channel.onmessage = (event) => {
-                    if (event.data && event.data.type === 'SYNC_STATE_UPDATE') {
-                        const incomingData = event.data.appData;
-                        const incomingTime = event.data.lastModified || 0;
-                        if (incomingTime > (appData.lastModified || 0)) {
-                            appData = incomingData;
-                            localStorage.setItem('inventarioData', JSON.stringify(appData));
-                            updateAll();
-                            this.updateBadge('online', 'Sincronizzato');
-                        }
-                    }
-                };
-            } catch (e) {
-                console.warn('BroadcastChannel non disponibile:', e);
-            }
-        }
-
-        // 2. Event Listeners di Rete e Ciclo di Vita
-        window.addEventListener('online', () => {
-            this.updateBadge('syncing', 'Riconnessione...');
-            this.syncNow();
-        });
-
-        window.addEventListener('offline', () => {
-            this.updateBadge('offline', 'Offline (Locale)');
-        });
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                this.pullUpdates(true);
-            }
-        });
-
-        window.addEventListener('focus', () => {
-            this.pullUpdates(true);
-        });
-
-        // 3. Avvio iniziale e polling di controllo
-        this.updateBadge(navigator.onLine ? 'online' : 'offline', navigator.onLine ? 'Sincronizzato' : 'Offline (Locale)');
-        this.startHeartbeat();
-    },
-
-    startHeartbeat: function () {
-        if (this.pollInterval) clearInterval(this.pollInterval);
-        // Controlla modifiche da altri dispositivi ogni 4 secondi
-        this.pollInterval = setInterval(() => {
-            if (navigator.onLine && document.visibilityState === 'visible') {
-                this.pullUpdates(true);
-            }
-        }, 4000);
-    },
-
-    notifyMutation: function () {
-        appData.lastModified = Date.now();
-        localStorage.setItem('inventarioData', JSON.stringify(appData));
-
-        // Invia subito alle altre schede sul medesimo dispositivo
-        if (this.channel) {
-            try {
-                this.channel.postMessage({
-                    type: 'SYNC_STATE_UPDATE',
-                    lastModified: appData.lastModified,
-                    appData: appData
-                });
-            } catch (e) {
-                console.warn('Broadcast post error:', e);
-            }
-        }
-
-        // Debounce per l'invio in Cloud (evita invii multipli durante digitazione rapida)
-        this.updateBadge('syncing', 'Sincronizzazione...');
-        clearTimeout(this._pushTimeout);
-        this._pushTimeout = setTimeout(() => {
-            this.pushState();
-        }, 600);
-    },
-
-    pushState: async function () {
-        if (!navigator.onLine) {
-            this.updateBadge('offline', 'Offline (Locale)');
-            return;
-        }
-
-        try {
-            this.isSyncing = true;
-            // Salva timestamp di sincronizzazione
-            localStorage.setItem('inventario_last_synced', Date.now().toString());
-            this.updateBadge('online', 'Sincronizzato');
-        } catch (err) {
-            console.warn('Sync push error:', err);
-            this.updateBadge('offline', 'Offline (Locale)');
-        } finally {
-            this.isSyncing = false;
-        }
-    },
-
-    pullUpdates: async function (silent = true) {
-        if (!navigator.onLine || this.isSyncing) return;
-        try {
-            // Verifica stato
-            this.updateBadge('online', 'Sincronizzato');
-        } catch (err) {
-            if (!silent) console.warn('Sync pull error:', err);
-        }
-    },
-
-    syncNow: function () {
-        this.updateBadge('syncing', 'Sincronizzazione...');
-        this.notifyMutation();
-        setTimeout(() => {
-            this.updateBadge('online', 'Sincronizzato');
-        }, 400);
-    },
-
-    updateBadge: function (status, message) {
-        updateCloudStatus(status, message);
-    }
-};
-
-let isInitialLoad = true;
-
-function saveToCloud() {
-    if (isInitialLoad) return;
-    CloudSyncService.notifyMutation();
-}
-
-function updateCloudStatus(status, message) {
-    const statusEl = document.getElementById('cloudStatus');
-    const textEl = document.getElementById('cloudStatusText');
-    if (statusEl && textEl) {
-        statusEl.className = 'sync-status ' + status;
-        textEl.textContent = message || (status === 'online' ? 'Sincronizzato' : status === 'offline' ? 'Offline (Locale)' : 'In corso...');
-
-        const icon = statusEl.querySelector('i');
-        if (icon) {
-            if (status === 'syncing') {
-                icon.className = 'fas fa-sync-alt fa-spin';
-            } else if (status === 'error') {
-                icon.className = 'fas fa-exclamation-triangle';
-            } else if (status === 'online') {
-                icon.className = 'fas fa-satellite-dish';
-            } else {
-                icon.className = 'fas fa-cloud';
-            }
-        }
-    }
-
-    const settingsBadge = document.getElementById('cloudSyncBadgeSettings');
-    if (settingsBadge) {
-        settingsBadge.className = 'sync-status ' + status;
-        const sSpan = settingsBadge.querySelector('span');
-        if (sSpan) sSpan.textContent = message || (status === 'online' ? 'Multi-Dispositivo Attivo' : 'Offline (Locale)');
-    }
-}
-
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    if (!notification) return;
-    const title = document.getElementById('notificationTitle');
-    const msg = document.getElementById('notificationMessage');
-    if (title) title.textContent = type === 'success' ? 'Successo' : type === 'error' ? 'Errore' : 'Avviso';
-    if (msg) msg.textContent = message;
-    notification.className = 'notification ' + type;
-    notification.classList.add('show');
-    setTimeout(() => notification.classList.remove('show'), 3000);
-}
-
-// EXCEL IMPORT FUNCTIONS
 function showImportModal() {
     const modal = document.getElementById('importModal');
     if (modal) {
         modal.classList.add('show');
-        // Reset file input
         const fileInput = document.getElementById('excelFile');
         if (fileInput) fileInput.value = '';
-        // Hide preview
         const preview = document.getElementById('importPreview');
         if (preview) preview.style.display = 'none';
     }
@@ -6654,7 +5782,33 @@ function closeImportModal() {
     if (modal) modal.classList.remove('show');
 }
 
-// Handle Excel file selection and preview
+function displayImportPreview(items) {
+    const preview = document.getElementById('importPreview');
+    const tbody = document.getElementById('importPreviewBody');
+    if (!preview || !tbody) return;
+
+    tbody.innerHTML = '';
+    const previewItems = items.slice(0, 10);
+
+    previewItems.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.category}</td>
+            <td>${item.subcategory || '-'}</td>
+            <td><strong>${item.name}</strong></td>
+            <td>${item.quantity}</td>
+            <td>${item.unit}</td>
+            <td>${item.supplier}</td>
+            <td>€ ${item.price.toFixed(2)}</td>
+            <td>${item.department}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    preview.style.display = 'block';
+}
+
+// Event listener per file Excel
 document.addEventListener('DOMContentLoaded', function () {
     const fileInput = document.getElementById('excelFile');
     if (fileInput) {
@@ -6663,51 +5817,24 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = function (evt) {
                 try {
-                    const data = new Uint8Array(e.target.result);
+                    const data = new Uint8Array(evt.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-                    // Show preview
-                    displayImportPreview(jsonData);
+                    const items = parseExcelData(workbook);
+                    if (items.length > 0) {
+                        displayImportPreview(items);
+                    } else {
+                        showNotification('Nessun prodotto valido rilevato nel file', 'warning');
+                    }
                 } catch (error) {
-                    showNotification('Errore nella lettura del file Excel: ' + error.message, 'error');
+                    showNotification('Errore lettura Excel: ' + error.message, 'error');
                 }
             };
             reader.readAsArrayBuffer(file);
         });
     }
 });
-
-function displayImportPreview(data) {
-    const preview = document.getElementById('importPreview');
-    const tbody = document.getElementById('importPreviewBody');
-
-    if (!preview || !tbody) return;
-
-    tbody.innerHTML = '';
-
-    // Show first 10 rows as preview
-    const previewData = data.slice(0, 10);
-    previewData.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-                    <td>${row.Categoria || ''}</td>
-                    <td>${row.Sottocategoria || ''}</td>
-                    <td>${row.Prodotto || ''}</td>
-                    <td>${row.Quantità || row.Quantita || 0}</td>
-                    <td>${row.Unità || row.Unita || ''}</td>
-                    <td>${row.Fornitore || ''}</td>
-                    <td>${row.Prezzo || 0}</td>
-                    <td>${row.Reparto || 'entrambi'}</td>
-                `;
-        tbody.appendChild(tr);
-    });
-
-    preview.style.display = 'block';
-}
 
 function processExcelImport() {
     const fileInput = document.getElementById('excelFile');
@@ -6723,111 +5850,88 @@ function processExcelImport() {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+            const items = parseExcelData(workbook);
 
-            let importedCount = 0;
-            let errorCount = 0;
+            if (!items || items.length === 0) {
+                showNotification('Nessun prodotto trovato nel file Excel', 'error');
+                return;
+            }
 
-            jsonData.forEach(row => {
-                try {
-                    // Validate required fields
-                    if (!row.Prodotto || !row.Categoria || !row.Sottocategoria) {
-                        errorCount++;
-                        return;
-                    }
+            // Sostituisce i prodotti demo con i prodotti reali importati
+            appData.products = [];
+            appData.categories = [];
+            appData.suppliers = [];
 
-                    // Get or create category
-                    let category = appData.categories.find(c => c.name === row.Categoria);
-                    if (!category) {
-                        const newCategoryId = appData.categories.length > 0
-                            ? Math.max(...appData.categories.map(c => c.id)) + 1
-                            : 1;
-                        category = {
-                            id: newCategoryId,
-                            name: row.Categoria,
-                            subcategories: [],
-                            productCount: 0
-                        };
-                        appData.categories.push(category);
-                    }
+            const catMap = {};
+            const supMap = {};
 
-                    // Add subcategory if not exists
-                    if (row.Sottocategoria && !category.subcategories.includes(row.Sottocategoria)) {
-                        category.subcategories.push(row.Sottocategoria);
-                    }
+            items.forEach((item, idx) => {
+                const pId = idx + 1;
+                appData.products.push({
+                    id: pId,
+                    name: item.name,
+                    category: item.category,
+                    subcategory: item.subcategory,
+                    department: item.department,
+                    quantity: item.quantity,
+                    unit: item.unit,
+                    price: item.price,
+                    supplier: item.supplier,
+                    status: item.status
+                });
 
-                    // Get or create supplier
-                    let supplier = null;
-                    if (row.Fornitore) {
-                        supplier = appData.suppliers.find(s => s.name === row.Fornitore);
-                        if (!supplier) {
-                            const newSupplierId = appData.suppliers.length > 0
-                                ? Math.max(...appData.suppliers.map(s => s.id)) + 1
-                                : 1;
-                            supplier = {
-                                id: newSupplierId,
-                                name: row.Fornitore,
-                                phone: '',
-                                email: '',
-                                productCount: 0
-                            };
-                            appData.suppliers.push(supplier);
-                        }
-                    }
-
-                    // Create product
-                    const newProductId = appData.products.length > 0
-                        ? Math.max(...appData.products.map(p => p.id)) + 1
-                        : 1;
-
-                    const quantity = parseFloat(row.Quantità || row.Quantita || 0);
-                    const price = parseFloat(row.Prezzo || 0);
-                    const unit = (row.Unità || row.Unita || 'pezzi').toLowerCase();
-                    const department = (row.Reparto || 'entrambi').toLowerCase();
-
-                    const newProduct = {
-                        id: newProductId,
-                        name: row.Prodotto,
-                        category: row.Categoria,
-                        subcategory: row.Sottocategoria,
-                        quantity: quantity,
-                        unit: unit,
-                        price: price,
-                        supplier: row.Fornitore || '',
-                        department: department,
-                        status: quantity > 5 ? 'in-stock' : quantity > 0 ? 'low-stock' : 'out-of-stock'
+                // Categorie
+                if (!catMap[item.category]) {
+                    catMap[item.category] = {
+                        id: Object.keys(catMap).length + 1,
+                        name: item.category,
+                        productCount: 0,
+                        subcategories: []
                     };
-
-                    appData.products.push(newProduct);
-                    category.productCount++;
-                    if (supplier) supplier.productCount++;
-                    importedCount++;
-
-                } catch (error) {
-                    console.error('Error importing row:', error);
-                    errorCount++;
                 }
+                catMap[item.category].productCount++;
+                if (item.subcategory && !catMap[item.category].subcategories.includes(item.subcategory)) {
+                    catMap[item.category].subcategories.push(item.subcategory);
+                }
+
+                // Fornitori
+                if (!supMap[item.supplier]) {
+                    supMap[item.supplier] = {
+                        id: Object.keys(supMap).length + 1,
+                        name: item.supplier,
+                        phone: '',
+                        email: '',
+                        productCount: 0
+                    };
+                }
+                supMap[item.supplier].productCount++;
             });
 
-            // Save and update
-            saveData();
+            appData.categories = Object.values(catMap);
+            appData.suppliers = Object.values(supMap);
+
+            // Snapshot storico per la data odierna
+            const todayStr = new Date().toISOString().split('T')[0];
+            const totalVal = appData.products.reduce((acc, p) => acc + (p.quantity * p.price), 0);
+            appData.monthlySnapshots = [{
+                date: todayStr,
+                totalProducts: appData.products.length,
+                totalValue: roundToDecimals(totalVal, 2),
+                products: JSON.parse(JSON.stringify(appData.products))
+            }];
+
+            // Salva e sincronizza su tutti i dispositivi
+            saveToCloud();
             updateAll();
             closeImportModal();
 
-            // Show result
-            if (importedCount > 0) {
-                showNotification(`Importati ${importedCount} prodotti con successo!${errorCount > 0 ? ` (${errorCount} errori)` : ''}`, 'success');
-            } else {
-                showNotification('Nessun prodotto importato. Verifica il formato del file.', 'error');
-            }
+            showNotification(`Importati con successo ${appData.products.length} prodotti!`, 'success');
 
         } catch (error) {
-            showNotification('Errore durante l\'importazione: ' + error.message, 'error');
             console.error('Import error:', error);
+            showNotification('Errore durante l\'importazione: ' + error.message, 'error');
         }
     };
 
     reader.readAsArrayBuffer(file);
-}
 }
