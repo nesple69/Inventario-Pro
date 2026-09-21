@@ -4253,8 +4253,10 @@ window.onload = function () {
         try {
             const parsedData = JSON.parse(savedData);
             const isOldDemo = parsedData.products && parsedData.products.length <= 4 && parsedData.products.some(p => p.name === 'iPhone 14 Pro');
-            if (isOldDemo || parsedData.dataVersion !== appData.dataVersion) {
-                // Migrate to new inventory data while keeping user settings
+            const isEmpty = !parsedData.products || parsedData.products.length === 0;
+            
+            if (isOldDemo || isEmpty || parsedData.dataVersion !== appData.dataVersion) {
+                // Keep user settings if any, but ensure the 185 products are loaded
                 appData.settings = { ...appData.settings, ...(parsedData.settings || {}) };
                 localStorage.setItem('inventarioData', JSON.stringify(appData));
             } else {
@@ -4282,6 +4284,25 @@ window.onload = function () {
 
     // Initial render
     updateAll();
+
+    // Inizializza Cloud Sync
+    if (typeof CloudSyncService !== 'undefined') {
+        CloudSyncService.init();
+    }
+
+    setTimeout(() => {
+        isInitialLoad = false;
+    }, 1000);
+
+    // Registrazione Service Worker per PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js?v=20')
+            .then(reg => {
+                console.log('PWA Service Worker attivo');
+                reg.update();
+            })
+            .catch(err => console.log('Errore Service Worker:', err));
+    }
 };
 
 // TAB NAVIGATION
@@ -6613,44 +6634,6 @@ function showNotification(message, type = 'success') {
     notification.classList.add('show');
     setTimeout(() => notification.classList.remove('show'), 3000);
 }
-
-// INIZIALIZZAZIONE AUTOMATICA
-document.addEventListener('DOMContentLoaded', function () {
-    const savedData = localStorage.getItem('inventarioData');
-    if (savedData) {
-        try {
-            const parsedData = JSON.parse(savedData);
-            appData.products = parsedData.products || appData.products;
-            appData.categories = parsedData.categories || appData.categories;
-            appData.suppliers = parsedData.suppliers || appData.suppliers;
-            appData.settings = parsedData.settings || appData.settings;
-            appData.monthlySnapshots = parsedData.monthlySnapshots || appData.monthlySnapshots;
-            appData.monthlyInventoryChanges = parsedData.monthlyInventoryChanges || appData.monthlyInventoryChanges;
-            appData.lastModified = parsedData.lastModified || Date.now();
-        } catch (e) {
-            console.error('Errore nel caricamento dei dati salvati:', e);
-        }
-    }
-
-    loadDashboardData();
-    showNotification('Magazzino sincronizzato e pronto!');
-
-    // Inizializza il servizio di sincronizzazione Cloud
-    CloudSyncService.init();
-
-    setTimeout(() => {
-        isInitialLoad = false;
-    }, 1000);
-
-    // Registrazione Service Worker per PWA
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('PWA Service Worker attivo'))
-                .catch(err => console.log('Errore Service Worker:', err));
-        });
-    }
-});
 
 // EXCEL IMPORT FUNCTIONS
 function showImportModal() {
