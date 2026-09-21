@@ -5223,7 +5223,44 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
+const CURRENT_APP_BUILD = 'v60';
+
+function checkAndPurgeOldCache() {
+    const lastBuild = localStorage.getItem('inventario_app_build');
+    if (lastBuild !== CURRENT_APP_BUILD) {
+        localStorage.setItem('inventario_app_build', CURRENT_APP_BUILD);
+        if ('caches' in window) {
+            caches.keys().then(keys => {
+                return Promise.all(keys.filter(k => k !== 'inventario-pro-' + CURRENT_APP_BUILD).map(k => caches.delete(k)));
+            }).then(() => {
+                console.log('Cache obsoleta eliminata, aggiornato a:', CURRENT_APP_BUILD);
+            });
+        }
+    }
+}
+
+function forceAppUpdate() {
+    showNotification('Aggiornamento in corso... pulizia cache...', 'info');
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+            for (let reg of regs) reg.unregister();
+        });
+    }
+    if ('caches' in window) {
+        caches.keys().then(keys => {
+            return Promise.all(keys.map(k => caches.delete(k)));
+        }).then(() => {
+            setTimeout(() => {
+                window.location.href = window.location.origin + window.location.pathname + '?reload=' + Date.now();
+            }, 300);
+        });
+    } else {
+        window.location.reload(true);
+    }
+}
+
 function initApp() {
+    checkAndPurgeOldCache();
     loadLocalData();
     CloudSyncService.init();
     applyRolePermissions();
@@ -5234,7 +5271,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=59')
+        navigator.serviceWorker.register('sw.js?v=60')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }

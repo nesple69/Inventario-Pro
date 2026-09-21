@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=59">
+    <link rel="stylesheet" href="styles.css?v=60">
 
 </head>
 
@@ -54,7 +54,7 @@
                         class="fas fa-sliders-h"></i><span>Impostazioni</span></button>
             </nav>
 
-            <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <!-- SELETTORE PROFILO UTENTE -->
                 <button class="user-profile-btn" id="userProfileBtn" onclick="showProfileSelectorModal()" title="Cambia Profilo Operativo">
                     <span id="userProfileIcon">👑</span>
@@ -62,7 +62,11 @@
                     <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.8;"></i>
                 </button>
 
-                <div id="cloudStatus" class="sync-status offline">
+                <button class="btn btn-outline btn-sm" onclick="forceAppUpdate()" title="Aggiorna App / Pulisci Cache" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 0.45rem 0.6rem; display: flex; align-items: center; gap: 4px; font-size: 0.8rem; cursor: pointer;">
+                    <i class="fas fa-sync-alt"></i> <span style="display: inline-block;">Aggiorna</span>
+                </button>
+
+                <div id="cloudStatus" class="sync-status offline" style="display: none;">
                     <i class="fas fa-cloud"></i>
                     <span id="cloudStatusText">Locale</span>
                 </div>
@@ -1185,7 +1189,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=59"></script>
+    <script src="app.js?v=60"></script>
 </body>
 
 </html>
