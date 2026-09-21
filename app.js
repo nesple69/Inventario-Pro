@@ -5549,7 +5549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v69';
+const CURRENT_APP_BUILD = 'v70';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5597,7 +5597,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=69')
+        navigator.serviceWorker.register('sw.js?v=70')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -5638,7 +5638,9 @@ function showTab(tabName) {
     } else if (tabName === 'suppliers') {
         renderSuppliers();
     } else if (tabName === 'reports') {
-        renderReports();
+        setTimeout(() => {
+            renderReports();
+        }, 60);
     }
 }
 
@@ -5648,6 +5650,15 @@ function updateAll() {
     updateAllDropdowns();
     renderAllProductsTable();
     renderMonthlyInventoryTable();
+    if (typeof renderCategories === 'function') {
+        renderCategories();
+    }
+    if (typeof renderSuppliers === 'function') {
+        renderSuppliers();
+    }
+    if (typeof renderReports === 'function') {
+        renderReports();
+    }
     if (typeof renderDashboardRecentSnapshots === 'function') {
         renderDashboardRecentSnapshots();
     }
