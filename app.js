@@ -5197,6 +5197,13 @@ function applyRolePermissions() {
     }
 
     const isAdmin = (currentRole === 'admin');
+    
+    // Nascondi il banner "Inizia Conteggio" per l'Admin, mostralo solo per i reparti operativi (Cucina, Bar, Bowling)
+    const startBanner = document.getElementById('startInventoryBanner');
+    if (startBanner) {
+        startBanner.style.display = isAdmin ? 'none' : 'block';
+    }
+
     document.querySelectorAll('.admin-only').forEach(el => {
         el.style.display = isAdmin ? '' : 'none';
     });
@@ -5542,7 +5549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v66';
+const CURRENT_APP_BUILD = 'v67';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5590,7 +5597,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=66')
+        navigator.serviceWorker.register('sw.js?v=67')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }

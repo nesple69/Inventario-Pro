@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=66">
+    <link rel="stylesheet" href="styles.css?v=67">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -85,8 +85,8 @@
             <main class="main-content">
                 <!-- DASHBOARD TAB -->
                 <div class="tab-content active" id="dashboard-tab">
-                    <!-- BANNER AVVIO INVENTARIO RAPIDO -->
-                    <div class="card" style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%); color: white; margin-bottom: 1.5rem; border-radius: 16px; padding: 1.25rem; border: none; box-shadow: 0 8px 24px rgba(67, 97, 238, 0.25);">
+                    <!-- BANNER AVVIO INVENTARIO RAPIDO (SOLO OPERATORI REPARTO) -->
+                    <div class="card" id="startInventoryBanner" style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%); color: white; margin-bottom: 1.5rem; border-radius: 16px; padding: 1.25rem; border: none; box-shadow: 0 8px 24px rgba(67, 97, 238, 0.25); display: none;">
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                             <div>
                                 <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.25); padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); transition: all 0.2s ease;" onclick="showProfileSelectorModal()" title="Tocca per cambiare profilo">
@@ -1197,7 +1197,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=66"></script>
+    <script src="app.js?v=67"></script>
 
     <!-- MODALE SINCRONIZZAZIONE MULTI-DISPOSITIVO (CLOUD & CODICE) -->
     <div class="modal" id="cloudSyncModal">
