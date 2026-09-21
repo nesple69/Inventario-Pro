@@ -4771,7 +4771,7 @@ window.onload = function () {
     }, 1000);
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=41')
+        navigator.serviceWorker.register('sw.js?v=43')
             .then(reg => {
                 console.log('PWA Service Worker attivo');
                 reg.update();
@@ -5122,17 +5122,29 @@ function showAddProductModal() {
     populateSupplierDropdown('modalProductSupplier');
 
     // Reset fields
-    document.getElementById('modalProductName').value = '';
-    document.getElementById('modalProductCategory').value = '';
-    document.getElementById('modalProductSubcategory').value = '';
-    document.getElementById('modalProductDepartment').value = 'entrambi';
-    document.getElementById('modalProductQuantity').value = '';
-    document.getElementById('modalProductUnit').value = 'pezzi';
-    document.getElementById('modalProductPrice').value = '';
-    document.getElementById('modalProductSupplier').value = '';
+    const nameEl = document.getElementById('modalProductName');
+    const catEl = document.getElementById('modalProductCategory');
+    const subcatEl = document.getElementById('modalProductSubcategory');
+    const deptEl = document.getElementById('modalProductDepartment');
+    const qtyEl = document.getElementById('modalProductQuantity');
+    const unitEl = document.getElementById('modalProductUnit');
+    const priceEl = document.getElementById('modalProductPrice');
+    const supEl = document.getElementById('modalProductSupplier');
+
+    if (nameEl) nameEl.value = '';
+    if (catEl) catEl.value = '';
+    if (subcatEl) subcatEl.value = '';
+    if (deptEl) deptEl.value = 'entrambi';
+    if (qtyEl) qtyEl.value = '';
+    if (unitEl) unitEl.value = 'pezzi';
+    if (priceEl) priceEl.value = '';
+    if (supEl) supEl.value = '';
 
     // Reset title
-    document.querySelector('#addProductModal .modal-title').innerHTML = '<i class="fas fa-plus-circle" style="color: var(--primary);"></i>Nuovo Prodotto';
+    const titleEl = document.querySelector('#addProductModal .modal-title');
+    if (titleEl) {
+        titleEl.innerHTML = '<i class="fas fa-plus-circle" style="color: var(--primary);"></i>Nuovo Prodotto';
+    }
 
     // Reset button action
     const saveButton = document.querySelector('#addProductModal .btn-primary');
@@ -5141,22 +5153,24 @@ function showAddProductModal() {
         saveButton.onclick = saveProduct;
     }
 
-    document.getElementById('addProductModal').classList.add('show');
+    const modal = document.getElementById('addProductModal');
+    if (modal) modal.classList.add('show');
 }
 
 function closeAddProductModal() {
-    document.getElementById('addProductModal').classList.remove('show');
+    const modal = document.getElementById('addProductModal');
+    if (modal) modal.classList.remove('show');
 }
 
 function saveProduct() {
-    const name = document.getElementById('modalProductName').value;
-    const categoryId = document.getElementById('modalProductCategory').value;
-    const subcategory = document.getElementById('modalProductSubcategory').value;
-    const department = document.getElementById('modalProductDepartment').value;
-    const quantity = parseFloat(document.getElementById('modalProductQuantity').value);
-    const unit = document.getElementById('modalProductUnit').value;
-    const price = parseFloat(document.getElementById('modalProductPrice').value);
-    const supplierId = document.getElementById('modalProductSupplier').value;
+    const name = document.getElementById('modalProductName')?.value?.trim();
+    const categoryId = document.getElementById('modalProductCategory')?.value;
+    const subcategory = document.getElementById('modalProductSubcategory')?.value || '';
+    const department = document.getElementById('modalProductDepartment')?.value || 'entrambi';
+    const quantity = parseFloat(document.getElementById('modalProductQuantity')?.value);
+    const unit = document.getElementById('modalProductUnit')?.value || 'pezzi';
+    const price = parseFloat(document.getElementById('modalProductPrice')?.value);
+    const supplierId = document.getElementById('modalProductSupplier')?.value;
 
     if (!name || !categoryId || isNaN(quantity) || isNaN(price)) {
         showNotification('Compila tutti i campi obbligatori', 'error');
@@ -5171,7 +5185,7 @@ function saveProduct() {
         name: name,
         category: category ? category.name : 'Generico',
         subcategory: subcategory,
-        department: department || 'entrambi',
+        department: department,
         quantity: quantity,
         unit: unit,
         price: price,
@@ -5190,14 +5204,14 @@ function saveProduct() {
 }
 
 function addProductFromForm() {
-    const name = document.getElementById('productName').value;
-    const categoryId = document.getElementById('productCategory').value;
-    const subcategory = document.getElementById('productSubcategory').value;
-    const department = document.getElementById('productDepartment').value;
-    const quantity = parseFloat(document.getElementById('productQuantity').value);
-    const unit = document.getElementById('productUnit').value;
-    const price = parseFloat(document.getElementById('productPrice').value);
-    const supplierId = document.getElementById('productSupplier').value;
+    const name = document.getElementById('productName')?.value?.trim();
+    const categoryId = document.getElementById('productCategory')?.value;
+    const subcategory = document.getElementById('productSubcategory')?.value || '';
+    const department = document.getElementById('productDepartment')?.value || 'entrambi';
+    const quantity = parseFloat(document.getElementById('productQuantity')?.value);
+    const unit = document.getElementById('productUnit')?.value || 'pezzi';
+    const price = parseFloat(document.getElementById('productPrice')?.value);
+    const supplierId = document.getElementById('productSupplier')?.value;
 
     if (!name || !categoryId || isNaN(quantity) || isNaN(price)) {
         showNotification('Compila tutti i campi obbligatori', 'error');
@@ -5212,7 +5226,7 @@ function addProductFromForm() {
         name: name,
         category: category ? category.name : 'Generico',
         subcategory: subcategory,
-        department: department || 'entrambi',
+        department: department,
         quantity: quantity,
         unit: unit,
         price: price,
@@ -5233,39 +5247,55 @@ function addProductFromForm() {
     document.getElementById('productPrice').value = '';
     document.getElementById('productSupplier').value = '';
 
+    saveToCloud();
     updateAll();
     showNotification('Prodotto aggiunto!');
 }
 
 function editProduct(productId) {
-    const product = appData.products.find(p => p.id === productId);
-    if (!product) return;
+    const product = appData.products.find(p => p.id == productId);
+    if (!product) {
+        showNotification('Prodotto non trovato', 'error');
+        return;
+    }
 
     showAddProductModal();
 
-    document.getElementById('modalProductName').value = product.name;
-    document.getElementById('modalProductDepartment').value = product.department || 'entrambi';
+    const nameEl = document.getElementById('modalProductName');
+    const deptEl = document.getElementById('modalProductDepartment');
+    const catEl = document.getElementById('modalProductCategory');
+    const subcatEl = document.getElementById('modalProductSubcategory');
+    const qtyEl = document.getElementById('modalProductQuantity');
+    const unitEl = document.getElementById('modalProductUnit');
+    const priceEl = document.getElementById('modalProductPrice');
+    const supEl = document.getElementById('modalProductSupplier');
+
+    if (nameEl) nameEl.value = product.name;
+    if (deptEl) deptEl.value = product.department || 'entrambi';
 
     const category = appData.categories.find(c => c.name === product.category);
-    if (category) {
-        document.getElementById('modalProductCategory').value = category.id;
+    if (category && catEl) {
+        catEl.value = category.id;
         updateSubcategories('modal');
 
         setTimeout(() => {
-            document.getElementById('modalProductSubcategory').value = product.subcategory || '';
+            if (subcatEl) subcatEl.value = product.subcategory || '';
         }, 100);
     }
 
-    document.getElementById('modalProductQuantity').value = product.quantity;
-    document.getElementById('modalProductUnit').value = product.unit;
-    document.getElementById('modalProductPrice').value = product.price;
+    if (qtyEl) qtyEl.value = product.quantity;
+    if (unitEl) unitEl.value = product.unit || 'pezzi';
+    if (priceEl) priceEl.value = product.price;
 
     const supplier = appData.suppliers.find(s => s.name === product.supplier);
-    if (supplier) {
-        document.getElementById('modalProductSupplier').value = supplier.id;
+    if (supplier && supEl) {
+        supEl.value = supplier.id;
     }
 
-    document.querySelector('#addProductModal .modal-title').innerHTML = '<i class="fas fa-edit"></i>Modifica Prodotto';
+    const titleEl = document.querySelector('#addProductModal .modal-title');
+    if (titleEl) {
+        titleEl.innerHTML = '<i class="fas fa-edit"></i>Modifica Prodotto';
+    }
 
     const saveButton = document.querySelector('#addProductModal .btn-primary');
     if (saveButton) {
@@ -5275,22 +5305,25 @@ function editProduct(productId) {
 }
 
 function updateProduct(productId) {
-    const name = document.getElementById('modalProductName').value;
-    const categoryId = document.getElementById('modalProductCategory').value;
-    const subcategory = document.getElementById('modalProductSubcategory').value;
-    const department = document.getElementById('modalProductDepartment').value;
-    const quantity = parseFloat(document.getElementById('modalProductQuantity').value);
-    const unit = document.getElementById('modalProductUnit').value;
-    const price = parseFloat(document.getElementById('modalProductPrice').value);
-    const supplierId = document.getElementById('modalProductSupplier').value;
+    const name = document.getElementById('modalProductName')?.value?.trim();
+    const categoryId = document.getElementById('modalProductCategory')?.value;
+    const subcategory = document.getElementById('modalProductSubcategory')?.value || '';
+    const department = document.getElementById('modalProductDepartment')?.value || 'entrambi';
+    const quantity = parseFloat(document.getElementById('modalProductQuantity')?.value);
+    const unit = document.getElementById('modalProductUnit')?.value || 'pezzi';
+    const price = parseFloat(document.getElementById('modalProductPrice')?.value);
+    const supplierId = document.getElementById('modalProductSupplier')?.value;
 
     if (!name || !categoryId || isNaN(quantity) || isNaN(price)) {
         showNotification('Compila tutti i campi obbligatori', 'error');
         return;
     }
 
-    const productIndex = appData.products.findIndex(p => p.id === productId);
-    if (productIndex === -1) return;
+    const productIndex = appData.products.findIndex(p => p.id == productId);
+    if (productIndex === -1) {
+        showNotification('Prodotto non trovato', 'error');
+        return;
+    }
 
     const oldCategory = appData.categories.find(c => c.name === appData.products[productIndex].category);
     if (oldCategory) oldCategory.productCount = Math.max(0, (oldCategory.productCount || 1) - 1);
@@ -5306,7 +5339,7 @@ function updateProduct(productId) {
         name: name,
         category: category ? category.name : 'Generico',
         subcategory: subcategory,
-        department: department || 'entrambi',
+        department: department,
         quantity: quantity,
         unit: unit,
         price: price,
@@ -5327,42 +5360,53 @@ function updateProduct(productId) {
 let currentQuickEditProductId = null;
 
 function openQuickQuantityModal(productId) {
-    const product = appData.products.find(p => p.id === productId);
-    if (!product) return;
+    const product = appData.products.find(p => p.id == productId);
+    if (!product) {
+        showNotification('Prodotto non trovato', 'error');
+        return;
+    }
 
     currentQuickEditProductId = productId;
 
-    document.getElementById('quickProductName').value = product.name;
-    document.getElementById('quickCurrentQuantity').value = `${product.quantity} ${product.unit}`;
-    document.getElementById('quickNewQuantity').value = product.quantity;
+    const nameEl = document.getElementById('quickProductName');
+    const currEl = document.getElementById('quickCurrentQuantity');
+    const newEl = document.getElementById('quickNewQuantity');
+    const modal = document.getElementById('quickQuantityModal');
 
-    document.getElementById('quickQuantityModal').classList.add('show');
+    if (nameEl) nameEl.value = product.name;
+    if (currEl) currEl.value = `${product.quantity} ${product.unit || ''}`;
+    if (newEl) newEl.value = product.quantity;
+
+    if (modal) modal.classList.add('show');
 
     setTimeout(() => {
-        const input = document.getElementById('quickNewQuantity');
-        if (input) {
-            input.focus();
-            input.select();
+        if (newEl) {
+            newEl.focus();
+            newEl.select();
         }
     }, 100);
 }
 
 function closeQuickQuantityModal() {
-    document.getElementById('quickQuantityModal').classList.remove('show');
+    const modal = document.getElementById('quickQuantityModal');
+    if (modal) modal.classList.remove('show');
     currentQuickEditProductId = null;
 }
 
 function saveQuickQuantity() {
     if (!currentQuickEditProductId) return;
 
-    const newQuantity = parseFloat(document.getElementById('quickNewQuantity').value);
+    const input = document.getElementById('quickNewQuantity');
+    if (!input) return;
+
+    const newQuantity = parseFloat(input.value);
 
     if (isNaN(newQuantity) || newQuantity < 0) {
         showNotification('Inserisci una quantità valida', 'error');
         return;
     }
 
-    const productIndex = appData.products.findIndex(p => p.id === currentQuickEditProductId);
+    const productIndex = appData.products.findIndex(p => p.id == currentQuickEditProductId);
     if (productIndex === -1) return;
 
     const oldQuantity = appData.products[productIndex].quantity;
@@ -5372,6 +5416,7 @@ function saveQuickQuantity() {
         newQuantity === 0 ? 'out-of-stock' :
             newQuantity <= appData.settings.lowStockLimit ? 'low-stock' : 'in-stock';
 
+    saveToCloud();
     closeQuickQuantityModal();
     updateAll();
 
@@ -5380,23 +5425,21 @@ function saveQuickQuantity() {
 }
 
 function deleteProduct(productId) {
-    if (confirm('Eliminare questo prodotto?')) {
-        const index = appData.products.findIndex(p => p.id === productId);
+    if (confirm('Sei sicuro di voler eliminare questo prodotto?')) {
+        const index = appData.products.findIndex(p => p.id == productId);
         if (index !== -1) {
             const product = appData.products[index];
 
-            // Aggiorna il conteggio nella categoria
             const category = appData.categories.find(c => c.name === product.category);
-            if (category) category.productCount--;
+            if (category) category.productCount = Math.max(0, (category.productCount || 1) - 1);
 
-            // Aggiorna il conteggio nel fornitore
             const supplier = appData.suppliers.find(s => s.name === product.supplier);
-            if (supplier) supplier.productCount--;
+            if (supplier) supplier.productCount = Math.max(0, (supplier.productCount || 1) - 1);
 
             appData.products.splice(index, 1);
             saveToCloud();
             updateAll();
-            showNotification('Prodotto eliminato');
+            showNotification('Prodotto eliminato con successo');
         }
     }
 }
