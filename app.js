@@ -4883,6 +4883,11 @@ function openCloudSyncModal() {
     const modal = document.getElementById('cloudSyncModal');
     if (modal) {
         CloudSyncService.updateModalSyncTime();
+        const config = getSupabaseConfig();
+        const urlInput = document.getElementById('supabaseUrlInput');
+        const keyInput = document.getElementById('supabaseKeyInput');
+        if (urlInput && config.url) urlInput.value = config.url;
+        if (keyInput && config.key) keyInput.value = config.key;
         modal.classList.add('show');
     }
 }
@@ -5534,7 +5539,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v63';
+const CURRENT_APP_BUILD = 'v64';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5582,7 +5587,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=63')
+        navigator.serviceWorker.register('sw.js?v=64')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
