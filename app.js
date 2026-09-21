@@ -4939,7 +4939,166 @@ function showImportDataPrompt() {
     }
 }
 
+
+// ==========================================
+// ⚡ SUPABASE REALTIME CLOUD INTEGRATION
+// ==========================================
+let supabaseClient = null;
+let supabaseRealtimeChannel = null;
+
+function getSupabaseConfig() {
+    return {
+        url: localStorage.getItem('inventario_supabase_url') || '',
+        key: localStorage.getItem('inventario_supabase_key') || ''
+    };
+}
+
+function initSupabase() {
+    const config = getSupabaseConfig();
+    const statusTextEl = document.getElementById('supabaseStatusText');
+    const urlInput = document.getElementById('supabaseUrlInput');
+    const keyInput = document.getElementById('supabaseKeyInput');
+
+    if (urlInput) urlInput.value = config.url;
+    if (keyInput) keyInput.value = config.key;
+
+    if (config.url && config.key && typeof supabase !== 'undefined') {
+        try {
+            supabaseClient = supabase.createClient(config.url, config.key);
+            console.log('⚡ Supabase Client inizializzato con successo!');
+            if (statusTextEl) statusTextEl.innerHTML = '<span style="color: var(--success); font-weight: bold;">🟢 Connesso a Supabase</span>';
+            updateCloudStatus('online', 'Supabase Live');
+
+            // Iscriviti agli aggiornamenti in tempo reale via WebSocket
+            subscribeToSupabaseRealtime();
+
+            // Fetch iniziale dei dati dal database
+            fetchFromSupabase();
+        } catch (e) {
+            console.error('Errore inizializzazione Supabase:', e);
+            if (statusTextEl) statusTextEl.innerHTML = '<span style="color: var(--danger);">⚠️ Errore Configurazione</span>';
+        }
+    } else {
+        if (statusTextEl) statusTextEl.textContent = 'Non configurato (inserisci URL e Key)';
+    }
+}
+
+function saveSupabaseConfig() {
+    const url = document.getElementById('supabaseUrlInput')?.value.trim();
+    const key = document.getElementById('supabaseKeyInput')?.value.trim();
+
+    if (!url || !key) {
+        alert('Inserisci sia la URL che la Chiave Anon di Supabase.');
+        return;
+    }
+
+    localStorage.setItem('inventario_supabase_url', url);
+    localStorage.setItem('inventario_supabase_key', key);
+
+    initSupabase();
+
+    // Invia subito i dati attuali al database Supabase
+    pushToSupabase(true);
+    showNotification('Supabase configurato e sincronizzato!', 'success');
+}
+
+async function fetchFromSupabase() {
+    if (!supabaseClient) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('inventario_data')
+            .select('*')
+            .eq('id', 'main')
+            .single();
+
+        if (error && error.code !== 'PGRST116') {
+            console.warn('Supabase fetch error:', error);
+            return;
+        }
+
+        if (data && data.data && data.data.products) {
+            const remoteData = data.data;
+            const remoteMod = remoteData.lastModified || data.last_modified || 0;
+            const localMod = appData.lastModified || 0;
+
+            if (remoteMod > localMod) {
+                console.log('⚡ Nuovi dati ricevuti da Supabase!');
+                appData = remoteData;
+                localStorage.setItem('inventario_pro_data', JSON.stringify(appData));
+                updateAll();
+                showNotification('Dati sincronizzati in tempo reale da Supabase!', 'info');
+            }
+        } else if (!data) {
+            // Se la tabella è vuota, invia i dati attuali per popolarla
+            pushToSupabase(false);
+        }
+    } catch (e) {
+        console.error('Errore fetch Supabase:', e);
+    }
+}
+
+async function pushToSupabase(force = false) {
+    if (!supabaseClient) return;
+    try {
+        const now = Date.now();
+        appData.lastModified = now;
+        localStorage.setItem('inventario_pro_data', JSON.stringify(appData));
+
+        const { error } = await supabaseClient
+            .from('inventario_data')
+            .upsert({
+                id: 'main',
+                data: appData,
+                last_modified: now,
+                updated_at: new Date().toISOString()
+            });
+
+        if (error) {
+            console.warn('Errore push Supabase:', error);
+        } else {
+            console.log('⚡ Dati inviati con successo a Supabase!');
+            updateCloudStatus('online', 'Supabase Live');
+            if (force) showNotification('Dati salvati su Supabase!', 'success');
+        }
+    } catch (e) {
+        console.error('Errore durante push Supabase:', e);
+    }
+}
+
+function subscribeToSupabaseRealtime() {
+    if (!supabaseClient) return;
+    try {
+        if (supabaseRealtimeChannel) {
+            supabaseClient.removeChannel(supabaseRealtimeChannel);
+        }
+
+        supabaseRealtimeChannel = supabaseClient
+            .channel('public:inventario_data')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario_data' }, payload => {
+                console.log('⚡ Evento Realtime ricevuto da Supabase:', payload);
+                if (payload && payload.new && payload.new.data) {
+                    const incomingData = payload.new.data;
+                    const incomingMod = incomingData.lastModified || payload.new.last_modified || 0;
+                    const localMod = appData.lastModified || 0;
+
+                    if (incomingMod > localMod) {
+                        appData = incomingData;
+                        localStorage.setItem('inventario_pro_data', JSON.stringify(appData));
+                        updateAll();
+                        showNotification('⚡ Dati aggiornati in tempo reale!', 'info');
+                    }
+                }
+            })
+            .subscribe((status) => {
+                console.log('Supabase Realtime status:', status);
+            });
+    } catch (e) {
+        console.error('Errore iscrizione realtime Supabase:', e);
+    }
+}
+
 function saveToCloud() {
+    if (supabaseClient) pushToSupabase(false);
     CloudSyncService.pushLocalChanges();
 }
 
@@ -5375,7 +5534,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v62';
+const CURRENT_APP_BUILD = 'v63';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5423,7 +5582,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=62')
+        navigator.serviceWorker.register('sw.js?v=63')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }

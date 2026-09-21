@@ -22,8 +22,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=62">
+    <link rel="stylesheet" href="styles.css?v=63">
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -1196,7 +1197,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=62"></script>
+    <script src="app.js?v=63"></script>
 
     <!-- MODALE SINCRONIZZAZIONE MULTI-DISPOSITIVO (CLOUD & CODICE) -->
     <div class="modal" id="cloudSyncModal">
@@ -1212,17 +1213,37 @@
                 Collega PC, iPhone e telefoni Android. Tutte le modifiche fatte su un dispositivo si sincronizzano in automatico.
             </p>
 
-            <!-- STATO CLOUD ATTUALE -->
-            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <div style="font-size: 0.85rem; color: var(--gray);">Stato Connessione:</div>
-                    <strong style="color: var(--success); font-size: 1.05rem; display: flex; align-items: center; gap: 6px;" id="modalCloudState">
-                        <i class="fas fa-check-circle"></i> Sincronizzazione Attiva
-                    </strong>
-                    <div style="font-size: 0.78rem; color: var(--gray); margin-top: 3px;" id="modalLastSyncTime">Ultimo invio: Adesso</div>
+            <!-- STATO SUPABASE CLOUD -->
+            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <div>
+                        <div style="font-size: 0.82rem; color: var(--gray);">Stato Connessione Cloud:</div>
+                        <strong style="font-size: 1.05rem; display: flex; align-items: center; gap: 6px;" id="modalCloudState">
+                            <i class="fas fa-database" style="color: var(--primary);"></i> <span id="supabaseStatusText">Supabase Pronto</span>
+                        </strong>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="triggerManualSync()" style="padding: 0.45rem 0.85rem; font-weight: 600;">
+                        <i class="fas fa-sync-alt"></i> Sincronizza Ora
+                    </button>
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="triggerManualSync()" style="padding: 0.5rem 0.9rem; font-weight: 600;">
-                    <i class="fas fa-sync-alt"></i> Sincronizza Ora
+                <div style="font-size: 0.78rem; color: var(--gray);" id="modalLastSyncTime">Ultimo invio: Adesso</div>
+            </div>
+
+            <!-- CONFIGURAZIONE SUPABASE DIRETTA -->
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+                <h4 style="font-size: 0.92rem; color: #166534; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-bolt"></i> Connessione Supabase (Realtime)
+                </h4>
+                <div style="margin-bottom: 0.6rem;">
+                    <label style="font-size: 0.78rem; font-weight: 600; color: #374151; display: block; margin-bottom: 2px;">Supabase Project URL:</label>
+                    <input type="text" id="supabaseUrlInput" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; border-radius: 8px;" placeholder="https://tuoprogetto.supabase.co">
+                </div>
+                <div style="margin-bottom: 0.75rem;">
+                    <label style="font-size: 0.78rem; font-weight: 600; color: #374151; display: block; margin-bottom: 2px;">Supabase Anon Key (Public):</label>
+                    <input type="password" id="supabaseKeyInput" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; border-radius: 8px;" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                </div>
+                <button class="btn btn-success btn-sm" onclick="saveSupabaseConfig()" style="width: 100%; padding: 0.55rem; font-weight: 700; border-radius: 8px;">
+                    <i class="fas fa-link"></i> Salva e Connetti Supabase
                 </button>
             </div>
 
