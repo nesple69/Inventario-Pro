@@ -5146,7 +5146,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=52')
+        navigator.serviceWorker.register('sw.js?v=53')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -5238,10 +5238,8 @@ function createProductTableRow(p) {
             <td>
                 <div class="table-actions">
                     <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità"><i class="fas fa-plus-minus"></i></button>
-                    ${currentRole === 'admin' ? `
-                    <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Completa"><i class="fas fa-edit"></i></button>
                     <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
-                    ` : ''}
                 </div>
             </td>
         </tr>
@@ -5504,13 +5502,30 @@ function addProductFromForm() {
 
 function showAddProductModal() {
     const modal = document.getElementById('addProductModal');
-    if (modal) {
-        if (document.getElementById('modalProductName')) document.getElementById('modalProductName').value = '';
-        if (document.getElementById('modalProductQuantity')) document.getElementById('modalProductQuantity').value = '';
-        if (document.getElementById('modalProductPrice')) document.getElementById('modalProductPrice').value = '';
-        updateAllDropdowns();
-        modal.classList.add('show');
+    if (!modal) return;
+
+    // Reset Form per Nuovo Prodotto
+    if (document.getElementById('modalProductName')) document.getElementById('modalProductName').value = '';
+    if (document.getElementById('modalProductDepartment')) document.getElementById('modalProductDepartment').value = 'entrambi';
+    if (document.getElementById('modalProductCategory')) document.getElementById('modalProductCategory').value = '';
+    if (document.getElementById('modalProductSubcategory')) document.getElementById('modalProductSubcategory').value = '';
+    if (document.getElementById('modalProductQuantity')) document.getElementById('modalProductQuantity').value = '';
+    if (document.getElementById('modalProductUnit')) document.getElementById('modalProductUnit').value = 'pezzi';
+    if (document.getElementById('modalProductPrice')) document.getElementById('modalProductPrice').value = '';
+    if (document.getElementById('modalProductSupplier')) document.getElementById('modalProductSupplier').value = '';
+
+    updateAllDropdowns();
+
+    const titleEl = modal.querySelector('.modal-title');
+    if (titleEl) titleEl.innerHTML = '<i class="fas fa-plus-circle" style="color: var(--primary);"></i> Nuovo Prodotto';
+
+    const saveBtn = document.getElementById('modalSaveProductBtn') || modal.querySelector('.modal-footer .btn-primary');
+    if (saveBtn) {
+        saveBtn.textContent = 'Salva Prodotto';
+        saveBtn.onclick = () => saveProductFromModal();
     }
+
+    modal.classList.add('show');
 }
 
 function closeAddProductModal() {
@@ -5555,35 +5570,86 @@ function saveProductFromModal() {
     showNotification(`Prodotto "${name}" salvato!`);
 }
 
-function editProduct(id) {
-    const p = (appData.products || []).find(item => item.id === id);
-    if (!p) return;
+function editProduct(productId) {
+    const product = (appData.products || []).find(p => p.id === productId);
+    if (!product) return;
 
-    const newName = prompt('Nome prodotto:', p.name);
-    if (newName === null) return;
+    const modal = document.getElementById('addProductModal');
+    if (!modal) return;
 
-    const newQtyStr = prompt('Quantità attuale:', p.quantity);
-    if (newQtyStr === null) return;
+    updateAllDropdowns();
 
-    const newPriceStr = prompt('Prezzo unitario (€):', p.price);
-    if (newPriceStr === null) return;
+    // Popola i campi del modal con i dati del prodotto esistente
+    if (document.getElementById('modalProductName')) document.getElementById('modalProductName').value = product.name || '';
+    if (document.getElementById('modalProductDepartment')) document.getElementById('modalProductDepartment').value = product.department || 'entrambi';
+    if (document.getElementById('modalProductCategory')) {
+        document.getElementById('modalProductCategory').value = product.category || '';
+        updateSubcategories('modal');
+        setTimeout(() => {
+            if (document.getElementById('modalProductSubcategory')) {
+                document.getElementById('modalProductSubcategory').value = product.subcategory || '';
+            }
+        }, 50);
+    }
+    if (document.getElementById('modalProductQuantity')) document.getElementById('modalProductQuantity').value = product.quantity !== undefined ? product.quantity : 0;
+    if (document.getElementById('modalProductUnit')) document.getElementById('modalProductUnit').value = product.unit || 'pezzi';
+    if (document.getElementById('modalProductPrice')) document.getElementById('modalProductPrice').value = product.price !== undefined ? product.price : 0;
+    if (document.getElementById('modalProductSupplier')) document.getElementById('modalProductSupplier').value = product.supplier || '';
 
-    p.name = newName.trim() || p.name;
-    p.quantity = parseFloat(newQtyStr) || 0;
-    p.price = parseFloat(newPriceStr) || 0;
-    p.status = p.quantity > 10 ? 'in-stock' : (p.quantity > 0 ? 'low-stock' : 'out-of-stock');
+    const titleEl = modal.querySelector('.modal-title');
+    if (titleEl) titleEl.innerHTML = '<i class="fas fa-edit" style="color: var(--primary);"></i> Modifica Prodotto';
+
+    const saveBtn = document.getElementById('modalSaveProductBtn') || modal.querySelector('.modal-footer .btn-primary');
+    if (saveBtn) {
+        saveBtn.textContent = 'Salva Modifiche';
+        saveBtn.onclick = () => updateProduct(productId);
+    }
+
+    modal.classList.add('show');
+}
+
+function updateProduct(productId) {
+    const product = (appData.products || []).find(p => p.id === productId);
+    if (!product) return;
+
+    const name = document.getElementById('modalProductName')?.value.trim();
+    const department = document.getElementById('modalProductDepartment')?.value || 'entrambi';
+    const category = document.getElementById('modalProductCategory')?.value;
+    const subcategory = document.getElementById('modalProductSubcategory')?.value;
+    const quantity = parseFloat(document.getElementById('modalProductQuantity')?.value) || 0;
+    const unit = document.getElementById('modalProductUnit')?.value || 'pezzi';
+    const price = parseFloat(document.getElementById('modalProductPrice')?.value) || 0;
+    const supplier = document.getElementById('modalProductSupplier')?.value || '';
+
+    if (!name) {
+        showNotification('Inserisci il nome del prodotto', 'warning');
+        return;
+    }
+
+    product.name = name;
+    product.department = department;
+    product.category = category || product.category || 'Consumabili';
+    product.subcategory = subcategory || '';
+    product.quantity = quantity;
+    product.unit = unit;
+    product.price = price;
+    product.supplier = supplier;
+    product.status = quantity > 10 ? 'in-stock' : (quantity > 0 ? 'low-stock' : 'out-of-stock');
 
     saveToCloud();
+    closeAddProductModal();
     updateAll();
-    showNotification('Prodotto modificato con successo!');
+    showNotification(`Prodotto "${name}" modificato con successo!`);
 }
 
 function deleteProduct(id) {
-    if (confirm('Sei sicuro di voler eliminare questo prodotto?')) {
+    const product = (appData.products || []).find(p => p.id === id);
+    const prodName = product ? product.name : 'questo prodotto';
+    if (confirm(`Sei sicuro di voler eliminare definitivamente "${prodName}" dal catalogo?`)) {
         appData.products = (appData.products || []).filter(p => p.id !== id);
         saveToCloud();
         updateAll();
-        showNotification('Prodotto eliminato!');
+        showNotification(`Prodotto "${prodName}" eliminato!`);
     }
 }
 
@@ -5741,7 +5807,7 @@ function renderMonthlyInventoryTable() {
                 <td>
                     <div class="table-actions">
                         <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Modifica Veloce" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
-                        ${currentRole === 'admin' ? `<button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Completa"><i class="fas fa-edit"></i></button>` : ''}
+                        <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Completa"><i class="fas fa-edit"></i></button>
                     </div>
                 </td>
             </tr>`;

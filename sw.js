@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inventario-pro-v52';
+const CACHE_NAME = 'inventario-pro-v53';
 const ASSETS = [
   './',
   './index.html',
