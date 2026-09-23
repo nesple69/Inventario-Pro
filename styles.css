@@ -1264,6 +1264,17 @@ body {
 
 
 /* ==========================================
+   🔒 CONTROLLO VISIBILITÀ RUOLI (ADMIN ONLY)
+   ========================================== */
+body:not(.role-admin) .admin-only {
+    display: none !important;
+}
+
+body:not(.role-admin) .mobile-bottom-bar .nav-tab.admin-only {
+    display: none !important;
+}
+
+/* ==========================================
    📱 STRISCIA DI NAVIGAZIONE MOBILE (BOTTOM BAR)
    ========================================== */
 .mobile-bottom-bar {
@@ -1296,39 +1307,39 @@ body {
     }
 
     .mobile-bottom-bar .nav-tab {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 3px !important;
-        padding: 0.4rem 0.35rem !important;
-        color: #475569 !important;
-        background: transparent !important;
-        border-radius: 12px !important;
-        min-width: 54px !important;
-        flex: 1 !important;
-        max-width: 75px !important;
-        border: none !important;
-        box-shadow: none !important;
-        text-decoration: none !important;
-        cursor: pointer !important;
-        transition: all 0.15s ease !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 0.4rem 0.35rem;
+        color: #475569;
+        background: transparent;
+        border-radius: 12px;
+        min-width: 60px;
+        flex: 1;
+        max-width: 110px;
+        border: none;
+        box-shadow: none;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
     }
 
     .mobile-bottom-bar .nav-tab i {
-        font-size: 1.3rem !important;
-        color: #64748b !important;
-        transition: transform 0.15s ease, color 0.15s ease !important;
+        font-size: 1.35rem;
+        color: #64748b;
+        transition: transform 0.15s ease, color 0.15s ease;
     }
 
     .mobile-bottom-bar .nav-tab span {
-        display: block !important;
-        font-size: 0.74rem !important;
-        font-weight: 700 !important;
-        color: #475569 !important;
-        line-height: 1.1 !important;
-        text-align: center !important;
-        white-space: nowrap !important;
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #475569;
+        line-height: 1.1;
+        text-align: center;
+        white-space: nowrap;
     }
 
     .mobile-bottom-bar .nav-tab.active {
@@ -1338,12 +1349,12 @@ body {
 
     .mobile-bottom-bar .nav-tab.active i {
         color: var(--primary) !important;
-        transform: scale(1.1) !important;
+        transform: scale(1.1);
     }
 
     .mobile-bottom-bar .nav-tab.active span {
         color: var(--primary) !important;
-        font-weight: 800 !important;
+        font-weight: 800;
     }
 
     .main-content {

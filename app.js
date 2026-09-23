@@ -5154,6 +5154,9 @@ function getProductsForRole(role = currentRole) {
 }
 
 function applyRolePermissions() {
+    document.body.classList.remove('role-admin', 'role-cucina', 'role-bar', 'role-bowling');
+    document.body.classList.add(`role-${currentRole}`);
+
     const userProfileIcon = document.getElementById('userProfileIcon');
     const userProfileName = document.getElementById('userProfileName');
     const bannerRoleBadge = document.getElementById('bannerRoleBadge');
@@ -5205,7 +5208,7 @@ function applyRolePermissions() {
     }
 
     document.querySelectorAll('.admin-only').forEach(el => {
-        el.style.display = isAdmin ? '' : 'none';
+        el.style.setProperty('display', isAdmin ? '' : 'none', 'important');
     });
 
     const currentActiveTab = document.querySelector('.tab-content.active')?.id;
@@ -5549,7 +5552,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v74';
+const CURRENT_APP_BUILD = 'v75';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5621,7 +5624,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=74')
+        navigator.serviceWorker.register('sw.js?v=75')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -5634,6 +5637,12 @@ function setupEventListeners() {
 }
 
 function showTab(tabName) {
+    const isAdmin = (currentRole === 'admin');
+    const restrictedTabs = ['categories', 'suppliers', 'reports', 'settings'];
+    if (!isAdmin && restrictedTabs.includes(tabName)) {
+        tabName = 'dashboard';
+    }
+
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
