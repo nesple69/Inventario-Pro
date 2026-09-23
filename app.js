@@ -4691,11 +4691,19 @@ function showNotification(message, type = 'success') {
     }
     const title = document.getElementById('notificationTitle');
     const msg = document.getElementById('notificationMessage');
-    if (title) title.textContent = type === 'success' ? 'Successo' : type === 'error' ? 'Errore' : 'Avviso';
+    const icon = notification.querySelector('.notification-icon');
+    
+    if (title) title.textContent = type === 'success' ? 'Completato' : type === 'error' ? 'Attenzione' : 'Notifica';
     if (msg) msg.textContent = message;
+    if (icon) {
+        icon.className = type === 'success' ? 'fas fa-check-circle notification-icon' : type === 'error' ? 'fas fa-exclamation-triangle notification-icon' : 'fas fa-info-circle notification-icon';
+    }
+    
     notification.className = 'notification ' + type;
     notification.classList.add('show');
-    setTimeout(() => {
+    
+    if (window._notifTimer) clearTimeout(window._notifTimer);
+    window._notifTimer = setTimeout(() => {
         if (notification) notification.classList.remove('show');
     }, 3000);
 }
@@ -5749,7 +5757,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v78';
+const CURRENT_APP_BUILD = 'v79';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5821,7 +5829,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=78')
+        navigator.serviceWorker.register('sw.js?v=79')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
