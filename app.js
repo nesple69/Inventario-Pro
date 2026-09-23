@@ -5549,7 +5549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v73';
+const CURRENT_APP_BUILD = 'v74';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5586,18 +5586,42 @@ function forceAppUpdate() {
 }
 
 function initApp() {
-    checkAndPurgeOldCache();
-    loadLocalData();
-    CloudSyncService.init();
-    applyRolePermissions();
-    updateAll();
-    setupEventListeners();
-    registerServiceWorker();
+    try {
+        checkAndPurgeOldCache();
+    } catch (e) { console.error('Cache purge error:', e); }
+
+    try {
+        loadLocalData();
+    } catch (e) { console.error('Load data error:', e); }
+
+    try {
+        applyRolePermissions();
+    } catch (e) { console.error('Role error:', e); }
+
+    try {
+        updateAll();
+    } catch (e) { console.error('Update all error:', e); }
+
+    try {
+        CloudSyncService.init();
+    } catch (e) { console.error('Cloud sync error:', e); }
+
+    try {
+        initSupabase();
+    } catch (e) { console.error('Supabase init error:', e); }
+
+    try {
+        setupEventListeners();
+    } catch (e) { }
+
+    try {
+        registerServiceWorker();
+    } catch (e) { }
 }
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=73')
+        navigator.serviceWorker.register('sw.js?v=74')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
