@@ -9,7 +9,7 @@
         <!-- Styles & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=79">
+    <link rel="stylesheet" href="styles.css?v=80">
 
     <!-- Favicon & PWA Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
@@ -116,52 +116,50 @@
                         </div>
                     </div>
 
-                    <div class="stats-grid">
-                        <!-- TOTALE PRODOTTI E VALORE -->
-                        <div class="stat-card-main" onclick="showTab('products')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
-                            <div class="stat-icon-wrapper icon-blue"><i class="fas fa-cubes"></i></div>
+                    <!-- STATISTICHE CHIAVE (5 CARD SU UNA SOLA RIGA SENZA SCORRIMENTO) -->
+                    <div class="stats-grid dashboard-summary-grid">
+                        <!-- 1. TOTALE PRODOTTI -->
+                        <div class="stat-card-main" onclick="showTab('products')" style="cursor: pointer;" title="Tocca per vedere tutti i prodotti">
+                            <div class="stat-icon-wrapper icon-blue"><i class="fas fa-boxes-stacked"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="total-products">0</span>
-                                <span class="stat-main-label">Prodotti Totali</span>
-                            </div>
-                        </div>
-                        <div class="stat-card-main" style="transition: all 0.2s ease; border: 1px solid var(--border);">
-                            <div class="stat-icon-wrapper icon-purple"><i class="fas fa-wallet"></i></div>
-                            <div class="stat-details">
-                                <span class="stat-main-value" id="total-value">€ 0</span>
-                                <span class="stat-main-label">Valore Totale</span>
+                                <span class="stat-main-label">Prodotti</span>
                             </div>
                         </div>
 
-                        <!-- FILTRI STOCK -->
-                        <div class="stat-card-main dashboard-stat-filter" id="filter-card-in-stock"
-                            onclick="filterDashboardByStatus('in-stock')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
-                            <div class="stat-icon-wrapper icon-green"><i class="fas fa-box"></i></div>
+                        <!-- 2. VALORE TOTALE -->
+                        <div class="stat-card-main" title="Valore totale giacenze">
+                            <div class="stat-icon-wrapper icon-purple"><i class="fas fa-euro-sign"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="total-value">€ 0</span>
+                                <span class="stat-main-label">Valore</span>
+                            </div>
+                        </div>
+
+                        <!-- 3. IN STOCK -->
+                        <div class="stat-card-main dashboard-stat-filter" id="filter-card-in-stock" onclick="filterDashboardByStatus('in-stock')" style="cursor: pointer;" title="Prodotti disponibili">
+                            <div class="stat-icon-wrapper icon-green"><i class="fas fa-check-circle"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="inStockCount">0</span>
                                 <span class="stat-main-label">In Stock</span>
                             </div>
                         </div>
-                        <div class="stat-card-main dashboard-stat-filter" id="filter-card-out-of-stock"
-                            onclick="filterDashboardByStatus('out-of-stock')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
-                            <div class="stat-icon-wrapper icon-red"><i class="fas fa-clock"></i></div>
+
+                        <!-- 4. ESAURITI -->
+                        <div class="stat-card-main dashboard-stat-filter" id="filter-card-out-of-stock" onclick="filterDashboardByStatus('out-of-stock')" style="cursor: pointer;" title="Prodotti con quantità 0">
+                            <div class="stat-icon-wrapper icon-red"><i class="fas fa-times-circle"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="outOfStockCount">0</span>
                                 <span class="stat-main-label">Esauriti</span>
                             </div>
                         </div>
-                        <div class="stat-card-main" onclick="showTab('categories')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
-                            <div class="stat-icon-wrapper icon-blue"
-                                style="background: rgba(46, 196, 182, 0.1); color: var(--success);"><i
-                                    class="fas fa-layer-group"></i></div>
+
+                        <!-- 5. CATEGORIE -->
+                        <div class="stat-card-main" onclick="if(currentRole==='admin'){showTab('categories');}else{showTab('products');}" style="cursor: pointer;" title="Categorie merceologiche">
+                            <div class="stat-icon-wrapper icon-teal"><i class="fas fa-tags"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="categoriesCount">0</span>
-                                <span class="stat-label"
-                                    style="font-size: 0.85rem; color: var(--gray); font-weight: 600;">Categorie</span>
+                                <span class="stat-main-label">Categorie</span>
                             </div>
                         </div>
                     </div>
@@ -1298,7 +1296,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=79"></script>
+    <script src="app.js?v=80"></script>
 </body>
 
 </html>

@@ -1396,3 +1396,159 @@ body:not(.role-admin) .mobile-bottom-bar .nav-tab.admin-only {
         padding-bottom: calc(90px + env(safe-area-inset-bottom, 20px)) !important;
     }
 }
+
+
+/* ==========================================
+   📊 DASHBOARD SUMMARY STATS (5 CARD IN UNA RIGA)
+   ========================================== */
+.stats-grid.dashboard-summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+    margin-bottom: 1.5rem !important;
+    width: 100% !important;
+}
+
+.dashboard-summary-grid .stat-card-main {
+    background: var(--card-bg, #ffffff);
+    border-radius: 14px;
+    padding: 0.9rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border, #e2e8f0);
+    transition: all 0.2s ease;
+    min-width: 0;
+}
+
+.dashboard-summary-grid .stat-card-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-summary-grid .stat-icon-wrapper {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.dashboard-summary-grid .stat-icon-wrapper.icon-blue {
+    background: rgba(67, 97, 238, 0.12);
+    color: #4361ee;
+}
+.dashboard-summary-grid .stat-icon-wrapper.icon-purple {
+    background: rgba(114, 9, 183, 0.12);
+    color: #7209b7;
+}
+.dashboard-summary-grid .stat-icon-wrapper.icon-green {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+.dashboard-summary-grid .stat-icon-wrapper.icon-red {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+.dashboard-summary-grid .stat-icon-wrapper.icon-teal {
+    background: rgba(14, 165, 233, 0.12);
+    color: #0ea5e9;
+}
+
+.dashboard-summary-grid .stat-details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.dashboard-summary-grid .stat-main-value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--dark, #1e293b);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-summary-grid .stat-main-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gray, #64748b);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+/* 📱 Smartphone Responsive: Single Row, No Lateral Scrolling */
+@media (max-width: 768px) {
+    .stats-grid.dashboard-summary-grid {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 4px !important;
+        margin-bottom: 1.25rem !important;
+        width: 100% !important;
+    }
+
+    .dashboard-summary-grid .stat-card-main {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 0.5rem 0.2rem !important;
+        gap: 3px !important;
+        border-radius: 10px !important;
+    }
+
+    .dashboard-summary-grid .stat-icon-wrapper {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.85rem !important;
+        border-radius: 8px !important;
+    }
+
+    .dashboard-summary-grid .stat-details {
+        align-items: center !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    .dashboard-summary-grid .stat-main-value {
+        font-size: 0.85rem !important;
+        font-weight: 800 !important;
+        line-height: 1.1 !important;
+    }
+
+    .dashboard-summary-grid .stat-main-label {
+        font-size: 0.62rem !important;
+        font-weight: 700 !important;
+        line-height: 1.1 !important;
+        margin-top: 2px !important;
+        letter-spacing: -0.2px !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .stats-grid.dashboard-summary-grid {
+        gap: 3px !important;
+    }
+    .dashboard-summary-grid .stat-card-main {
+        padding: 0.45rem 0.15rem !important;
+    }
+    .dashboard-summary-grid .stat-icon-wrapper {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.75rem !important;
+    }
+    .dashboard-summary-grid .stat-main-value {
+        font-size: 0.78rem !important;
+    }
+    .dashboard-summary-grid .stat-main-label {
+        font-size: 0.58rem !important;
+    }
+}

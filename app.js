@@ -5757,7 +5757,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v79';
+const CURRENT_APP_BUILD = 'v80';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5829,7 +5829,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=79')
+        navigator.serviceWorker.register('sw.js?v=80')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -6016,21 +6016,34 @@ function populateSupplierDropdown(dropdownId) {
 function updateStatistics() {
     const roleProducts = getProductsForRole(currentRole);
     const totalCount = roleProducts.length;
-    const lowStockCount = roleProducts.filter(p => p.status === 'low-stock').length;
-    const outOfStockCount = roleProducts.filter(p => p.status === 'out-of-stock' || p.quantity === 0).length;
-    const totalVal = roleProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0);
+    const inStockCount = roleProducts.filter(p => (parseFloat(p.quantity) || 0) > 0 || p.status === 'in-stock').length;
+    const outOfStockCount = roleProducts.filter(p => (parseFloat(p.quantity) || 0) === 0 || p.status === 'out-of-stock').length;
+    const totalVal = roleProducts.reduce((sum, p) => sum + ((parseFloat(p.quantity) || 0) * (parseFloat(p.price) || 0)), 0);
 
     const currency = appData.settings?.currency === 'EUR' ? '€' : '$';
 
     const totalProdEl = document.getElementById('totalProducts') || document.getElementById('total-products');
     const totalValEl = document.getElementById('totalValue') || document.getElementById('total-value');
-    const lowStockEl = document.getElementById('lowStock') || document.getElementById('inStockCount');
-    const outOfStockEl = document.getElementById('outOfStock') || document.getElementById('outOfStockCount');
+    const inStockEl = document.getElementById('inStockCount') || document.getElementById('lowStock');
+    const outOfStockEl = document.getElementById('outOfStockCount') || document.getElementById('outOfStock');
+    const categoriesEl = document.getElementById('categoriesCount') || document.getElementById('categories-count');
 
     if (totalProdEl) totalProdEl.textContent = totalCount;
-    if (totalValEl) totalValEl.textContent = `${currency} ${totalVal.toFixed(2)}`;
-    if (lowStockEl) lowStockEl.textContent = roleProducts.filter(p => p.status === 'in-stock').length;
+    if (totalValEl) {
+        totalValEl.textContent = `${currency} ${totalVal.toLocaleString('it-IT', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+    }
+    if (inStockEl) inStockEl.textContent = inStockCount;
     if (outOfStockEl) outOfStockEl.textContent = outOfStockCount;
+
+    // Calcolo Categorie attive reali
+    const catSet = new Set();
+    roleProducts.forEach(p => {
+        if (p.category && p.category.trim()) {
+            catSet.add(p.category.trim());
+        }
+    });
+    const categoriesCount = catSet.size > 0 ? catSet.size : (appData.categories ? appData.categories.length : 0);
+    if (categoriesEl) categoriesEl.textContent = categoriesCount;
 
     const roleLabel = getRoleLabel();
     const statCardsSub = document.querySelectorAll('.stat-card .stat-subtitle');
