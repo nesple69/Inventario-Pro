@@ -26,7 +26,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=72">
+    <link rel="stylesheet" href="styles.css?v=73">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1201,7 +1201,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=72"></script>
+    <script src="app.js?v=73"></script>
 
     <!-- MODALE SINCRONIZZAZIONE MULTI-DISPOSITIVO (CLOUD & CODICE) -->
     <div class="modal" id="cloudSyncModal">
@@ -1275,6 +1275,35 @@
             </div>
         </div>
     </div>
+
+
+    <!-- STRISCIA DI NAVIGAZIONE FISSA IN BASSO (VERSIONE MOBILE TELEFONO) -->
+    <nav class="mobile-bottom-bar" id="mobileBottomBar">
+        <button class="nav-tab active" id="mob-nav-dashboard" onclick="showTab('dashboard')">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </button>
+        <button class="nav-tab" id="mob-nav-inventory" onclick="showTab('monthly-inventory')">
+            <i class="fas fa-clipboard-check"></i>
+            <span>Inventario</span>
+        </button>
+        <button class="nav-tab" id="mob-nav-products" onclick="showTab('products')">
+            <i class="fas fa-box"></i>
+            <span>Catalogo</span>
+        </button>
+        <button class="nav-tab admin-only" id="mob-nav-categories" onclick="showTab('categories')">
+            <i class="fas fa-tags"></i>
+            <span>Categorie</span>
+        </button>
+        <button class="nav-tab admin-only" id="mob-nav-suppliers" onclick="showTab('suppliers')">
+            <i class="fas fa-truck-moving"></i>
+            <span>Fornitori</span>
+        </button>
+        <button class="nav-tab admin-only" id="mob-nav-reports" onclick="showTab('reports')">
+            <i class="fas fa-chart-pie"></i>
+            <span>Report</span>
+        </button>
+    </nav>
 
 </body>
 

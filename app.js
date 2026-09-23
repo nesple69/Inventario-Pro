@@ -5549,7 +5549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v72';
+const CURRENT_APP_BUILD = 'v73';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5597,7 +5597,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=72')
+        navigator.serviceWorker.register('sw.js?v=73')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -5620,8 +5620,7 @@ function showTab(tabName) {
     const targetTab = document.getElementById(`${tabName}-tab`);
     if (targetTab) targetTab.classList.add('active');
 
-    const activeBtn = document.querySelector(`.nav-tab[onclick="showTab('${tabName}')"]`);
-    if (activeBtn) activeBtn.classList.add('active');
+    document.querySelectorAll(`.nav-tab[onclick*="showTab('${tabName}')"]`).forEach(btn => btn.classList.add('active'));
 
     if (tabName === 'dashboard') {
         updateStatistics();
