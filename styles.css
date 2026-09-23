@@ -1552,3 +1552,75 @@ body:not(.role-admin) .mobile-bottom-bar .nav-tab.admin-only {
         font-size: 0.58rem !important;
     }
 }
+
+
+/* ==========================================
+   🔴🟢 INVENTORY VERIFICATION ROW HIGHLIGHTS
+   ========================================== */
+tr.row-unverified {
+    background-color: #fff1f2 !important;
+    border-left: 5px solid #ef4444 !important;
+    transition: background-color 0.3s ease;
+}
+
+tr.row-unverified td {
+    background-color: #fff1f2 !important;
+}
+
+tr.row-unverified:hover td {
+    background-color: #ffe4e6 !important;
+}
+
+tr.row-verified {
+    background-color: #f0fdf4 !important;
+    border-left: 5px solid #10b981 !important;
+    transition: background-color 0.3s ease;
+}
+
+tr.row-verified td {
+    background-color: #f0fdf4 !important;
+}
+
+tr.row-verified:hover td {
+    background-color: #dcfce7 !important;
+}
+
+.inventory-filter-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.inventory-filter-pill {
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--dark);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+}
+
+.inventory-filter-pill.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+}
+
+.inventory-filter-pill.pill-unverified.active {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #ffffff;
+}
+
+.inventory-filter-pill.pill-verified.active {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+}

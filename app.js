@@ -5590,35 +5590,59 @@ function getOperatorName() {
     }
 }
 
+
+// Set di ID prodotti verificati durante la sessione di inventario
+let activeVerifiedProductIds = new Set();
+let currentVerificationFilter = 'all'; // 'all', 'unverified', 'verified'
+
+function setVerificationFilter(filterType) {
+    currentVerificationFilter = filterType;
+    document.querySelectorAll('.inventory-filter-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filterType);
+    });
+    renderMonthlyInventoryTable();
+}
+
+function markProductAsVerified(productId) {
+    activeVerifiedProductIds.add(productId);
+    const row = document.getElementById(`inventory-row-${productId}`);
+    if (row) {
+        row.classList.remove('row-unverified');
+        row.classList.add('row-verified');
+        const badge = document.getElementById(`verify-badge-${productId}`);
+        if (badge) {
+            badge.className = 'badge badge-success';
+            badge.style.cssText = 'background: #dcfce7; color: #16a34a; font-weight: 700;';
+            badge.innerHTML = '<i class="fas fa-check-circle"></i> Verificato';
+        }
+    }
+    updateMonthlyStats();
+}
+
+function confirmZeroQuantity(productId) {
+    updateMonthlyQuantity(productId, 0);
+    markProductAsVerified(productId);
+    showNotification('Prodotto verificato: confermata quantità 0', 'info', 'Verificato');
+}
+
+function deleteProductFromInventory(productId, productName) {
+    if (confirm(`Confermi di voler eliminare definitivamente "${productName}" dal magazzino e dal catalogo perché non più presente?`)) {
+        appData.products = (appData.products || []).filter(p => p.id !== productId);
+        activeVerifiedProductIds.delete(productId);
+        saveToCloud();
+        updateAll();
+        showNotification(`Prodotto "${productName}" eliminato dal catalogo!`, 'info', 'Magazzino Aggiornato');
+    }
+}
+
 function startGuidedInventory() {
     const roleLabel = getRoleLabel();
-    const opName = getOperatorName();
     
-    // 1. Salva automaticamente uno snapshot di sicurezza del vecchio inventario
-    const oldProducts = getProductsForRole(currentRole);
-    if (oldProducts.length > 0) {
-        if (!appData.monthlySnapshots) appData.monthlySnapshots = [];
-        appData.monthlySnapshots.push({
-            id: Date.now() - 1000,
-            date: new Date().toISOString(),
-            department: currentRole,
-            operator: `${opName} (Pre-Conteggio)`,
-            productsCount: oldProducts.filter(p => p.quantity > 0).length,
-            totalValue: oldProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0),
-            products: JSON.parse(JSON.stringify(oldProducts))
-        });
-    }
+    // Inizializza la sessione di verifica attiva (tutti i prodotti partono come da verificare / evidenziati in rosso)
+    activeVerifiedProductIds = new Set();
+    currentVerificationFilter = 'all';
 
-    // 2. Azzera le quantità per il reparto attivo
-    const targetProducts = getProductsForRole(currentRole);
-    targetProducts.forEach(p => {
-        p.quantity = 0;
-        p.status = 'out-of-stock';
-    });
-
-    saveToCloud();
-
-    // 3. Vai alla scheda inventario
+    // Vai alla schermata di inventario
     showTab('monthly-inventory');
     if (currentRole === 'cucina' || currentRole === 'bar' || currentRole === 'bowling') {
         setDepartmentFilter(currentRole);
@@ -5627,15 +5651,25 @@ function startGuidedInventory() {
     }
 
     updateAll();
-    showNotification(`Nuovo inventario ${roleLabel} avviato: quantità azzerate a 0 per compilare rapidamente!`, 'success');
+    showNotification(`Conteggio ${roleLabel} avviato: inserisci o conferma le quantità per ogni prodotto!`, 'info', `Inventario ${roleLabel}`);
 }
 
 function completeAndSaveInventory() {
     const roleLabel = getRoleLabel();
     const opName = getOperatorName();
     const relevantProducts = getProductsForRole(currentRole);
-    const countedProducts = relevantProducts.filter(p => p.quantity > 0);
-    const totalVal = relevantProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0);
+    
+    const unverifiedCount = relevantProducts.filter(p => !activeVerifiedProductIds.has(p.id)).length;
+    if (unverifiedCount > 0) {
+        if (!confirm(`Attenzione: ci sono ancora ${unverifiedCount} prodotti evidenziati in ROSSO non verificati.
+
+Vuoi concludere e salvare comunque l'inventario?`)) {
+            return;
+        }
+    }
+
+    const countedProducts = relevantProducts.filter(p => (parseFloat(p.quantity) || 0) > 0);
+    const totalVal = relevantProducts.reduce((sum, p) => sum + ((parseFloat(p.quantity) || 0) * (parseFloat(p.price) || 0)), 0);
 
     const snapshot = {
         id: Date.now(),
@@ -5661,7 +5695,7 @@ function completeAndSaveInventory() {
     updateAll();
     renderDashboardRecentSnapshots();
     renderDepartmentStatusBox();
-    showNotification(`🎉 Inventario ${roleLabel} salvato con successo nell'archivio!`, 'success');
+    showNotification(`🎉 Inventario di ${roleLabel} salvato con successo nell'archivio!`, 'success', 'Inventario Completato');
 }
 
 function createMonthlySnapshot() {
@@ -5757,7 +5791,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v81';
+const CURRENT_APP_BUILD = 'v82';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5829,7 +5863,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=81')
+        navigator.serviceWorker.register('sw.js?v=82')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -6455,13 +6489,38 @@ function updateMonthlyQuantity(productId, newQty) {
     if (product) {
         product.quantity = val;
         product.status = val > 10 ? 'in-stock' : (val > 0 ? 'low-stock' : 'out-of-stock');
+        
+        // Segna come verificato nella sessione attiva
+        markProductAsVerified(productId);
+        
         saveToCloud();
         
-        // Aggiorna indicatori live senza re-render
         const inputEl = document.getElementById(`qty-input-${productId}`);
         const displayEl = document.getElementById(`qty-val-${productId}`);
         if (inputEl && inputEl.value !== String(val)) inputEl.value = val;
         if (displayEl) displayEl.textContent = val;
+        
+        updateMonthlyStats();
+    }
+}
+
+function stepMonthlyQuantity(productId, delta) {
+    const product = (appData.products || []).find(p => p.id === productId);
+    if (product) {
+        const current = parseFloat(product.quantity) || 0;
+        const newQty = Math.max(0, roundToDecimals(current + delta, 3));
+        product.quantity = newQty;
+        product.status = newQty > 10 ? 'in-stock' : (newQty > 0 ? 'low-stock' : 'out-of-stock');
+        
+        // Segna come verificato nella sessione attiva
+        markProductAsVerified(productId);
+        
+        saveToCloud();
+        
+        const inputEl = document.getElementById(`qty-input-${productId}`);
+        const displayEl = document.getElementById(`qty-val-${productId}`);
+        if (inputEl) inputEl.value = newQty;
+        if (displayEl) displayEl.textContent = newQty;
         
         updateMonthlyStats();
     }
@@ -6533,34 +6592,56 @@ function renderMonthlyInventoryTable() {
         );
     }
 
+    // Filtro per stato di verifica (Tutti, Da Verificare in Rosso, Verificati in Verde)
+    if (currentVerificationFilter === 'unverified') {
+        filtered = filtered.filter(p => !activeVerifiedProductIds.has(p.id));
+    } else if (currentVerificationFilter === 'verified') {
+        filtered = filtered.filter(p => activeVerifiedProductIds.has(p.id));
+    }
+
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 2rem;">Nessun prodotto trovato per questo reparto</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 2.5rem;">
+            <i class="fas fa-check-circle" style="font-size: 2rem; color: #10b981; margin-bottom: 0.5rem; display: block;"></i>
+            Nessun prodotto corrisponde ai filtri selezionati.
+        </td></tr>`;
         return;
     }
 
     tbody.innerHTML = filtered.map(p => {
         const qty = p.quantity !== undefined ? p.quantity : 0;
+        const isVerified = activeVerifiedProductIds.has(p.id);
+        const escapedName = (p.name || '').replace(/'/g, "\'");
+
         return `
-            <tr>
+            <tr id="inventory-row-${p.id}" class="${isVerified ? 'row-verified' : 'row-unverified'}">
                 <td>
-                    <div style="font-weight: 700; color: var(--dark); font-size: 0.95rem;">${p.name}</div>
-                    <div style="font-size: 0.8rem; color: var(--gray);">${p.supplier || 'N/D'} · ${p.subcategory || p.category || ''}</div>
-                </td>
-                <td><span class="badge ${getDepartmentBadgeClass(p.department)}">${getDepartmentIcon(p.department)}</span></td>
-                <td>${p.category || '-'}</td>
-                <td style="text-align: center;">
-                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #f8fafc; padding: 4px 8px; border-radius: 10px; border: 1px solid var(--border);">
-                        <button type="button" class="btn btn-outline" style="min-width: 38px; height: 38px; padding: 0; font-size: 1.1rem; font-weight: bold; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: white; cursor: pointer;" onclick="stepMonthlyQuantity(${p.id}, -1)">-</button>
-                        <input type="number" id="qty-input-${p.id}" class="form-input" style="width: 75px; text-align: center; font-weight: 700; font-size: 1.1rem; padding: 0.4rem; border-radius: 8px;" min="0" step="any" value="${qty}" oninput="updateMonthlyQuantity(${p.id}, this.value)">
-                        <button type="button" class="btn btn-outline" style="min-width: 38px; height: 38px; padding: 0; font-size: 1.1rem; font-weight: bold; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: white; cursor: pointer;" onclick="stepMonthlyQuantity(${p.id}, 1)">+</button>
+                    <div style="font-weight: 700; color: var(--dark); font-size: 0.98rem; display: flex; align-items: center; gap: 6px;">
+                        <span>${p.name}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--gray); margin-top: 2px;">
+                        ${p.supplier ? `🚚 ${p.supplier}` : ''} ${p.subcategory ? `· ${p.subcategory}` : ''}
                     </div>
                 </td>
-                <td>${p.unit || 'pz'}</td>
-                <td><span class="badge ${getStatusBadgeClass(p.status)}"><i class="fas ${getStatusIcon(p.status)}"></i> <span id="qty-val-${p.id}">${qty}</span></span></td>
+                <td><span class="badge ${getDepartmentBadgeClass(p.department)}">${getDepartmentIcon(p.department)}</span></td>
+                <td><span style="font-weight: 500; font-size: 0.85rem;">${p.category || '-'}</span></td>
+                <td style="text-align: center;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #ffffff; padding: 4px 8px; border-radius: 10px; border: 1px solid ${isVerified ? '#86efac' : '#fca5a5'}; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+                        <button type="button" class="btn btn-outline" style="min-width: 36px; height: 36px; padding: 0; font-size: 1.1rem; font-weight: bold; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: #f8fafc; cursor: pointer;" onclick="stepMonthlyQuantity(${p.id}, -1)">-</button>
+                        <input type="number" id="qty-input-${p.id}" class="form-input" style="width: 75px; text-align: center; font-weight: 800; font-size: 1.1rem; padding: 0.4rem; border-radius: 8px; border: 1px solid ${isVerified ? '#86efac' : '#f87171'};" min="0" step="any" value="${qty}" oninput="updateMonthlyQuantity(${p.id}, this.value)">
+                        <button type="button" class="btn btn-outline" style="min-width: 36px; height: 36px; padding: 0; font-size: 1.1rem; font-weight: bold; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: #f8fafc; cursor: pointer;" onclick="stepMonthlyQuantity(${p.id}, 1)">+</button>
+                    </div>
+                </td>
+                <td><strong>${p.unit || 'pz'}</strong></td>
                 <td>
-                    <div class="table-actions">
-                        <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Modifica Veloce" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
-                        <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Completa"><i class="fas fa-edit"></i></button>
+                    <span id="verify-badge-${p.id}" class="badge ${isVerified ? 'badge-success' : 'badge-danger'}" style="${isVerified ? 'background: #dcfce7; color: #16a34a; font-weight: 700;' : 'background: #fee2e2; color: #dc2626; font-weight: 700;'}">
+                        <i class="fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                        ${isVerified ? 'Verificato' : 'Da Verificare'}
+                    </span>
+                </td>
+                <td>
+                    <div class="table-actions" style="display: flex; gap: 4px; align-items: center;">
+                        ${!isVerified ? `<button class="btn btn-outline btn-sm" onclick="confirmZeroQuantity(${p.id})" title="Conferma che la giacenza è 0" style="padding: 0.35rem 0.6rem; font-size: 0.78rem; font-weight: 600; border-radius: 8px; white-space: nowrap; color: #475569;"><i class="fas fa-check"></i> È 0</button>` : ''}
+                        <button class="action-btn delete" onclick="deleteProductFromInventory(${p.id}, '${escapedName}')" title="Non più in magazzino? Elimina definitivamente dal catalogo" style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border-radius: 8px; padding: 0.45rem 0.6rem;"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </td>
             </tr>`;
@@ -6595,14 +6676,14 @@ function updateMonthlyStats() {
         relevant = getProductsForRole(currentRole);
     }
 
-    const counted = relevant.filter(p => p.quantity > 0).length;
-    const remaining = relevant.length - counted;
+    const totalCount = relevant.length;
+    const verifiedCount = relevant.filter(p => activeVerifiedProductIds.has(p.id)).length;
+    const unverifiedCount = Math.max(0, totalCount - verifiedCount);
 
     const countedEl = document.getElementById('monthlyCountedProducts');
     const remainingEl = document.getElementById('monthlyRemainingProducts');
-
-    if (countedEl) countedEl.textContent = counted;
-    if (remainingEl) remainingEl.textContent = remaining;
+    if (countedEl) countedEl.textContent = `${verifiedCount} / ${totalCount}`;
+    if (remainingEl) remainingEl.textContent = unverifiedCount;
 }
 
 function showResetQuantitiesModal() {
