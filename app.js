@@ -5367,15 +5367,15 @@ function updateStartInventoryBanner() {
         startBanner.style.border = 'none';
 
         if (startTitle) {
-            startTitle.innerHTML = `🚀 Inizia Inventario ${deptName}`;
+            startTitle.innerHTML = `🚀 Inizia Inventario ${deptName} — Scadenza: 31 Ottobre`;
         }
         if (startSubtitle) {
-            startSubtitle.innerHTML = `Prossimo inventario obbligatorio: <strong>${info.currentDeadlineName}</strong> (mancano <strong>${info.daysUntilCurrent} giorni</strong>). Avvia il conteggio rapido delle giacenze.`;
+            startSubtitle.innerHTML = `Prossima scadenza fissata a <strong>Fine Ottobre (31/10/2026)</strong> — mancano <strong>${info.daysUntilCurrent} giorni</strong>. Registra le giacenze per il bimestre Settembre - Ottobre.`;
         }
         if (actionBtn) {
             actionBtn.style.background = '#ffffff';
             actionBtn.style.color = '#4361ee';
-            actionBtn.innerHTML = `<i class="fas fa-clipboard-check" style="margin-right: 0.5rem; color: #4361ee;"></i>Inizia Conteggio`;
+            actionBtn.innerHTML = `<i class="fas fa-clipboard-check" style="margin-right: 0.5rem; color: #4361ee;"></i>Inizia Conteggio Ottobre`;
         }
     }
 }
@@ -5542,7 +5542,7 @@ function renderDepartmentStatusBox() {
                             ${isDone ? `Ultimo: ${lastDateFormatted} (${productsCountText})` : (info.lastSnap ? `Ultimo: ${lastDateFormatted}` : 'Nessun inventario registrato')}
                         </div>
                         <div style="font-size: 0.76rem; color: ${isOverdue ? '#dc2626; font-weight: 600;' : 'var(--gray);'} margin-top: 2px;">
-                            ${isOverdue ? `⚠️ Scadenza: ${info.overdueDeadlineName}` : `📅 Prossimo: ${info.nextDeadlineName}`}
+                            ${isOverdue ? `⚠️ Scadenza saltata: ${info.overdueDeadlineName}` : `📅 Scadenza: 31 Ottobre 2026 (${info.daysUntilCurrent}gg rimanenti)`}
                         </div>
                     </div>
                 </div>
@@ -5749,7 +5749,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v77';
+const CURRENT_APP_BUILD = 'v78';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5821,7 +5821,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=77')
+        navigator.serviceWorker.register('sw.js?v=78')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
