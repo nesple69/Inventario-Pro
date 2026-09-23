@@ -1,15 +1,21 @@
 {
-  "name": "Inventario Pro Premium",
-  "short_name": "Inventario Pro",
-  "description": "Sistema avanzato di gestione magazzino con sincronizzazione Cloud",
-  "start_url": "/",
-  "display": "fullscreen",
+  "name": "Bowling Valdera - Inventario",
+  "short_name": "Inventario",
+  "description": "Sistema di gestione magazzino e inventario per Bowling Valdera",
+  "start_url": "./index.html",
+  "display": "standalone",
   "background_color": "#f0f2f5",
-  "theme_color": "#1a1c23",
+  "theme_color": "#1e5b38",
   "orientation": "any",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2897/2897785.png",
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

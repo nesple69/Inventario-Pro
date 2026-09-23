@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Inventario Pro | Gestione Magazzino</title>
+    <title>Bowling Valdera | Inventario Magazzino</title>
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -16,13 +16,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- PWA Settings -->
+        <!-- Favicon & Apple Touch Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="apple-touch-icon.png">
+    <link rel="shortcut icon" href="favicon.ico">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1c23">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=71">
+    <link rel="stylesheet" href="styles.css?v=72">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -30,11 +34,11 @@
 <body>
     <div class="app-container">
         <header class="app-header">
-            <div class="logo" onclick="showTab('dashboard')" style="cursor: pointer;" title="Vai alla Home">
-                <div class="logo-icon"><i class="fas fa-boxes"></i></div>
+            <div class="logo" onclick="showTab('dashboard')" style="cursor: pointer; display: flex; align-items: center; gap: 0.75rem;" title="Vai alla Home">
+                <img src="logo.png" alt="Bowling Valdera Inventario" class="app-logo-img">
                 <div class="logo-text">
-                    <h1>Inventario Pro</h1>
-                    <p>Magazzino</p>
+                    <h1 style="font-size: 1.15rem; font-weight: 800; letter-spacing: -0.3px; margin: 0; line-height: 1.2;">Bowling Valdera</h1>
+                    <p style="font-size: 0.78rem; opacity: 0.9; margin: 0; color: rgba(255,255,255,0.85);">Inventario Magazzino</p>
                 </div>
             </div>
 
@@ -1197,7 +1201,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=71"></script>
+    <script src="app.js?v=72"></script>
 
     <!-- MODALE SINCRONIZZAZIONE MULTI-DISPOSITIVO (CLOUD & CODICE) -->
     <div class="modal" id="cloudSyncModal">

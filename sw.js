@@ -1,9 +1,14 @@
-const CACHE_NAME = 'inventario-pro-v71';
+const CACHE_NAME = 'inventario-pro-v72';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
+  './logo.png',
+  './icon-192.png',
+  './icon-512.png',
+  './favicon.png',
+  './apple-touch-icon.png',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js',
