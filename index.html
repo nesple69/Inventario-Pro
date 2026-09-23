@@ -9,7 +9,7 @@
         <!-- Styles & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=81">
+    <link rel="stylesheet" href="styles.css?v=83">
 
     <!-- Favicon & PWA Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
@@ -587,18 +587,15 @@
                     </div>
 
                     <div class="card">
-                        <!-- Department Selector -->
-                        <div class="department-selector"
-                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                        <!-- Department Selector (SOLO ADMIN) -->
+                        <div class="department-selector admin-only" id="monthlyDepartmentSelector"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
                             <div>
-                                <span style="font-weight: 600; color: var(--gray); margin-right: 0.5rem;">Filtra
-                                    Reparto:</span>
-                                <button class="department-btn active" onclick="setDepartmentFilter('tutti')"
-                                    id="dept-btn-tutti">
+                                <span style="font-weight: 600; color: var(--gray); margin-right: 0.5rem;">Filtra Reparto:</span>
+                                <button class="department-btn active" onclick="setDepartmentFilter('tutti')" id="dept-btn-tutti">
                                     <i class="fas fa-layer-group"></i> Tutti
                                 </button>
-                                <button class="department-btn" onclick="setDepartmentFilter('cucina')"
-                                    id="dept-btn-cucina">
+                                <button class="department-btn" onclick="setDepartmentFilter('cucina')" id="dept-btn-cucina">
                                     <i class="fas fa-utensils"></i> 🍴 Cucina
                                 </button>
                                 <button class="department-btn" onclick="setDepartmentFilter('bar')" id="dept-btn-bar">
@@ -610,15 +607,6 @@
                                 <button class="department-btn" onclick="setDepartmentFilter('consumabili')" id="dept-btn-consumabili">
                                     <i class="fas fa-box"></i> 📦 Consumabili (Entrambi)
                                 </button>
-                            </div>
-                            <div
-                                style="display: flex; align-items: center; gap: 0.5rem; background: var(--light); padding: 0.3rem 0.8rem; border-radius: 20px; border: 1px solid var(--border);">
-                                <i class="fas fa-tags" style="color: var(--primary);"></i>
-                                <select id="monthlyCategoryFilter" class="form-select"
-                                    onchange="filterMonthlyInventory()"
-                                    style="border: none; background: transparent; padding: 0.2rem; min-width: 150px; font-weight: 500; font-size: 0.95rem; cursor: pointer;">
-                                    <option value="">Tutte le Categorie</option>
-                                </select>
                             </div>
                         </div>
 
@@ -1315,7 +1303,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=81"></script>
+    <script src="app.js?v=83"></script>
 </body>
 
 </html>

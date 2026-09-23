@@ -5791,7 +5791,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v82';
+const CURRENT_APP_BUILD = 'v83';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5863,7 +5863,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=82')
+        navigator.serviceWorker.register('sw.js?v=83')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
@@ -6555,28 +6555,15 @@ function renderMonthlyInventoryTable() {
     const catSelect = document.getElementById('monthlyCategoryFilter');
     const selectedCategory = catSelect ? catSelect.value : '';
 
-    let filtered = appData.products || [];
-
-    if (currentMonthlyDepartment !== 'tutti') {
-        filtered = filtered.filter(p => {
-            const pDept = (p.department || '').toLowerCase();
-            const pCat = (p.category || '').toLowerCase();
-            if (currentMonthlyDepartment === 'cucina') {
-                return pDept === 'cucina' || (pDept === '' && pCat === 'cucina') || pDept === 'entrambi' || pDept === 'tutti';
-            }
-            if (currentMonthlyDepartment === 'bar') {
-                return pDept === 'bar' || (pDept === '' && pCat === 'beverage') || pDept === 'entrambi' || pDept === 'tutti';
-            }
-            if (currentMonthlyDepartment === 'bowling') {
-                return pDept === 'bowling' || (pDept === '' && pCat === 'bowling') || pDept === 'entrambi' || pDept === 'tutti';
-            }
-            if (currentMonthlyDepartment === 'consumabili' || currentMonthlyDepartment === 'entrambi') {
-                return pDept === 'entrambi' || (pDept !== 'cucina' && pDept !== 'bar' && pDept !== 'bowling');
-            }
-            return true;
-        });
-    } else if (currentRole !== 'admin') {
+    let filtered = [];
+    if (currentRole !== 'admin') {
         filtered = getProductsForRole(currentRole);
+    } else {
+        if (currentMonthlyDepartment !== 'tutti') {
+            filtered = getProductsForRole(currentMonthlyDepartment);
+        } else {
+            filtered = appData.products || [];
+        }
     }
 
     if (selectedCategory) {
@@ -6653,27 +6640,15 @@ function filterMonthlyInventory() {
 }
 
 function updateMonthlyStats() {
-    let relevant = appData.products || [];
-    if (currentMonthlyDepartment !== 'tutti') {
-        relevant = relevant.filter(p => {
-            const pDept = (p.department || '').toLowerCase();
-            const pCat = (p.category || '').toLowerCase();
-            if (currentMonthlyDepartment === 'cucina') {
-                return pDept === 'cucina' || (pDept === '' && pCat === 'cucina') || pDept === 'entrambi' || pDept === 'tutti';
-            }
-            if (currentMonthlyDepartment === 'bar') {
-                return pDept === 'bar' || (pDept === '' && pCat === 'beverage') || pDept === 'entrambi' || pDept === 'tutti';
-            }
-            if (currentMonthlyDepartment === 'bowling') {
-                return pDept === 'bowling' || (pDept === '' && pCat === 'bowling') || pDept === 'entrambi' || pDept === 'tutti';
-            }
-            if (currentMonthlyDepartment === 'consumabili' || currentMonthlyDepartment === 'entrambi') {
-                return pDept === 'entrambi' || (pDept !== 'cucina' && pDept !== 'bar' && pDept !== 'bowling');
-            }
-            return true;
-        });
-    } else if (currentRole !== 'admin') {
+    let relevant = [];
+    if (currentRole !== 'admin') {
         relevant = getProductsForRole(currentRole);
+    } else {
+        if (currentMonthlyDepartment !== 'tutti') {
+            relevant = getProductsForRole(currentMonthlyDepartment);
+        } else {
+            relevant = appData.products || [];
+        }
     }
 
     const totalCount = relevant.length;
