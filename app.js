@@ -5153,59 +5153,227 @@ function getProductsForRole(role = currentRole) {
     return all;
 }
 
+
+const FIXED_INVENTORY_SCHEDULE = [
+    { monthIndex: 1, name: 'Febbraio', shortName: 'Feb' },  // Fine Febbraio
+    { monthIndex: 3, name: 'Aprile', shortName: 'Apr' },    // Fine Aprile
+    { monthIndex: 5, name: 'Giugno', shortName: 'Giu' },    // Fine Giugno
+    { monthIndex: 7, name: 'Agosto', shortName: 'Ago' },    // Fine Agosto
+    { monthIndex: 9, name: 'Ottobre', shortName: 'Ott' },   // Fine Ottobre
+    { monthIndex: 11, name: 'Dicembre', shortName: 'Dic' }  // Fine Dicembre
+];
+
+function getBiMonthlyScheduleInfo(role = currentRole) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+
+    // Costruisci le scadenze (fine mese 23:59:59)
+    const allDeadlines = [];
+    
+    // Anno precedente (Dicembre)
+    allDeadlines.push({
+        name: 'Fine Dicembre ' + (currentYear - 1),
+        monthName: 'Dicembre',
+        date: new Date(currentYear - 1, 12, 0, 23, 59, 59),
+        cycleStart: new Date(currentYear - 1, 10, 1, 0, 0, 0)
+    });
+
+    // Anno corrente (Feb, Apr, Giu, Ago, Ott, Dic)
+    FIXED_INVENTORY_SCHEDULE.forEach(s => {
+        allDeadlines.push({
+            name: `Fine ${s.name}`,
+            monthName: s.name,
+            date: new Date(currentYear, s.monthIndex + 1, 0, 23, 59, 59),
+            cycleStart: new Date(currentYear, s.monthIndex - 1, 1, 0, 0, 0)
+        });
+    });
+
+    // Anno successivo (Febbraio)
+    allDeadlines.push({
+        name: 'Fine Febbraio ' + (currentYear + 1),
+        monthName: 'Febbraio',
+        date: new Date(currentYear + 1, 2, 0, 23, 59, 59),
+        cycleStart: new Date(currentYear + 1, 0, 1, 0, 0, 0)
+    });
+
+    // Snapshots del reparto
+    const targetDept = (role || 'cucina').toLowerCase();
+    const snapshots = (appData.monthlySnapshots || []).filter(s => {
+        const d = (s.department || '').toLowerCase();
+        const op = (s.operator || '').toLowerCase();
+        return d === targetDept || op.includes(targetDept) || d === 'tutti';
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const lastSnap = snapshots[0];
+    const lastSnapDate = lastSnap ? new Date(lastSnap.date) : null;
+
+    // Scadenza del ciclo corrente (in cui ci troviamo oggi)
+    let currentCycle = allDeadlines.find(d => now >= d.cycleStart && now <= d.date);
+    if (!currentCycle) {
+        currentCycle = allDeadlines.find(d => d.date >= now) || allDeadlines[allDeadlines.length - 1];
+    }
+
+    // Ultima scadenza passata nel tempo
+    const pastDeadlines = allDeadlines.filter(d => d.date < now);
+    const lastPassedDeadline = pastDeadlines[pastDeadlines.length - 1];
+
+    // L'inventario per il ciclo corrente è fatto se c'è uno snapshot registrato dopo l'inizio del ciclo corrente
+    const isDoneForCurrentCycle = !!(lastSnapDate && (lastSnapDate >= currentCycle.cycleStart));
+
+    // È scaduto/in ritardo se l'ultima scadenza passata non ha alcuno snapshot nel suo ciclo e non è stato fatto neanche dopo
+    let isOverdue = false;
+    let overdueDeadlineName = '';
+    let overdueDays = 0;
+
+    if (lastPassedDeadline) {
+        if (!lastSnapDate || lastSnapDate < lastPassedDeadline.cycleStart) {
+            isOverdue = true;
+            overdueDeadlineName = lastPassedDeadline.name;
+            const diffMs = now - lastPassedDeadline.date;
+            overdueDays = Math.max(1, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+        }
+    }
+
+    // Giorni rimanenti alla scadenza corrente
+    const msUntilCurrent = currentCycle.date - now;
+    const daysUntilCurrent = Math.max(0, Math.ceil(msUntilCurrent / (1000 * 60 * 60 * 24)));
+
+    // Prossima scadenza da mostrare
+    const nextTargetDeadline = isDoneForCurrentCycle
+        ? (allDeadlines.find(d => d.date > currentCycle.date) || currentCycle)
+        : currentCycle;
+
+    const daysUntilNext = Math.max(0, Math.ceil((nextTargetDeadline.date - now) / (1000 * 60 * 60 * 24)));
+
+    return {
+        isOverdue,
+        overdueDeadlineName,
+        overdueDays,
+        isDoneForCurrentCycle,
+        currentDeadlineName: currentCycle.name,
+        daysUntilCurrent,
+        nextDeadlineName: nextTargetDeadline.name,
+        daysUntilNext,
+        lastSnap,
+        lastSnapDate
+    };
+}
+
+function updateStartInventoryBanner() {
+    const startBanner = document.getElementById('startInventoryBanner');
+    if (!startBanner) return;
+
+    if (currentRole === 'admin') {
+        startBanner.style.display = 'none';
+        return;
+    }
+
+    startBanner.style.display = 'block';
+    const deptName = currentRole === 'cucina' ? 'Cucina' : currentRole === 'bar' ? 'Bar' : currentRole === 'bowling' ? 'Bowling' : currentRole;
+    const info = getBiMonthlyScheduleInfo(currentRole);
+
+    const startTitle = document.getElementById('startInventoryBannerTitle');
+    const startSubtitle = document.getElementById('startInventoryBannerSubtitle');
+    const badgeRole = document.getElementById('bannerRoleBadge');
+
+    if (badgeRole) {
+        const icon = currentRole === 'cucina' ? '🍳' : currentRole === 'bar' ? '🍹' : '🎳';
+        badgeRole.textContent = `${icon} Operatore ${deptName}`;
+    }
+
+    const actionBtn = startBanner.querySelector('button');
+
+    if (info.isOverdue) {
+        // 🚨 STATO ROSSO - INVENTARIO SCADUTO / ERRORE
+        startBanner.style.background = 'linear-gradient(135deg, #ef233c 0%, #b91c1c 100%)';
+        startBanner.style.boxShadow = '0 8px 24px rgba(220, 38, 38, 0.45)';
+        startBanner.style.border = '2px solid #fca5a5';
+
+        if (startTitle) {
+            startTitle.innerHTML = `<i class="fas fa-exclamation-triangle" style="margin-right: 6px;"></i> INVENTARIO SCADUTO - ${deptName.toUpperCase()}`;
+        }
+        if (startSubtitle) {
+            startSubtitle.innerHTML = `L'inventario di <strong>${info.overdueDeadlineName}</strong> è scaduto da <strong>${info.overdueDays} ${info.overdueDays === 1 ? 'giorno' : 'giorni'}</strong> e non risulta completato! È obbligatorio registrare le giacenze adesso.`;
+        }
+        if (actionBtn) {
+            actionBtn.style.background = '#ffffff';
+            actionBtn.style.color = '#b91c1c';
+            actionBtn.innerHTML = `<i class="fas fa-exclamation-circle" style="margin-right: 0.5rem; color: #b91c1c;"></i>Esegui Subito`;
+        }
+    } else if (info.isDoneForCurrentCycle) {
+        // ✅ STATO VERDE - COMPLETATO PER IL CICLO CORRENTE
+        startBanner.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+        startBanner.style.boxShadow = '0 8px 24px rgba(5, 150, 105, 0.35)';
+        startBanner.style.border = 'none';
+
+        const lastDateFormatted = info.lastSnapDate ? info.lastSnapDate.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+
+        if (startTitle) {
+            startTitle.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 6px;"></i> Inventario ${deptName} in Regola`;
+        }
+        if (startSubtitle) {
+            startSubtitle.innerHTML = `Ultimo conteggio salvato: <strong>${lastDateFormatted}</strong>. Prossimo inventario obbligatorio: <strong>${info.nextDeadlineName}</strong> (mancano <strong>${info.daysUntilNext} giorni</strong>).`;
+        }
+        if (actionBtn) {
+            actionBtn.style.background = '#ffffff';
+            actionBtn.style.color = '#059669';
+            actionBtn.innerHTML = `<i class="fas fa-redo-alt" style="margin-right: 0.5rem; color: #059669;"></i>Riesegui Conteggio`;
+        }
+    } else {
+        // ⏳ STATO BLU / STANDARD - IN ATTESA DI INVENTARIO
+        startBanner.style.background = 'linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%)';
+        startBanner.style.boxShadow = '0 8px 24px rgba(67, 97, 238, 0.25)';
+        startBanner.style.border = 'none';
+
+        if (startTitle) {
+            startTitle.innerHTML = `🚀 Inizia Inventario ${deptName}`;
+        }
+        if (startSubtitle) {
+            startSubtitle.innerHTML = `Prossimo inventario obbligatorio: <strong>${info.currentDeadlineName}</strong> (mancano <strong>${info.daysUntilCurrent} giorni</strong>). Avvia il conteggio rapido delle giacenze.`;
+        }
+        if (actionBtn) {
+            actionBtn.style.background = '#ffffff';
+            actionBtn.style.color = '#4361ee';
+            actionBtn.innerHTML = `<i class="fas fa-clipboard-check" style="margin-right: 0.5rem; color: #4361ee;"></i>Inizia Conteggio`;
+        }
+    }
+}
+
 function applyRolePermissions() {
     document.body.classList.remove('role-admin', 'role-cucina', 'role-bar', 'role-bowling');
     document.body.classList.add(`role-${currentRole}`);
 
     const userProfileIcon = document.getElementById('userProfileIcon');
     const userProfileName = document.getElementById('userProfileName');
-    const bannerRoleBadge = document.getElementById('bannerRoleBadge');
-    const startTitle = document.getElementById('startInventoryBannerTitle');
-    const startSubtitle = document.getElementById('startInventoryBannerSubtitle');
     const dashMainTitle = document.getElementById('dashboardMainTitle');
     const dashMainSubtitle = document.getElementById('dashboardMainSubtitle');
 
     if (currentRole === 'cucina') {
         if (userProfileIcon) userProfileIcon.textContent = '🍳';
         if (userProfileName) userProfileName.textContent = 'Cucina';
-        if (bannerRoleBadge) bannerRoleBadge.textContent = '🍳 Operatore Cucina';
-        if (startTitle) startTitle.textContent = '🚀 Inizia Inventario Cucina';
-        if (startSubtitle) startSubtitle.textContent = 'Conta e registra le giacenze per Cucina e prodotti in comune';
         if (dashMainTitle) dashMainTitle.textContent = 'Panoramica Cucina';
         if (dashMainSubtitle) dashMainSubtitle.textContent = 'Giacenze e merci del reparto Cucina e Condivisi';
     } else if (currentRole === 'bar') {
         if (userProfileIcon) userProfileIcon.textContent = '🍹';
         if (userProfileName) userProfileName.textContent = 'Bar';
-        if (bannerRoleBadge) bannerRoleBadge.textContent = '🍹 Operatore Bar';
-        if (startTitle) startTitle.textContent = '🚀 Inizia Inventario Bar';
-        if (startSubtitle) startSubtitle.textContent = 'Conta e registra le giacenze per Bar e prodotti in comune';
         if (dashMainTitle) dashMainTitle.textContent = 'Panoramica Bar';
         if (dashMainSubtitle) dashMainSubtitle.textContent = 'Giacenze e merci del reparto Bar e Condivisi';
     } else if (currentRole === 'bowling') {
         if (userProfileIcon) userProfileIcon.textContent = '🎳';
         if (userProfileName) userProfileName.textContent = 'Bowling';
-        if (bannerRoleBadge) bannerRoleBadge.textContent = '🎳 Operatore Bowling';
-        if (startTitle) startTitle.textContent = '🚀 Inizia Inventario Bowling';
-        if (startSubtitle) startSubtitle.textContent = 'Conta e registra le giacenze per Bowling e prodotti in comune';
         if (dashMainTitle) dashMainTitle.textContent = 'Panoramica Bowling';
         if (dashMainSubtitle) dashMainSubtitle.textContent = 'Giacenze e merci del reparto Bowling e Condivisi';
     } else {
         if (userProfileIcon) userProfileIcon.textContent = '👑';
         if (userProfileName) userProfileName.textContent = 'Admin';
-        if (bannerRoleBadge) bannerRoleBadge.textContent = '👑 Profilo Amministratore';
-        if (startTitle) startTitle.textContent = '🚀 Inizia Nuovo Inventario Globale';
-        if (startSubtitle) startSubtitle.textContent = 'Avvia il conteggio rapido delle giacenze con salvataggio con data e ora';
         if (dashMainTitle) dashMainTitle.textContent = 'Panoramica Magazzino';
         if (dashMainSubtitle) dashMainSubtitle.textContent = 'Monitora lo stato del tuo inventario in tempo reale';
     }
 
     const isAdmin = (currentRole === 'admin');
     
-    // Nascondi il banner "Inizia Conteggio" per l'Admin, mostralo solo per i reparti operativi (Cucina, Bar, Bowling)
-    const startBanner = document.getElementById('startInventoryBanner');
-    if (startBanner) {
-        startBanner.style.display = isAdmin ? 'none' : 'block';
-    }
+    // Aggiorna Banner e scadenze bimestrali
+    updateStartInventoryBanner();
 
     document.querySelectorAll('.admin-only').forEach(el => {
         el.style.setProperty('display', isAdmin ? '' : 'none', 'important');
@@ -5286,16 +5454,12 @@ function renderDepartmentStatusBox() {
     const container = document.getElementById('departmentStatusGrid');
     if (!container) return;
 
-    const badgeMonth = document.getElementById('currentMonthYearBadge');
+    const badgeMonth = document.getElementById('deptStatusCurrentMonthBadge');
     const now = new Date();
     const monthName = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
     if (badgeMonth) {
         badgeMonth.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
     }
-
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const snapshots = appData.monthlySnapshots || [];
 
     const depts = [
         { id: 'cucina', name: 'Cucina', icon: '🍳', roleName: 'cucina' },
@@ -5304,54 +5468,46 @@ function renderDepartmentStatusBox() {
     ];
 
     container.innerHTML = depts.map(dept => {
-        // Trova l'ultimo snapshot valido registrato per questo reparto
-        const deptSnaps = snapshots.filter(s => {
-            const d = (s.department || '').toLowerCase();
-            const op = (s.operator || '').toLowerCase();
-            return d === dept.id || op.includes(dept.id);
-        }).sort((a, b) => new Date(b.date) - new Date(a.date));
+        const info = getBiMonthlyScheduleInfo(dept.id);
+        const isDone = info.isDoneForCurrentCycle;
+        const isOverdue = info.isOverdue;
 
-        const lastSnap = deptSnaps[0];
-        let isDoneThisMonth = false;
-        let lastDateFormatted = 'Mai eseguito';
-        let productsCountText = '';
+        let statusClass = isOverdue ? 'status-missing' : (isDone ? 'status-done' : 'status-pending');
+        let statusLabel = isOverdue ? `Scaduto (${info.overdueDays}gg fa)` : (isDone ? 'Completato' : `In attesa (${info.daysUntilCurrent}gg)`);
+        let iconName = isOverdue ? 'fa-exclamation-circle' : (isDone ? 'fa-check-circle' : 'fa-clock');
 
-        if (lastSnap) {
-            const snapDate = new Date(lastSnap.date);
-            if (!isNaN(snapDate)) {
-                isDoneThisMonth = (snapDate.getMonth() === currentMonth && snapDate.getFullYear() === currentYear);
-                lastDateFormatted = snapDate.toLocaleDateString('it-IT', {
-                    day: '2-digit',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                productsCountText = `${lastSnap.productsCount || 0} articoli`;
-            }
-        }
+        let lastDateFormatted = info.lastSnapDate ? info.lastSnapDate.toLocaleDateString('it-IT', {
+            day: '2-digit',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit'
+        }) : 'Mai eseguito';
 
-        const isDone = isDoneThisMonth && lastSnap;
+        let productsCountText = info.lastSnap ? `${info.lastSnap.productsCount || 0} articoli` : '';
 
         return `
-            <div class="dept-status-card ${isDone ? 'status-done' : 'status-missing'}">
+            <div class="dept-status-card ${statusClass}" style="${isOverdue ? 'border-left: 4px solid #ef4444; background: #fef2f2;' : (isDone ? 'border-left: 4px solid #10b981; background: #f0fdf4;' : 'border-left: 4px solid #4361ee; background: #ffffff;')}">
                 <div style="display: flex; align-items: center; gap: 0.85rem;">
                     <div style="font-size: 1.75rem;">${dept.icon}</div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
                             <strong style="font-size: 1.05rem; color: var(--dark);">${dept.name}</strong>
-                            <span class="status-indicator-badge ${isDone ? 'done' : 'missing'}">
-                                <i class="fas ${isDone ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
-                                ${isDone ? 'Completato' : 'In Attesa'}
+                            <span class="status-indicator-badge" style="${isOverdue ? 'background: #fee2e2; color: #dc2626;' : (isDone ? 'background: #dcfce7; color: #16a34a;' : 'background: #e0e7ff; color: #4361ee;')}">
+                                <i class="fas ${iconName}"></i>
+                                ${statusLabel}
                             </span>
                         </div>
                         <div style="font-size: 0.8rem; color: var(--gray);">
-                            ${isDone ? `Ultimo: ${lastDateFormatted} (${productsCountText})` : (lastSnap ? `Ultimo: ${lastDateFormatted}` : 'Nessun inventario')}
+                            ${isDone ? `Ultimo: ${lastDateFormatted} (${productsCountText})` : (info.lastSnap ? `Ultimo: ${lastDateFormatted}` : 'Nessun inventario registrato')}
+                        </div>
+                        <div style="font-size: 0.76rem; color: ${isOverdue ? '#dc2626; font-weight: 600;' : 'var(--gray);'} margin-top: 2px;">
+                            ${isOverdue ? `⚠️ Scadenza: ${info.overdueDeadlineName}` : `📅 Prossimo: ${info.nextDeadlineName}`}
                         </div>
                     </div>
                 </div>
                 <div>
-                    <button class="btn ${isDone ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="quickStartDepartmentInventory('${dept.roleName}')" style="white-space: nowrap; border-radius: 10px; font-weight: 600;">
-                        <i class="fas ${isDone ? 'fa-redo-alt' : 'fa-play'}"></i> ${isDone ? 'Rifai' : 'Avvia'}
+                    <button class="btn ${isOverdue ? 'btn-danger' : (isDone ? 'btn-outline' : 'btn-primary')} btn-sm" onclick="quickStartDepartmentInventory('${dept.roleName}')" style="white-space: nowrap; border-radius: 10px; font-weight: 600; ${isOverdue ? 'background: #dc2626; color: white; border: none;' : ''}">
+                        <i class="fas ${isOverdue ? 'fa-exclamation-triangle' : (isDone ? 'fa-redo-alt' : 'fa-play')}"></i> ${isOverdue ? 'Esegui' : (isDone ? 'Rifai' : 'Avvia')}
                     </button>
                 </div>
             </div>
@@ -5552,7 +5708,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v75';
+const CURRENT_APP_BUILD = 'v76';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5624,7 +5780,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=75')
+        navigator.serviceWorker.register('sw.js?v=76')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }
