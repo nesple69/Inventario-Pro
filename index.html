@@ -9,7 +9,7 @@
         <!-- Styles & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=80">
+    <link rel="stylesheet" href="styles.css?v=81">
 
     <!-- Favicon & PWA Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
@@ -108,13 +108,7 @@
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 2rem;">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="searchInput" class="search-input"
-                                placeholder="Cerca per nome, categoria o fornitore..." oninput="handleSearch()">
-                        </div>
-                    </div>
+                    
 
                     <!-- STATISTICHE CHIAVE (5 CARD SU UNA SOLA RIGA SENZA SCORRIMENTO) -->
                     <div class="stats-grid dashboard-summary-grid">
@@ -166,7 +160,7 @@
 
                     
                     <!-- BOX STATO INVENTARI REPARTI (SEMAFORI) -->
-                    <div class="card" style="margin-bottom: 1.5rem; border-radius: 16px;">
+                    <div class="card admin-only" style="margin-bottom: 1.5rem; border-radius: 16px;">
                         <div class="section-header" style="margin-bottom: 0.5rem;">
                             <div>
                                 <h3 style="display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1.15rem;">
@@ -189,17 +183,27 @@
                     </div>
 
                     <div class="card">
-                        <div class="section-header" style="margin-bottom: 1.5rem;">
-                            <h3 id="dashboardTableTitle"><i class="fas fa-history"
-                                    style="margin-right: 0.5rem; color: var(--primary);"></i>Ultimi Prodotti Aggiunti
+                        <div class="section-header" style="margin-bottom: 1rem;">
+                            <h3 id="dashboardTableTitle"><i class="fas fa-boxes-stacked"
+                                    style="margin-right: 0.5rem; color: var(--primary);"></i>Lista Prodotti & Giacenze
                             </h3>
                             <div class="header-actions">
                                 <button class="btn btn-outline btn-sm" onclick="exportToExcel()"><i
                                         class="fas fa-file-excel"></i>Esporta</button>
-                                <button class="btn btn-success btn-sm" onclick="showImportModal()"><i
+                                <button class="btn btn-success btn-sm admin-only" onclick="showImportModal()"><i
                                         class="fas fa-file-import"></i>Importa</button>
                             </div>
                         </div>
+
+                        <!-- BARRA DI RICERCA POSIZIONATA SOPRA LA LISTA PRODOTTI -->
+                        <div style="margin-bottom: 1.25rem;">
+                            <div class="search-container">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="searchInput" class="search-input"
+                                    placeholder="🔍 Cerca prodotto per nome, categoria o fornitore..." oninput="handleSearch()">
+                            </div>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="data-table">
                                 <thead>
@@ -1296,7 +1300,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=80"></script>
+    <script src="app.js?v=81"></script>
 </body>
 
 </html>
