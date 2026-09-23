@@ -5655,18 +5655,36 @@ function startGuidedInventory() {
 }
 
 function completeAndSaveInventory() {
+    const relevantProducts = getProductsForRole(currentRole);
+    const unverifiedCount = relevantProducts.filter(p => !activeVerifiedProductIds.has(p.id)).length;
+
+    if (unverifiedCount > 0) {
+        const msgEl = document.getElementById('incompleteInventoryMessage');
+        if (msgEl) {
+            msgEl.innerHTML = `Mancano ancora <strong style="color: #dc2626; font-size: 1.15rem;">${unverifiedCount} prodotti</strong> non contati (evidenziati in rosso).<br><br>Sei sicuro di voler terminare l'inventario prima di aver verificato tutte le merci?`;
+        }
+        document.getElementById('incompleteInventoryModal')?.classList.add('show');
+        return;
+    }
+
+    forceSaveIncompleteInventory();
+}
+
+function closeIncompleteInventoryModal() {
+    document.getElementById('incompleteInventoryModal')?.classList.remove('show');
+}
+
+function showMissingAndCloseModal() {
+    closeIncompleteInventoryModal();
+    setVerificationFilter('unverified');
+    showNotification('Visualizzazione filtrata: ecco i prodotti mancanti da contare', 'info', 'Filtro Mancanti');
+}
+
+function forceSaveIncompleteInventory() {
+    closeIncompleteInventoryModal();
     const roleLabel = getRoleLabel();
     const opName = getOperatorName();
     const relevantProducts = getProductsForRole(currentRole);
-    
-    const unverifiedCount = relevantProducts.filter(p => !activeVerifiedProductIds.has(p.id)).length;
-    if (unverifiedCount > 0) {
-        if (!confirm(`Attenzione: ci sono ancora ${unverifiedCount} prodotti evidenziati in ROSSO non verificati.
-
-Vuoi concludere e salvare comunque l'inventario?`)) {
-            return;
-        }
-    }
 
     const countedProducts = relevantProducts.filter(p => (parseFloat(p.quantity) || 0) > 0);
     const totalVal = relevantProducts.reduce((sum, p) => sum + ((parseFloat(p.quantity) || 0) * (parseFloat(p.price) || 0)), 0);
@@ -5791,7 +5809,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const CURRENT_APP_BUILD = 'v83';
+const CURRENT_APP_BUILD = 'v84';
 
 function checkAndPurgeOldCache() {
     const lastBuild = localStorage.getItem('inventario_app_build');
@@ -5863,7 +5881,7 @@ function initApp() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js?v=83')
+        navigator.serviceWorker.register('sw.js?v=84')
             .then(reg => console.log('ServiceWorker registrato:', reg.scope))
             .catch(err => console.log('ServiceWorker fallito:', err));
     }

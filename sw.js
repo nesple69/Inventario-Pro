@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inventario-pro-v83';
+const CACHE_NAME = 'inventario-pro-v84';
 const LOCAL_ASSETS = [
   '/',
   '/index.html',
