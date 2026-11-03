@@ -1,0 +1,11 @@
+https://inventario-pro-pfff.vercel.app/
+
+URL Progetto Supabase:
+https://sdcpgbowbykenwikpzqv.supabase.co
+
+Chiave Anonima (Anon Public Key):
+sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL
+
+[NOTA DI SICUREZZA]:
+La password del database non deve MAI essere memorizzata in chiaro nel repository o nei file di progetto.
+Gestisci le credenziali di amministrazione esclusivamente dalla dashboard ufficiale di Supabase (https://app.supabase.com).

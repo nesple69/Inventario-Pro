@@ -5,75 +5,58 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bowling Valdera | Inventario Magazzino</title>
-        <!-- Styles & Fonts -->
+    <title>Inventario Pro | Gestione Magazzino</title>
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=84">
 
-    <!-- Favicon & PWA Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="apple-touch-icon.png">
-    <link rel="shortcut icon" href="favicon.ico">
+    <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4361ee">
+    <meta name="theme-color" content="#1a1c23">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Bowling Valdera">
+    <meta name="apple-mobile-web-app-title" content="Inventario Pro">
+    <link rel="stylesheet" href="styles.css">
+
 </head>
 
 <body>
     <div class="app-container">
         <header class="app-header">
-            <div class="logo" onclick="showTab('dashboard')" style="cursor: pointer; display: flex; align-items: center; gap: 0.75rem;" title="Vai alla Home">
-                <img src="logo.png" alt="Bowling Valdera Inventario" class="app-logo-img">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-boxes"></i></div>
                 <div class="logo-text">
-                    <h1 style="font-size: 1.15rem; font-weight: 800; letter-spacing: -0.3px; margin: 0; line-height: 1.2;">Bowling Valdera</h1>
-                    <p style="font-size: 0.78rem; opacity: 0.9; margin: 0; color: rgba(255,255,255,0.85);">Inventario Magazzino</p>
+                    <h1>Inventario Pro</h1>
+                    <p>Magazzino</p>
                 </div>
             </div>
 
             <nav class="nav-tabs-header">
-                <button class="nav-tab active" id="nav-tab-dashboard" onclick="showTab('dashboard')"><i
-                        class="fas fa-home"></i><span>Home</span></button>
-                <button class="nav-tab" id="nav-tab-inventory" onclick="showTab('monthly-inventory')"><i
-                        class="fas fa-clipboard-check"></i><span>Inventario</span></button>
-                <button class="nav-tab" id="nav-tab-products" onclick="showTab('products')"><i
-                        class="fas fa-box"></i><span>Catalogo</span></button>
-                <button class="nav-tab admin-only" id="nav-tab-categories" onclick="showTab('categories')"><i
+                <button class="nav-tab active" onclick="showTab('dashboard')"><i
+                        class="fas fa-th-large"></i><span>Dashboard</span></button>
+                <button class="nav-tab" onclick="showTab('products')"><i
+                        class="fas fa-box"></i><span>Prodotti</span></button>
+                <button class="nav-tab" onclick="showTab('categories')"><i
                         class="fas fa-tags"></i><span>Categorie</span></button>
-                <button class="nav-tab admin-only" id="nav-tab-suppliers" onclick="showTab('suppliers')"><i
+                <button class="nav-tab" onclick="showTab('suppliers')"><i
                         class="fas fa-truck-moving"></i><span>Fornitori</span></button>
-                <button class="nav-tab admin-only" id="nav-tab-reports" onclick="showTab('reports')"><i
+                <button class="nav-tab" onclick="showTab('reports')"><i
                         class="fas fa-chart-pie"></i><span>Report</span></button>
-                <button class="nav-tab admin-only" id="nav-tab-settings" onclick="showTab('settings')"><i
+                <button class="nav-tab" onclick="showTab('monthly-inventory')"><i
+                        class="fas fa-clipboard-list"></i><span>Inventario</span></button>
+                <button class="nav-tab" onclick="showTab('settings')"><i
                         class="fas fa-sliders-h"></i><span>Impostazioni</span></button>
             </nav>
 
-            <div style="display: flex; align-items: center; gap: 0.4rem;">
-                <!-- SELETTORE PROFILO UTENTE -->
-                <button class="user-profile-btn" id="userProfileBtn" onclick="showProfileSelectorModal()" title="Cambia Profilo Operativo">
-                    <span id="userProfileIcon">👑</span>
-                    <span id="userProfileName">Admin</span>
-                    <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.8;"></i>
-                </button>
-
-                <!-- BADGE CLOUD MULTI-DISPOSITIVO -->
-                <button class="btn btn-outline btn-sm" onclick="openCloudSyncModal()" id="cloudSyncHeaderBtn" title="Stato Sincronizzazione Multi-Dispositivo" style="background: rgba(46, 196, 182, 0.25); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 10px; padding: 0.45rem 0.65rem; display: flex; align-items: center; gap: 5px; font-size: 0.8rem; cursor: pointer;">
-                    <i class="fas fa-satellite-dish" id="cloudStatusIcon"></i>
-                    <span id="cloudStatusLabel" style="font-weight: 600;">Cloud Live</span>
-                </button>
-
-                <!-- PULSANTE AGGIORNA CACHE -->
-                <button class="btn btn-outline btn-sm" onclick="forceAppUpdate()" title="Aggiorna Versione App" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 0.45rem 0.55rem; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; cursor: pointer;">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-
-                <div id="cloudStatus" class="sync-status online" style="display: none;">
-                    <i class="fas fa-cloud"></i>
-                    <span id="cloudStatusText">Online</span>
-                </div>
+            <div id="cloudStatus" class="sync-status offline">
+                <i class="fas fa-cloud"></i>
+                <span id="cloudStatusText">Locale</span>
             </div>
         </header>
 
@@ -81,145 +64,182 @@
             <main class="main-content">
                 <!-- DASHBOARD TAB -->
                 <div class="tab-content active" id="dashboard-tab">
-                    <!-- BANNER AVVIO INVENTARIO RAPIDO (SOLO OPERATORI REPARTO) -->
-                    <div class="card" id="startInventoryBanner" style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%); color: white; margin-bottom: 1.5rem; border-radius: 16px; padding: 1.25rem; border: none; box-shadow: 0 8px 24px rgba(67, 97, 238, 0.25); display: none;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                            <div>
-                                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.25); padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem; border: 1px solid rgba(255,255,255,0.3);"><span id="bannerRoleBadge">🍳 Operatore Cucina</span></div>
-                                <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; color: white;" id="startInventoryBannerTitle">🚀 Inizia Nuovo Inventario</h3>
-                                <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;" id="startInventoryBannerSubtitle">Avvia il conteggio rapido delle giacenze con salvataggio con data e ora</p>
-                            </div>
-                            <button class="btn btn-light" onclick="startGuidedInventory()" style="background: white; color: #4361ee; font-weight: 700; font-size: 1rem; padding: 0.85rem 1.6rem; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); border: none; cursor: pointer;">
-                                <i class="fas fa-clipboard-check" style="margin-right: 0.5rem; color: #4361ee;"></i>Inizia Conteggio
-                            </button>
-                        </div>
-                    </div>
-
                     <div class="section-header">
                         <div class="header-title">
-                            <h2 id="dashboardMainTitle">Panoramica Magazzino</h2>
-                            <p id="dashboardMainSubtitle">Monitora lo stato del tuo inventario in tempo reale</p>
+                            <h2>Dashboard Direzionale & KPI</h2>
+                            <p>Panoramica finanziaria, bilanciamento reparti e salute delle scorte</p>
                         </div>
                         <div class="header-actions">
-                            <button class="btn btn-outline" onclick="refreshData()"><i
-                                    class="fas fa-sync-alt"></i>Aggiorna</button>
-                            <button class="btn btn-primary admin-only" onclick="showAddProductModal()"><i
+                            <button class="btn btn-outline" onclick="showTab('monthly-inventory')"><i
+                                    class="fas fa-clipboard-list"></i>Inventario</button>
+                            <button class="btn btn-outline" onclick="showTab('products')"><i
+                                    class="fas fa-boxes"></i>Catalogo Prodotti</button>
+                            <button class="btn btn-primary" onclick="showAddProductModal()"><i
                                     class="fas fa-plus"></i>Nuovo Prodotto</button>
                         </div>
                     </div>
 
-                    
+                    <!-- GRID KPI PRINCIPALI -->
+                    <div class="stats-grid">
+                        <!-- VALORE TOTALE -->
+                        <div class="stat-card-main" onclick="showTab('products')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                            <div class="stat-icon-wrapper icon-purple"><i class="fas fa-wallet"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="total-value">€ 0,00</span>
+                                <span class="stat-main-label">Valore Totale Magazzino</span>
+                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">Capitale attivo</span>
+                            </div>
+                        </div>
 
-                    <!-- STATISTICHE CHIAVE (5 CARD SU UNA SOLA RIGA SENZA SCORRIMENTO) -->
-                    <div class="stats-grid dashboard-summary-grid">
-                        <!-- 1. TOTALE PRODOTTI -->
-                        <div class="stat-card-main" onclick="showTab('products')" style="cursor: pointer;" title="Tocca per vedere tutti i prodotti">
-                            <div class="stat-icon-wrapper icon-blue"><i class="fas fa-boxes-stacked"></i></div>
+                        <!-- PRODOTTI TOTALI -->
+                        <div class="stat-card-main" onclick="showTab('products')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                            <div class="stat-icon-wrapper icon-blue"><i class="fas fa-cubes"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="total-products">0</span>
-                                <span class="stat-main-label">Prodotti</span>
+                                <span class="stat-main-label">Articoli a Catalogo</span>
+                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">Referenze censite</span>
                             </div>
                         </div>
 
-                        <!-- 2. VALORE TOTALE -->
-                        <div class="stat-card-main" title="Valore totale giacenze">
-                            <div class="stat-icon-wrapper icon-purple"><i class="fas fa-euro-sign"></i></div>
+                        <!-- VALORE CUCINA -->
+                        <div class="stat-card-main" onclick="showTab('products')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                            <div class="stat-icon-wrapper icon-orange"><i class="fas fa-utensils"></i></div>
                             <div class="stat-details">
-                                <span class="stat-main-value" id="total-value">€ 0</span>
-                                <span class="stat-main-label">Valore</span>
+                                <span class="stat-main-value" id="dashCucinaVal">€ 0,00</span>
+                                <span class="stat-main-label">Reparto Cucina</span>
+                                <span style="font-size: 0.75rem; color: var(--warning); font-weight: 600; margin-top: 2px;" id="dashCucinaSub">0% del totale</span>
                             </div>
                         </div>
 
-                        <!-- 3. IN STOCK -->
-                        <div class="stat-card-main dashboard-stat-filter" id="filter-card-in-stock" onclick="filterDashboardByStatus('in-stock')" style="cursor: pointer;" title="Prodotti disponibili">
+                        <!-- VALORE BAR -->
+                        <div class="stat-card-main" onclick="showTab('products')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                            <div class="stat-icon-wrapper icon-purple" style="background: rgba(131, 56, 236, 0.1); color: #8338ec;"><i class="fas fa-glass-martini-alt"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="dashBarVal">€ 0,00</span>
+                                <span class="stat-main-label">Reparto Bar</span>
+                                <span style="font-size: 0.75rem; color: #8338ec; font-weight: 600; margin-top: 2px;" id="dashBarSub">0% del totale</span>
+                            </div>
+                        </div>
+
+                        <!-- IN STOCK -->
+                        <div class="stat-card-main" onclick="showTab('products')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
                             <div class="stat-icon-wrapper icon-green"><i class="fas fa-check-circle"></i></div>
                             <div class="stat-details">
-                                <span class="stat-main-value" id="inStockCount">0</span>
-                                <span class="stat-main-label">In Stock</span>
+                                <span class="stat-main-value" id="inStockCount" style="color: var(--success);">0</span>
+                                <span class="stat-main-label">Scorte Ottimali</span>
+                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">In stock regolare</span>
                             </div>
                         </div>
 
-                        <!-- 4. ESAURITI -->
-                        <div class="stat-card-main dashboard-stat-filter" id="filter-card-out-of-stock" onclick="filterDashboardByStatus('out-of-stock')" style="cursor: pointer;" title="Prodotti con quantità 0">
+                        <!-- SOTTO SOGLIA -->
+                        <div class="stat-card-main" onclick="showTab('products')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border); border-left: 4px solid var(--warning);">
+                            <div class="stat-icon-wrapper icon-orange"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="lowStockCount" style="color: var(--warning);">0</span>
+                                <span class="stat-main-label">Sotto Soglia (Alert)</span>
+                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">Da riordinare</span>
+                            </div>
+                        </div>
+
+                        <!-- ESAURITI -->
+                        <div class="stat-card-main" onclick="showTab('products')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border); border-left: 4px solid var(--danger);">
                             <div class="stat-icon-wrapper icon-red"><i class="fas fa-times-circle"></i></div>
                             <div class="stat-details">
-                                <span class="stat-main-value" id="outOfStockCount">0</span>
-                                <span class="stat-main-label">Esauriti</span>
+                                <span class="stat-main-value" id="outOfStockCount" style="color: var(--danger);">0</span>
+                                <span class="stat-main-label">Articoli Esauriti</span>
+                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">Giacenza a 0</span>
                             </div>
                         </div>
 
-                        <!-- 5. CATEGORIE -->
-                        <div class="stat-card-main" onclick="if(currentRole==='admin'){showTab('categories');}else{showTab('products');}" style="cursor: pointer;" title="Categorie merceologiche">
-                            <div class="stat-icon-wrapper icon-teal"><i class="fas fa-tags"></i></div>
+                        <!-- CATEGORIE & FORNITORI -->
+                        <div class="stat-card-main" onclick="showTab('categories')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                            <div class="stat-icon-wrapper icon-blue" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-tags"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="categoriesCount">0</span>
-                                <span class="stat-main-label">Categorie</span>
+                                <span class="stat-main-label">Categorie Attive</span>
+                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;"><span id="suppliersCount">0</span> Fornitori</span>
                             </div>
                         </div>
                     </div>
 
-                    
-                    <!-- BOX STATO INVENTARI REPARTI (SEMAFORI) -->
-                    <div class="card admin-only" style="margin-bottom: 1.5rem; border-radius: 16px;">
-                        <div class="section-header" style="margin-bottom: 0.5rem;">
-                            <div>
-                                <h3 style="display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1.15rem;">
-                                    <span>🚦 Stato Inventari del Mese</span>
-                                    <span id="currentMonthYearBadge" class="badge badge-neutral" style="font-size: 0.8rem; font-weight: 600;">Settembre 2026</span>
-                                </h3>
-                                <p style="font-size: 0.85rem; color: var(--gray); margin: 0.2rem 0 0 0;">Controlla subito quale reparto ha completato l'inventario e chi deve ancora eseguirlo</p>
-                            </div>
-                        </div>
-                        <div id="departmentStatusGrid" class="dept-status-grid"></div>
-                    </div>
-
-                    <!-- STORICO RECENTI INVENTARI NELLA DASHBOARD -->
-                    <div class="card" style="margin-bottom: 1.5rem;">
-                        <div class="section-header" style="margin-bottom: 1rem;">
-                            <h3><i class="fas fa-history" style="margin-right: 0.5rem; color: var(--primary);"></i>📜 Ultimi Inventari Registrati</h3>
-                            <button class="btn btn-outline btn-sm" onclick="showSnapshotsModal()"><i class="fas fa-archive"></i>Archivio Completo</button>
-                        </div>
-                        <div id="dashboardRecentSnapshotsContainer"></div>
-                    </div>
-
-                    <div class="card">
-                        <div class="section-header" style="margin-bottom: 1rem;">
-                            <h3 id="dashboardTableTitle"><i class="fas fa-boxes-stacked"
-                                    style="margin-right: 0.5rem; color: var(--primary);"></i>Lista Prodotti & Giacenze
+                    <!-- SEZIONE GRAFICI DI BILANCIAMENTO -->
+                    <div style="margin-top: 2rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h3 style="color: var(--dark); font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                                <i class="fas fa-chart-pie" style="color: var(--primary);"></i>Bilanciamenti & Distribuzione Risorse
                             </h3>
-                            <div class="header-actions">
-                                <button class="btn btn-outline btn-sm" onclick="exportToExcel()"><i
-                                        class="fas fa-file-excel"></i>Esporta</button>
-                                <button class="btn btn-success btn-sm admin-only" onclick="showImportModal()"><i
-                                        class="fas fa-file-import"></i>Importa</button>
+                            <p style="color: var(--gray); font-size: 0.9rem; margin: 0.25rem 0 0 0;">Analisi visiva dell'equilibrio tra reparti, categorie, salute scorte e fornitori</p>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="loadDashboardData()"><i class="fas fa-sync-alt"></i>Aggiorna Dati e Grafici</button>
+                    </div>
+
+                    <div class="charts-container">
+                        <!-- GRAFICO 1: BILANCIAMENTO REPARTI -->
+                        <div class="chart-card">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                <div>
+                                    <h4 style="margin: 0; color: var(--dark); font-size: 1.1rem; font-weight: 700;">
+                                        <i class="fas fa-balance-scale" style="margin-right: 0.5rem; color: #fb8500;"></i>Bilanciamento per Reparto (€)
+                                    </h4>
+                                    <p style="margin: 0.25rem 0 0 0; color: var(--gray); font-size: 0.82rem;">Ripartizione economica del magazzino tra Cucina, Bar ed Entrambi</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="dashDeptChartCanvas"></canvas>
                             </div>
                         </div>
 
-                        <!-- BARRA DI RICERCA POSIZIONATA SOPRA LA LISTA PRODOTTI -->
-                        <div style="margin-bottom: 1.25rem;">
-                            <div class="search-container">
-                                <i class="fas fa-search search-icon"></i>
-                                <input type="text" id="searchInput" class="search-input"
-                                    placeholder="🔍 Cerca prodotto per nome, categoria o fornitore..." oninput="handleSearch()">
+                        <!-- GRAFICO 2: BILANCIAMENTO CATEGORIE -->
+                        <div class="chart-card">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                <div>
+                                    <h4 style="margin: 0; color: var(--dark); font-size: 1.1rem; font-weight: 700;">
+                                        <i class="fas fa-layer-group" style="margin-right: 0.5rem; color: var(--secondary);"></i>Valore per Categoria (€)
+                                    </h4>
+                                    <p style="margin: 0.25rem 0 0 0; color: var(--gray); font-size: 0.82rem;">Quote di capitale investito nelle categorie merceologiche</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="dashCatChartCanvas"></canvas>
                             </div>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Reparto</th>
-                                        <th>Categoria</th>
-                                        <th>Sottocategoria</th>
-                                        <th>Prodotto</th>
-                                        <th>Prezzo</th>
-                                        <th>Giacenza</th>
-                                        <th>Fornitore</th>
-                                        <th>Azioni</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="productsTableBody"></tbody>
-                            </table>
+                        <!-- GRAFICO 3: STATO SALUTE SCORTE -->
+                        <div class="chart-card">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                <div>
+                                    <h4 style="margin: 0; color: var(--dark); font-size: 1.1rem; font-weight: 700;">
+                                        <i class="fas fa-heartbeat" style="margin-right: 0.5rem; color: var(--success);"></i>Salute Scorte & Disponibilità
+                                    </h4>
+                                    <p style="margin: 0.25rem 0 0 0; color: var(--gray); font-size: 0.82rem;">Ripartizione delle referenze per stato di giacenza</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="dashStockChartCanvas"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- GRAFICO 4: TOP FORNITORI PER VALORE -->
+                        <div class="chart-card">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                <div>
+                                    <h4 style="margin: 0; color: var(--dark); font-size: 1.1rem; font-weight: 700;">
+                                        <i class="fas fa-truck-moving" style="margin-right: 0.5rem; color: var(--primary);"></i>Top Fornitori per Valore (€)
+                                    </h4>
+                                    <p style="margin: 0.25rem 0 0 0; color: var(--gray); font-size: 0.82rem;">I fornitori con la maggior incidenza economica a magazzino</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="dashSupplierChartCanvas"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -255,7 +275,6 @@
                                     <option value="entrambi">🏢 Entrambi</option>
                                     <option value="cucina">🍳 Cucina</option>
                                     <option value="bar">🍹 Bar</option>
-                                    <option value="bowling">🎳 Bowling</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -266,8 +285,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Quantità</label>
-                                <input type="number" id="productQuantity" class="form-input" placeholder="0" min="0"
-                                    step="0.001">
+                                <input type="text" inputmode="decimal" id="productQuantity" class="form-input" placeholder="0" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Unità</label>
@@ -281,8 +299,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Prezzo Unitario</label>
-                                <input type="number" id="productPrice" class="form-input" placeholder="0.00" min="0"
-                                    step="0.01">
+                                <input type="text" inputmode="decimal" id="productPrice" class="form-input" placeholder="0.00" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Fornitore</label>
@@ -301,60 +318,29 @@
                         <div class="section-header" style="margin-bottom: 1.5rem;">
                             <h3><i class="fas fa-boxes"
                                     style="margin-right: 0.5rem; color: var(--primary);"></i>Catalogo Completo</h3>
-                        </div>
-
-                        <!-- SELETTORE REPARTO RAPIDO -->
-                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: center;">
-                            <button class="department-btn active" id="prod-dept-btn-tutti" onclick="filterProductsByDepartment('tutti')">
-                                <i class="fas fa-layer-group"></i> Tutti i Reparti <span class="badge" style="background: rgba(0,0,0,0.12); color: inherit; margin-left: 0.3rem;" id="prod-count-tutti">0</span>
-                            </button>
-                            <button class="department-btn" id="prod-dept-btn-cucina" onclick="filterProductsByDepartment('cucina')">
-                                <i class="fas fa-utensils"></i> 🍳 Cucina <span class="badge" style="background: rgba(0,0,0,0.12); color: inherit; margin-left: 0.3rem;" id="prod-count-cucina">0</span>
-                            </button>
-                                                        <button class="department-btn" id="prod-dept-btn-bowling" onclick="filterProductsByDepartment('bowling')">
-                                <i class="fas fa-bowling-ball"></i> 🎳 Bowling <span class="badge" style="background: rgba(0,0,0,0.12); color: inherit; margin-left: 0.3rem;" id="prod-count-bowling">0</span>
-                            </button>
-                            <button class="department-btn" id="prod-dept-btn-bar" onclick="filterProductsByDepartment('bar')">
-                                <i class="fas fa-glass-martini-alt"></i> 🍹 Bar <span class="badge" style="background: rgba(0,0,0,0.12); color: inherit; margin-left: 0.3rem;" id="prod-count-bar">0</span>
-                            </button>
-                            <button class="department-btn" id="prod-dept-btn-consumabili" onclick="filterProductsByDepartment('consumabili')">
-                                <i class="fas fa-box"></i> 🏢 Consumabili <span class="badge" style="background: rgba(0,0,0,0.12); color: inherit; margin-left: 0.3rem;" id="prod-count-consumabili">0</span>
-                            </button>
-                        </div>
-
-                        <!-- FILTRI CATEGORIA, FORNITORE E RICERCA -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
-                            <div>
-                                <label style="font-size: 0.8rem; font-weight: 600; color: var(--dark); margin-bottom: 0.3rem; display: block;">🏷️ Categoria</label>
-                                <select id="filterCategorySelect" class="form-select" onchange="renderAllProductsTable()">
-                                    <option value="">Tutte le Categorie</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style="font-size: 0.8rem; font-weight: 600; color: var(--dark); margin-bottom: 0.3rem; display: block;">🚚 Fornitore</label>
-                                <select id="filterSupplierSelect" class="form-select" onchange="renderAllProductsTable()">
-                                    <option value="">Tutti i Fornitori</option>
-                                </select>
-                            </div>
-                            <div style="grid-column: 1 / -1;">
-                                <label style="font-size: 0.8rem; font-weight: 600; color: var(--dark); margin-bottom: 0.3rem; display: block;">🔍 Cerca Prodotto</label>
-                                <input type="text" id="productSearchInput" class="form-input"
-                                    placeholder="Scrivi nome prodotto o sottocategoria..."
-                                    oninput="renderAllProductsTable()" style="font-size: 1rem; padding: 0.75rem 1rem;">
+                            <div class="header-actions">
+                                <button class="btn btn-outline btn-sm" onclick="exportToExcel()"><i
+                                        class="fas fa-file-excel"></i>Esporta Excel</button>
+                                <button class="btn btn-success btn-sm" onclick="showImportModal()"><i
+                                        class="fas fa-file-import"></i>Importa Excel</button>
                             </div>
                         </div>
-
+                        <div style="margin-bottom: 1rem;">
+                            <input type="text" id="productSearchInput" class="form-input"
+                                placeholder="🔍 Cerca prodotto per nome, categoria o fornitore..."
+                                onkeyup="filterProductsTable()" style="font-size: 1rem; padding: 0.75rem 1rem;">
+                        </div>
                         <div class="table-responsive">
                             <table class="data-table">
                                 <thead>
                                     <tr>
+                                        <th>Prodotto</th>
                                         <th>Reparto</th>
+                                        <th>Fornitore</th>
                                         <th>Categoria</th>
                                         <th>Sottocategoria</th>
-                                        <th>Prodotto</th>
-                                        <th>Prezzo</th>
                                         <th>Giacenza</th>
-                                        <th>Fornitore</th>
+                                        <th>Prezzo</th>
                                         <th>Azioni</th>
                                     </tr>
                                 </thead>
@@ -540,23 +526,16 @@
 
                 <!-- MONTHLY INVENTORY TAB -->
                 <div class="tab-content" id="monthly-inventory-tab">
-                    <div class="section-header" style="flex-wrap: wrap; gap: 1rem;">
-                        <div class="header-title" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                            <button class="btn btn-outline btn-sm" onclick="showTab('dashboard')" style="font-weight: 600;">
-                                <i class="fas fa-arrow-left" style="margin-right: 0.3rem;"></i>Dashboard
-                            </button>
-                            <div>
-                                <h2 style="margin: 0; font-size: 1.45rem;">📋 Conteggio Inventario (Ottobre)</h2>
-                                <p style="margin: 0; color: var(--gray); font-size: 0.88rem;">I prodotti in <strong style="color: #ef4444;">Rosso</strong> sono da verificare o eliminare se non più presenti in magazzino.</p>
-                            </div>
+                    <div class="section-header">
+                        <div class="header-title">
+                            <h2>Inventario Mensile</h2>
+                            <p>Aggiorna rapidamente le quantità per l'inventario del mese</p>
                         </div>
-                        <div class="header-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                            <button class="btn btn-success" onclick="completeAndSaveInventory()" style="font-weight: 700; padding: 0.65rem 1.3rem; border-radius: 12px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
-                                <i class="fas fa-check-double" style="margin-right: 0.5rem;"></i>Salva e Concludi
-                            </button>
-                            <button class="btn btn-outline btn-sm admin-only" onclick="exportMonthlyToExcel()" title="Esporta Excel">
-                                <i class="fas fa-file-excel"></i>
-                            </button>
+                        <div class="header-actions">
+                            <button class="btn btn-outline" onclick="exportMonthlyToExcel()"><i
+                                    class="fas fa-file-excel"></i>Esporta Excel</button>
+                            <button class="btn btn-success" onclick="createMonthlySnapshot()"><i
+                                    class="fas fa-camera"></i>Salva Snapshot</button>
                         </div>
                     </div>
 
@@ -587,40 +566,33 @@
                     </div>
 
                     <div class="card">
-                        <!-- Department Selector (SOLO ADMIN) -->
-                        <div class="department-selector admin-only" id="monthlyDepartmentSelector"
-                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                        <!-- Department Selector -->
+                        <div class="department-selector"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
                             <div>
-                                <span style="font-weight: 600; color: var(--gray); margin-right: 0.5rem;">Filtra Reparto:</span>
-                                <button class="department-btn active" onclick="setDepartmentFilter('tutti')" id="dept-btn-tutti">
-                                    <i class="fas fa-layer-group"></i> Tutti
+                                <span style="font-weight: 600; color: var(--gray); margin-right: 0.5rem;">Filtra
+                                    Reparto:</span>
+                                <button class="department-btn active" onclick="setDepartmentFilter('tutti')"
+                                    id="dept-btn-tutti">
+                                    <i class="fas fa-layer-group"></i> Entrambi
                                 </button>
-                                <button class="department-btn" onclick="setDepartmentFilter('cucina')" id="dept-btn-cucina">
-                                    <i class="fas fa-utensils"></i> 🍴 Cucina
+                                <button class="department-btn" onclick="setDepartmentFilter('cucina')"
+                                    id="dept-btn-cucina">
+                                    <i class="fas fa-utensils"></i> Cucina
                                 </button>
                                 <button class="department-btn" onclick="setDepartmentFilter('bar')" id="dept-btn-bar">
-                                    <i class="fas fa-glass-martini-alt"></i> 🍸 Bar
-                                </button>
-                                <button class="department-btn" onclick="setDepartmentFilter('bowling')" id="dept-btn-bowling">
-                                    <i class="fas fa-bowling-ball"></i> 🎳 Bowling
-                                </button>
-                                <button class="department-btn" onclick="setDepartmentFilter('consumabili')" id="dept-btn-consumabili">
-                                    <i class="fas fa-box"></i> 📦 Consumabili (Entrambi)
+                                    <i class="fas fa-glass-martini-alt"></i> Bar
                                 </button>
                             </div>
-                        </div>
-
-                        <!-- FILTRI RAPIDI VERIFICA INVENTARIO -->
-                        <div class="inventory-filter-pills" style="margin-top: 1rem; margin-bottom: 1rem;">
-                            <button type="button" class="inventory-filter-pill active" data-filter="all" onclick="setVerificationFilter('all')">
-                                <i class="fas fa-list"></i> Mostra Tutti
-                            </button>
-                            <button type="button" class="inventory-filter-pill pill-unverified" data-filter="unverified" onclick="setVerificationFilter('unverified')">
-                                <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> 🔴 Solo Da Verificare (Mancanti)
-                            </button>
-                            <button type="button" class="inventory-filter-pill pill-verified" data-filter="verified" onclick="setVerificationFilter('verified')">
-                                <i class="fas fa-check-circle" style="color: #10b981;"></i> 🟢 Solo Verificati
-                            </button>
+                            <div
+                                style="display: flex; align-items: center; gap: 0.5rem; background: var(--light); padding: 0.3rem 0.8rem; border-radius: 20px; border: 1px solid var(--border);">
+                                <i class="fas fa-tags" style="color: var(--primary);"></i>
+                                <select id="monthlyCategoryFilter" class="form-select"
+                                    onchange="filterMonthlyInventory()"
+                                    style="border: none; background: transparent; padding: 0.2rem; min-width: 150px; font-weight: 500; font-size: 0.95rem; cursor: pointer;">
+                                    <option value="">Tutte le Categorie</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div style="margin-bottom: 1.5rem;">
@@ -628,7 +600,7 @@
                                 <i class="fas fa-search search-icon"></i>
                                 <input type="text" id="monthlySearchInput" class="search-input"
                                     placeholder="Cerca prodotto per nome, categoria o fornitore..."
-                                    oninput="filterMonthlyInventory()">
+                                    onkeyup="filterMonthlyInventory()">
                             </div>
                         </div>
 
@@ -648,20 +620,9 @@
                                 <tbody id="monthlyInventoryTableBody"></tbody>
                             </table>
                         </div>
-
-                        <!-- PULSANTI SALVATAGGIO E RITORNO HOME -->
-                        <div style="margin-top: 1.5rem; padding: 1.25rem; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
-                            <button class="btn btn-success" onclick="completeAndSaveInventory()" style="font-size: 1.15rem; font-weight: 700; padding: 0.95rem 2rem; border-radius: 12px; box-shadow: 0 4px 14px rgba(46, 196, 182, 0.35); width: 100%; max-width: 450px;">
-                                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>✅ Salva e Completa Inventario
-                            </button>
-                            <button class="btn btn-outline" onclick="showTab('dashboard')" style="font-size: 0.95rem; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 10px; width: 100%; max-width: 450px;">
-                                <i class="fas fa-home" style="margin-right: 0.4rem;"></i>Torna alla Home
-                            </button>
-                            <p style="margin: 0; font-size: 0.85rem; color: var(--gray);">Tutte le giacenze inserite verranno salvate e archiviate con data e ora</p>
-                        </div>
                     </div>
 
-                    <div class="card admin-only"
+                    <div class="card"
                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                         <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-info-circle"></i>
@@ -711,21 +672,45 @@
                         </div>
                     </div>
 
-                    <div class="card" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-left: 4px solid #2ec4b6;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-                            <div>
-                                <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.6rem;">
-                                    <i class="fas fa-satellite-dish" style="color: #2ec4b6;"></i>
-                                    Sincronizzazione Multi-Dispositivo Automatica
-                                </h3>
-                                <p style="font-size: 0.9rem; color: var(--gray); margin: 0; line-height: 1.4;">
-                                    Tutte le modifiche (quantità, nuovi prodotti, modifiche) si sincronizzano automaticamente in tempo reale tra i tuoi <strong>smartphone</strong> e il <strong>PC dell'ufficio</strong>.
-                                </p>
-                            </div>
-                            <div id="cloudSyncBadgeSettings" class="sync-status online" style="font-size: 0.85rem; padding: 0.6rem 1.2rem; border-radius: 50px;">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Multi-Dispositivo Attivo</span>
-                            </div>
+                    <div class="card">
+                        <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
+                                class="fas fa-database"
+                                style="margin-right: 0.5rem; color: #3ecf8e;"></i>Sincronizzazione Supabase
+                        </h3>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label class="form-label">URL Progetto Supabase</label>
+                            <input type="text" id="supabaseUrl" class="form-input"
+                                placeholder="https://xxxxxxxxx.supabase.co" oninput="saveSettings()">
+                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">
+                                L'URL del tuo progetto Supabase (Project Settings -> API).
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Chiave Anonima (Anon Public Key)</label>
+                            <input type="password" id="supabaseKey" class="form-input"
+                                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." oninput="saveSettings()">
+                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">
+                                La chiave API pubblica standard (evita di mostrare la service_role).
+                            </p>
+                        </div>
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label class="form-label" style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="autoSyncEnabled" onchange="toggleAutoSync()"
+                                    style="margin-right: 0.5rem; width: 1.1rem; height: 1.1rem;">
+                                Sincronizzazione Automatica
+                            </label>
+                            <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">
+                                Salva automaticamente i dati su Supabase dopo ogni modifica all'inventario.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="syncToCloud()"
+                                style="background: #3ecf8e; border-color: #3ecf8e;"><i
+                                    class="fas fa-cloud-upload-alt"></i>Invia al Cloud</button>
+                            <button class="btn btn-outline" onclick="restoreFromCloud()"><i
+                                    class="fas fa-cloud-download-alt"></i>Ripristina dal Cloud</button>
+                            <button class="btn btn-success" onclick="saveSettings()" style="margin-left: auto;"><i
+                                    class="fas fa-save"></i>Salva Impostazioni</button>
                         </div>
                     </div>
 
@@ -824,7 +809,6 @@
                             <option value="entrambi">🏢 Entrambi</option>
                             <option value="cucina">🍳 Cucina</option>
                             <option value="bar">🍹 Bar</option>
-                                    <option value="bowling">🎳 Bowling</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -835,8 +819,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Quantità</label>
-                        <input type="number" id="modalProductQuantity" class="form-input" placeholder="0" min="0"
-                            step="0.001">
+                        <input type="text" inputmode="decimal" id="modalProductQuantity" class="form-input" placeholder="0" autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Unità</label>
@@ -850,8 +833,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Prezzo Unitario</label>
-                        <input type="number" id="modalProductPrice" class="form-input" placeholder="0.00" min="0"
-                            step="0.01">
+                        <input type="text" inputmode="decimal" id="modalProductPrice" class="form-input" placeholder="0.00" autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Fornitore</label>
@@ -863,7 +845,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeAddProductModal()">Annulla</button>
-                <button class="btn btn-primary" id="modalSaveProductBtn" onclick="saveProductFromModal()">Salva Prodotto</button>
+                <button class="btn btn-primary" onclick="saveProduct()">Salva Prodotto</button>
             </div>
         </div>
     </div>
@@ -1100,8 +1082,8 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Nuova Quantità</label>
-                    <input type="number" id="quickNewQuantity" class="form-input" placeholder="Inserisci nuova quantità"
-                        min="0" step="0.001" style="font-size: 1.2rem; font-weight: 600; color: var(--primary);">
+                    <input type="text" inputmode="decimal" id="quickNewQuantity" class="form-input" placeholder="Inserisci nuova quantità"
+                        autocomplete="off" style="font-size: 1.2rem; font-weight: 600; color: var(--primary);">
                 </div>
             </div>
             <div class="modal-footer">
@@ -1119,218 +1101,7 @@
         </div>
     </div>
 
-    
-    <!-- MODALE CONFERMA INVENTARIO INCOMPLETO -->
-    <div class="modal" id="incompleteInventoryModal">
-        <div class="modal-content" style="max-width: 480px; text-align: center; padding: 2rem; border-radius: 20px;">
-            <div style="width: 68px; height: 68px; border-radius: 50%; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 1.25rem auto;">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <h3 style="font-size: 1.45rem; color: var(--dark); margin-bottom: 0.6rem;">Inventario Incompleto!</h3>
-            <p style="color: #475569; font-size: 1rem; line-height: 1.5; margin-bottom: 1.5rem;" id="incompleteInventoryMessage">
-                Ci sono ancora prodotti non contati evidenziati in rosso. Sei sicuro di voler terminare adesso?
-            </p>
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <button class="btn btn-primary" onclick="showMissingAndCloseModal()" style="font-size: 1rem; font-weight: 700; padding: 0.85rem; border-radius: 12px;">
-                    <i class="fas fa-search" style="margin-right: 0.4rem;"></i> Controlla i Prodotti Mancanti
-                </button>
-                <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 0.5rem;">
-                    <button class="btn btn-outline" onclick="closeIncompleteInventoryModal()" style="flex: 1; border-radius: 10px; font-weight: 600;">
-                        Annulla
-                    </button>
-                    <button class="btn btn-danger" onclick="forceSaveIncompleteInventory()" style="flex: 1; border-radius: 10px; font-weight: 600; background: #ef4444; color: white; border: none; cursor: pointer;">
-                        Salva Comunque
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PROFILE SELECTOR MODAL -->
-    <div class="modal" id="profileSelectorModal">
-        <div class="modal-content" style="max-width: 480px;">
-            <div class="modal-header">
-                <div class="modal-title"><i class="fas fa-user-circle" style="color: var(--primary);"></i>Seleziona Profilo Utente</div>
-                <button class="modal-close" onclick="closeProfileSelectorModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 1.25rem;">
-                    Scegli la modalità operativa. Gli operatori possono contare e registrare l'inventario del proprio reparto.
-                </p>
-
-                <div class="role-card" id="role-card-cucina" onclick="selectUserRole('cucina')">
-                    <div class="role-icon-box" style="background: rgba(255, 159, 28, 0.15); color: #e76f51;">🍳</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 700; font-size: 1.05rem; color: var(--dark);">Operatore Cucina</div>
-                        <div style="font-size: 0.85rem; color: var(--gray);">Inventario Cucina + Prodotti in comune</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--gray);"></i>
-                </div>
-
-                <div class="role-card" id="role-card-bar" onclick="selectUserRole('bar')">
-                    <div class="role-icon-box" style="background: rgba(76, 201, 240, 0.15); color: #4361ee;">🍹</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 700; font-size: 1.05rem; color: var(--dark);">Operatore Bar</div>
-                        <div style="font-size: 0.85rem; color: var(--gray);">Inventario Bar + Prodotti in comune</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--gray);"></i>
-                </div>
-
-                
-                <div class="role-card" id="role-card-bowling" onclick="selectUserRole('bowling')">
-                    <div class="role-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #059669;">🎳</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 700; font-size: 1.05rem; color: var(--dark);">Operatore Bowling</div>
-                        <div style="font-size: 0.85rem; color: var(--gray);">Inventario Bowling + Prodotti in comune</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color: var(--gray);"></i>
-                </div>
-
-                <div class="role-card" id="role-card-admin" onclick="selectUserRole('admin')">
-                    <div class="role-icon-box" style="background: rgba(114, 9, 183, 0.15); color: #7209b7;">👑</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 700; font-size: 1.05rem; color: var(--dark);">Amministratore</div>
-                        <div style="font-size: 0.85rem; color: var(--gray);">Accesso completo, Categorie, Fornitori, Report</div>
-                    </div>
-                    <i class="fas fa-lock" style="color: var(--gray);"></i>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeProfileSelectorModal()">Chiudi</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADMIN PIN MODAL -->
-    <div class="modal" id="adminPinModal">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <div class="modal-header">
-                <div class="modal-title"><i class="fas fa-lock" style="color: var(--primary);"></i>Accesso Amministratore</div>
-                <button class="modal-close" onclick="closeAdminPinModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body" style="padding: 1.5rem;">
-                <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 1rem;">
-                    Inserisci il PIN amministratore (default: <strong>1234</strong>)
-                </p>
-                <input type="password" id="adminPinInput" class="form-input" placeholder="••••"
-                    maxlength="6" inputmode="numeric" style="font-size: 1.8rem; text-align: center; letter-spacing: 8px; width: 180px; margin: 0 auto 1.5rem auto;">
-                <div style="display: flex; gap: 0.5rem; justify-content: center;">
-                    <button class="btn btn-outline" onclick="closeAdminPinModal()">Annulla</button>
-                    <button class="btn btn-primary" onclick="verifyAdminPin()"><i class="fas fa-unlock"></i> Accedi</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODALE SINCRONIZZAZIONE MULTI-DISPOSITIVO (CLOUD & CODICE) -->
-    <div class="modal" id="cloudSyncModal">
-        <div class="modal-content" style="max-width: 520px; border-radius: 18px; padding: 1.75rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                <h3 style="font-size: 1.25rem; color: var(--dark); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
-                    <i class="fas fa-satellite-dish" style="color: var(--primary);"></i> Sincronizzazione Multi-Dispositivo
-                </h3>
-                <button class="close-modal" onclick="closeCloudSyncModal()" style="border: none; background: transparent; font-size: 1.5rem; cursor: pointer; color: var(--gray);">&times;</button>
-            </div>
-
-            <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.4;">
-                Collega PC, iPhone e telefoni Android. Tutte le modifiche fatte su un dispositivo si sincronizzano in automatico.
-            </p>
-
-            <!-- STATO SUPABASE CLOUD -->
-            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <div>
-                        <div style="font-size: 0.82rem; color: var(--gray);">Stato Connessione Cloud:</div>
-                        <strong style="font-size: 1.05rem; display: flex; align-items: center; gap: 6px;" id="modalCloudState">
-                            <i class="fas fa-database" style="color: var(--primary);"></i> <span id="supabaseStatusText">Supabase Pronto</span>
-                        </strong>
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="triggerManualSync()" style="padding: 0.45rem 0.85rem; font-weight: 600;">
-                        <i class="fas fa-sync-alt"></i> Sincronizza Ora
-                    </button>
-                </div>
-                <div style="font-size: 0.78rem; color: var(--gray);" id="modalLastSyncTime">Ultimo invio: Adesso</div>
-            </div>
-
-            <!-- CONFIGURAZIONE SUPABASE DIRETTA -->
-            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
-                <h4 style="font-size: 0.92rem; color: #166534; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 5px;">
-                    <i class="fas fa-bolt"></i> Connessione Supabase (Realtime)
-                </h4>
-                <div style="margin-bottom: 0.6rem;">
-                    <label style="font-size: 0.78rem; font-weight: 600; color: #374151; display: block; margin-bottom: 2px;">Supabase Project URL:</label>
-                    <input type="text" id="supabaseUrlInput" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; border-radius: 8px;" placeholder="https://tuoprogetto.supabase.co">
-                </div>
-                <div style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 0.78rem; font-weight: 600; color: #374151; display: block; margin-bottom: 2px;">Supabase Anon Key (Public):</label>
-                    <input type="password" id="supabaseKeyInput" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; border-radius: 8px;" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-                </div>
-                <button class="btn btn-success btn-sm" onclick="saveSupabaseConfig()" style="width: 100%; padding: 0.55rem; font-weight: 700; border-radius: 8px;">
-                    <i class="fas fa-link"></i> Salva e Connetti Supabase
-                </button>
-            </div>
-
-            <!-- TRASFERIMENTO DIRETTO / CONDIVISIONE DATI ISTANTANEA -->
-            <div style="border: 1px dashed var(--primary); background: rgba(67, 97, 238, 0.04); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem;">
-                <h4 style="font-size: 0.98rem; margin-bottom: 0.5rem; color: var(--dark); display: flex; align-items: center; gap: 0.4rem;">
-                    <i class="fas fa-share-alt" style="color: var(--primary);"></i> Trasferimento Istantaneo (Copia/Incolla)
-                </h4>
-                <p style="font-size: 0.82rem; color: var(--gray); margin-bottom: 0.75rem;">
-                    Se vuoi allineare subito il tuo smartphone con i dati esatti presenti ora sul tuo PC:
-                </p>
-
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button class="btn btn-secondary btn-sm" onclick="exportDataStringToClipboard()" style="flex: 1; min-width: 140px; padding: 0.6rem;">
-                        <i class="fas fa-copy"></i> 1. Copia Dati PC
-                    </button>
-                    <button class="btn btn-outline btn-sm" onclick="showImportDataPrompt()" style="flex: 1; min-width: 140px; padding: 0.6rem;">
-                        <i class="fas fa-paste"></i> 2. Incolla su Telefono
-                    </button>
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end;">
-                <button class="btn btn-outline" onclick="closeCloudSyncModal()" style="border-radius: 10px;">Chiudi</button>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- STRISCIA DI NAVIGAZIONE FISSA IN BASSO (VERSIONE MOBILE TELEFONO) -->
-    <nav class="mobile-bottom-bar" id="mobileBottomBar">
-        <button class="nav-tab active" id="mob-nav-dashboard" onclick="showTab('dashboard')">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </button>
-        <button class="nav-tab" id="mob-nav-inventory" onclick="showTab('monthly-inventory')">
-            <i class="fas fa-clipboard-check"></i>
-            <span>Inventario</span>
-        </button>
-        <button class="nav-tab" id="mob-nav-products" onclick="showTab('products')">
-            <i class="fas fa-box"></i>
-            <span>Catalogo</span>
-        </button>
-        <button class="nav-tab admin-only" id="mob-nav-categories" onclick="showTab('categories')">
-            <i class="fas fa-tags"></i>
-            <span>Categorie</span>
-        </button>
-        <button class="nav-tab admin-only" id="mob-nav-suppliers" onclick="showTab('suppliers')">
-            <i class="fas fa-truck-moving"></i>
-            <span>Fornitori</span>
-        </button>
-        <button class="nav-tab admin-only" id="mob-nav-reports" onclick="showTab('reports')">
-            <i class="fas fa-chart-pie"></i>
-            <span>Report</span>
-        </button>
-    </nav>
-
-    <!-- Libraries (Deferred for Instant Mobile Loading) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=84"></script>
+    <script src="app.js?v=2.6"></script>
 </body>
 
 </html>

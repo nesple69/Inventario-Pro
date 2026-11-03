@@ -1,7 +1,14 @@
-# Netlify
+# Netlify / Vercel
 .netlify/
+.vercel/
 .env
-.env.local
+.env.*
+!.env.example
+
+# Credentials and secrets
+*secret*
+*credential*
+*password*
 
 # OS
 .DS_Store
@@ -19,6 +26,8 @@ desktop.ini
 *.log
 npm-debug.log*
 
-# Backup files
+# Backup and temp files
 *.bak
 *.backup
+*.tmp
+*_app.js
