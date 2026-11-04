@@ -4641,6 +4641,29 @@ function safeNum(val, fallback = 0) {
     return isNaN(n) ? fallback : n;
 }
 
+// UTILITY BADGE & ICONE REPARTI (CUCINA, BAR, BOWLING, CONDIVISO)
+function getDepartmentBadgeClass(dept) {
+    switch ((dept || '').toLowerCase()) {
+        case 'cucina': return 'badge-cucina';
+        case 'bar': return 'badge-bar';
+        case 'bowling': return 'badge-bowling';
+        default: return 'badge-neutral';
+    }
+}
+
+function getDepartmentIcon(dept) {
+    switch ((dept || '').toLowerCase()) {
+        case 'cucina': return '<i class="fas fa-utensils"></i> Cucina';
+        case 'bar': return '<i class="fas fa-glass-martini-alt"></i> Bar';
+        case 'bowling': return '<i class="fas fa-bowling-ball"></i> Bowling';
+        default: return '<i class="fas fa-layer-group"></i> Condiviso';
+    }
+}
+
+function getRowDepartmentBadge(dept) {
+    return `<span class="badge ${getDepartmentBadgeClass(dept)}">${getDepartmentIcon(dept)}</span>`;
+}
+
 function sanitizeAppData(data) {
     if (!data) return;
     if (!Array.isArray(data.products)) data.products = [];
@@ -4727,7 +4750,7 @@ function verifyAdminPin() {
         showNotification('PIN non corretto. Riprova.', 'error');
         if (input) {
             input.value = '';
-            input.focus();
+            if (input.focus) input.focus();
         }
     }
 }
@@ -4838,7 +4861,8 @@ function showTab(tabName) {
 
     // Update Active Tab Button
     document.querySelectorAll('.nav-tab').forEach(tab => {
-        const isActive = tab.getAttribute('onclick').includes(tabName);
+        const onclickAttr = (tab.getAttribute && tab.getAttribute('onclick')) || '';
+        const isActive = onclickAttr.includes(tabName);
         tab.classList.toggle('active', isActive);
     });
 
@@ -5671,7 +5695,7 @@ function openQuickQuantityModal(productId) {
     // Focus on input
     setTimeout(() => {
         const input = document.getElementById('quickNewQuantity');
-        input.focus();
+        if (input.focus) input.focus();
         input.select();
     }, 100);
 }
@@ -7003,7 +7027,7 @@ function clearMonthlySearch() {
         const clearBtn = document.getElementById('clearMonthlySearchBtn');
         if (clearBtn) clearBtn.style.display = 'none';
         renderMonthlyInventoryTable();
-        input.focus();
+        if (input.focus) input.focus();
     }
 }
 
@@ -7066,8 +7090,8 @@ function renderMonthlyInventoryTable() {
 
     if (filteredProducts.length === 0) {
         tbody.innerHTML = `
-            <tr>
-                <td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: var(--gray);">
+            <tr class="empty-inventory-row">
+                <td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: var(--gray); width: 100%;">
                     <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.4; display: block;"></i>
                     <strong>Nessun articolo trovato</strong> per i criteri selezionati.<br>
                     <small>Verifica il testo cercato o seleziona un altro reparto.</small>
