@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2.9">
 
 </head>
 
@@ -625,16 +625,16 @@
                             <div id="monthlySearchCount" style="font-size: 0.82rem; color: var(--gray); margin-top: 0.4rem; padding-left: 0.25rem; font-weight: 600;"></div>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="data-table">
+                        <div class="table-responsive inventory-table-smart-wrapper">
+                            <table class="data-table inventory-table-smart">
                                 <thead>
                                     <tr>
                                         <th>Prodotto</th>
+                                        <th style="min-width: 130px; text-align: center;">Nuova Giacenza</th>
+                                        <th>Giacenza Attuale</th>
                                         <th>Reparto</th>
                                         <th>Categoria</th>
-                                        <th>Giacenza Attuale</th>
-                                        <th style="min-width: 140px;">Nuova Giacenza</th>
-                                        <th>Stato</th>
+                                        <th style="text-align: center;">Stato</th>
                                     </tr>
                                 </thead>
                                 <tbody id="monthlyInventoryTableBody"></tbody>
@@ -1141,7 +1141,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2.8"></script>
+    <script src="app.js?v=2.9"></script>
 </body>
 
 </html>

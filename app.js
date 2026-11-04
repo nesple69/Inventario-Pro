@@ -7076,7 +7076,7 @@ function renderMonthlyInventoryTable() {
     } else {
         tbody.innerHTML = filteredProducts.map(p => {
             const isChanged = Boolean(appData.monthlyInventoryChanges[p.id]);
-            const rowStyle = isChanged ? 'style="background: #f0fdf4; border-left: 4px solid #10b981;"' : '';
+            const rowStyle = isChanged ? 'style="background: #f0fdf4; border-left: 5px solid #10b981;"' : '';
             const dept = (p.department || 'entrambi').toLowerCase();
             const safeName = escapeHtml(p.name);
             const safeCategory = escapeHtml(p.category || '');
@@ -7084,21 +7084,18 @@ function renderMonthlyInventoryTable() {
             const safeUnit = escapeHtml(p.unit || 'pezzi');
 
             return `
-                <tr ${rowStyle}>
-                    <td>
-                        <div style="font-weight: 700; color: var(--dark); font-size: 0.98rem; line-height: 1.25;">
+                <tr class="${isChanged ? 'row-counted' : ''}" ${rowStyle}>
+                    <td class="col-product-info">
+                        <div style="font-weight: 700; color: var(--dark); font-size: 1rem; line-height: 1.25;">
                             ${safeName}
                         </div>
-                        <div style="font-size: 0.78rem; color: var(--gray); margin-top: 2px;">
-                            ${safeSupplier}
+                        <div class="mobile-sub-details" style="font-size: 0.8rem; color: var(--gray); margin-top: 4px; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                            <span class="badge ${getDepartmentBadgeClass(dept)}" style="font-size: 0.72rem; padding: 1px 6px;">${getDepartmentIcon(dept)}</span>
+                            <span style="font-weight: 600; color: #4b5563;">Giac. prec: <strong>${p.quantity} ${safeUnit}</strong></span>
+                            ${safeSupplier !== '-' ? `<span style="color: #9ca3af;">• ${safeSupplier}</span>` : ''}
                         </div>
                     </td>
-                    <td>${getRowDepartmentBadge(dept)}</td>
-                    <td><span class="badge badge-neutral">${safeCategory}</span></td>
-                    <td>
-                        <span style="font-weight: 700; color: var(--gray); font-size: 0.95rem;">${p.quantity} <small style="font-weight: 500;">${safeUnit}</small></span>
-                    </td>
-                    <td>
+                    <td class="col-product-input" style="text-align: center;">
                         <input type="text" 
                             id="monthly-qty-${p.id}" 
                             value="${p.quantity}" 
@@ -7106,10 +7103,21 @@ function renderMonthlyInventoryTable() {
                             autocomplete="off"
                             onchange="updateMonthlyQuantity(${p.id}, this.value)"
                             onfocus="this.select()"
-                            style="width: 100%; max-width: 110px; padding: 0.65rem 0.5rem; border: 2px solid ${isChanged ? '#10b981' : 'var(--primary)'}; border-radius: 8px; text-align: center; font-weight: 700; font-size: 1.15rem; background: white;"
+                            style="width: 100%; max-width: 105px; height: 44px; padding: 0.4rem; border: 2px solid ${isChanged ? '#10b981' : 'var(--primary)'}; border-radius: 10px; text-align: center; font-weight: 800; font-size: 1.25rem; background: white;"
                         />
+                        <div class="mobile-status-wrapper item-status-badge" style="margin-top: 4px;">
+                            ${isChanged ? 
+                                '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; font-size: 0.75rem;"><i class="fas fa-check"></i> Contato</span>' : 
+                                '<span class="badge" style="background: #f3f4f6; color: var(--gray); font-weight: 600; font-size: 0.75rem;">⏳ Da Contare</span>'
+                            }
+                        </div>
                     </td>
-                    <td style="text-align: center; white-space: nowrap;">
+                    <td class="col-desktop-only">
+                        <span style="font-weight: 700; color: var(--gray); font-size: 0.95rem;">${p.quantity} <small style="font-weight: 500;">${safeUnit}</small></span>
+                    </td>
+                    <td class="col-desktop-only">${getRowDepartmentBadge(dept)}</td>
+                    <td class="col-desktop-only"><span class="badge badge-neutral">${safeCategory}</span></td>
+                    <td class="col-desktop-only item-status-badge" style="text-align: center; white-space: nowrap;">
                         ${isChanged ? 
                             '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;"><i class="fas fa-check"></i> Contato</span>' : 
                             '<span class="badge" style="background: #f3f4f6; color: var(--gray); font-weight: 600;">⏳ Da Contare</span>'
@@ -7161,12 +7169,12 @@ function updateMonthlyQuantity(productId, newQuantity) {
         inputEl.style.borderColor = '#10b981';
         const row = inputEl.closest('tr');
         if (row) {
+            row.classList.add('row-counted');
             row.style.background = '#f0fdf4';
-            row.style.borderLeft = '4px solid #10b981';
-            const statusCell = row.cells[row.cells.length - 1];
-            if (statusCell) {
+            row.style.borderLeft = '5px solid #10b981';
+            row.querySelectorAll('.item-status-badge').forEach(statusCell => {
                 statusCell.innerHTML = '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;"><i class="fas fa-check"></i> Contato</span>';
-            }
+            });
         }
     }
 
