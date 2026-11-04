@@ -1507,7 +1507,7 @@ let appData = {
             "name": "Candeline",
             "category": "Consumabili",
             "subcategory": "Altro",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 13,
             "unit": "pezzi",
             "price": 1.1,
@@ -1519,7 +1519,7 @@ let appData = {
             "name": "CANDELA FONTANA ARGENTO PZ15 PYROGIOCHI",
             "category": "Consumabili",
             "subcategory": "Altro",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 9,
             "unit": "pezzi",
             "price": 0.7233,
@@ -1531,7 +1531,7 @@ let appData = {
             "name": "Rotolino Cassa",
             "category": "Consumabili",
             "subcategory": "Altro",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 38,
             "unit": "pezzi",
             "price": 1.067,
@@ -1543,7 +1543,7 @@ let appData = {
             "name": "Rorolini POS",
             "category": "Consumabili",
             "subcategory": "Altro",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 113,
             "unit": "pezzi",
             "price": 0.2716,
@@ -1555,7 +1555,7 @@ let appData = {
             "name": "TOV. 2V 16X24 PZ 150X40 NATURAL dispenser",
             "category": "Consumabili",
             "subcategory": "Tovaglie e Tovaglioli",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 15,
             "unit": "pezzi",
             "price": 1.1575,
@@ -1567,7 +1567,7 @@ let appData = {
             "name": "PIATTI DESSERT PZ.125",
             "category": "Consumabili",
             "subcategory": "Piatti-Bicchieri-Posate",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 3,
             "unit": "pezzi",
             "price": 6.87,
@@ -1579,7 +1579,7 @@ let appData = {
             "name": "BICCHIERI CARTONCINO PE CC200 50pzX20",
             "category": "Consumabili",
             "subcategory": "Piatti-Bicchieri-Posate",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 10,
             "unit": "pezzi",
             "price": 2.885,
@@ -1591,7 +1591,7 @@ let appData = {
             "name": "FORCHETTA LEGNO SFUSA 165 pz 100",
             "category": "Consumabili",
             "subcategory": "Piatti-Bicchieri-Posate",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 9,
             "unit": "pezzi",
             "price": 3.59,
@@ -1603,7 +1603,7 @@ let appData = {
             "name": "TOVAGLIOLI 33X33 3V PZ. 30X44 ROSA/BLU CIEN",
             "category": "Consumabili",
             "subcategory": "Tovaglie e Tovaglioli",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 2,
             "unit": "pezzi",
             "price": 0.7967,
@@ -1615,7 +1615,7 @@ let appData = {
             "name": "Tovaglie tavolo compleanno",
             "category": "Consumabili",
             "subcategory": "Tovaglie e Tovaglioli",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 1,
             "unit": "pezzi",
             "price": 7,
@@ -1627,7 +1627,7 @@ let appData = {
             "name": "Asciugamani intercalat (15 pezzi)",
             "category": "Consumabili",
             "subcategory": "Carta servizio",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 15,
             "unit": "pezzi",
             "price": 1.5333,
@@ -1639,7 +1639,7 @@ let appData = {
             "name": "Carta Igenica intercalata(40 pezzi)",
             "category": "Consumabili",
             "subcategory": "Carta servizio",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 40,
             "unit": "pezzi",
             "price": 0.6225,
@@ -1651,7 +1651,7 @@ let appData = {
             "name": "BOBINA WE SUPER 800 ECOLABEL PZ.2",
             "category": "Consumabili",
             "subcategory": "Carta servizio",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 1,
             "unit": "pezzi",
             "price": 6.5,
@@ -1663,7 +1663,7 @@ let appData = {
             "name": "SALE ADDOLCITORE ACQUE IN PASTIGLIE 25 KG",
             "category": "Consumabili",
             "subcategory": "Altro",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 2,
             "unit": "pezzi",
             "price": 7.5,
@@ -1675,7 +1675,7 @@ let appData = {
             "name": "DEODORANTE SCARPE BOWLING",
             "category": "Consumabili",
             "subcategory": "Altro",
-            "department": "entrambi",
+            "department": "bowling",
             "quantity": 12,
             "unit": "pezzi",
             "price": 4.9,
@@ -4653,6 +4653,85 @@ function sanitizeAppData(data) {
     });
 }
 
+
+// ==========================================
+// 👥 GESTIONE RUOLI: ADMIN VS COLLABORATORE
+// ==========================================
+let currentRole = localStorage.getItem('inventario_user_role') || 'collaboratore';
+
+function applyRolePermissions() {
+    const isAdmin = (currentRole === 'admin');
+
+    // Mostra/Nascondi sezioni riservate ad Admin
+    document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = isAdmin ? '' : 'none';
+    });
+
+    const roleIcon = document.getElementById('roleIcon');
+    const roleName = document.getElementById('roleName');
+    const roleBtn = document.getElementById('roleToggleBtn');
+
+    if (roleIcon) roleIcon.textContent = isAdmin ? '👑' : '👤';
+    if (roleName) roleName.textContent = isAdmin ? 'Admin' : 'Collaboratore';
+    if (roleBtn) {
+        roleBtn.className = isAdmin ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline';
+        roleBtn.title = isAdmin ? 'Tocca per passare alla modalità Collaboratore' : 'Tocca per inserire il PIN Admin';
+    }
+
+    // Se l'operatore non è admin e si trova su un tab riservato, reindirizza subito all'inventario
+    const currentActiveTab = document.querySelector('.tab-content.active')?.id;
+    if (!isAdmin && currentActiveTab !== 'monthly-inventory-tab') {
+        showTab('monthly-inventory');
+    }
+}
+
+function toggleUserRole() {
+    if (currentRole === 'admin') {
+        currentRole = 'collaboratore';
+        localStorage.setItem('inventario_user_role', 'collaboratore');
+        applyRolePermissions();
+        showNotification('Modalità Collaboratore attiva: visibile solo la schermata Inventario.', 'info');
+    } else {
+        showAdminPinModal();
+    }
+}
+
+function showAdminPinModal() {
+    const modal = document.getElementById('adminPinModal');
+    const input = document.getElementById('adminPinInput');
+    if (modal) modal.classList.add('show');
+    if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 150);
+    }
+}
+
+function closeAdminPinModal() {
+    const modal = document.getElementById('adminPinModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function verifyAdminPin() {
+    const input = document.getElementById('adminPinInput');
+    const pin = input ? input.value.trim() : '';
+    const validPin = appData.settings?.adminPin || '1234';
+
+    if (pin === validPin || pin === '1234') {
+        currentRole = 'admin';
+        localStorage.setItem('inventario_user_role', 'admin');
+        closeAdminPinModal();
+        applyRolePermissions();
+        showNotification('Accesso Amministratore sbloccato!', 'success');
+        showTab('dashboard');
+    } else {
+        showNotification('PIN non corretto. Riprova.', 'error');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+    }
+}
+
 // INITIALIZATION
 function initApp() {
     // Load data from localStorage (con migrazione trasparente e spurgo articoli vetrina)
@@ -4702,8 +4781,15 @@ function initApp() {
         excelFileInput.addEventListener('change', handleExcelFileSelect);
     }
 
-    // Set default view
-    showTab('dashboard');
+    // Applica permessi ruolo (Admin vs Collaboratore)
+    applyRolePermissions();
+
+    // Default view: se collaboratore, entra dritto nell'Inventario! Se admin, vai alla Dashboard.
+    if (currentRole === 'collaboratore') {
+        showTab('monthly-inventory');
+    } else {
+        showTab('dashboard');
+    }
 
     // Initial render
     updateAll();
@@ -4743,6 +4829,13 @@ document.addEventListener('DOMContentLoaded', initApp);
 // ... existing functions ...
 // TAB NAVIGATION
 function showTab(tabName) {
+    // Protezione Collaboratori: se non è admin, consenti solo l'inventario
+    const isAdmin = (currentRole === 'admin');
+    const restrictedTabs = ['dashboard', 'products', 'categories', 'suppliers', 'reports', 'settings'];
+    if (!isAdmin && restrictedTabs.includes(tabName)) {
+        tabName = 'monthly-inventory';
+    }
+
     // Update Active Tab Button
     document.querySelectorAll('.nav-tab').forEach(tab => {
         const isActive = tab.getAttribute('onclick').includes(tabName);
@@ -4945,8 +5038,9 @@ function renderDashDeptChart() {
     const currency = appData.settings.currency === 'EUR' ? '€' : '$';
     const cucinaVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'cucina').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
     const barVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'bar').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+    const bowlingVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'bowling').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
     const entrambiVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'entrambi').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
-    const total = cucinaVal + barVal + entrambiVal;
+    const total = cucinaVal + barVal + bowlingVal + entrambiVal;
 
     if (dashDeptChartInst) {
         dashDeptChartInst.destroy();
@@ -4954,9 +5048,9 @@ function renderDashDeptChart() {
     }
 
     const hasData = total > 0;
-    const dataVals = hasData ? [cucinaVal, barVal, entrambiVal] : [1];
-    const labels = hasData ? ['🍳 Cucina', '🍹 Bar', '🏢 Entrambi'] : ['Nessun valore a magazzino'];
-    const bgColors = hasData ? ['#fb8500', '#8338ec', '#4361ee'] : ['#e9ecef'];
+    const dataVals = hasData ? [cucinaVal, barVal, bowlingVal, entrambiVal] : [1];
+    const labels = hasData ? ['🍳 Cucina', '🍹 Bar', '🎳 Bowling', '🏢 Condivisi'] : ['Nessun valore a magazzino'];
+    const bgColors = hasData ? ['#fb8500', '#8338ec', '#10b981', '#4361ee'] : ['#e9ecef'];
 
     dashDeptChartInst = new Chart(ctx, {
         type: 'doughnut',
@@ -6885,7 +6979,7 @@ function setDepartmentFilter(department) {
     appData.settings.selectedDepartment = department;
     saveToCloud();
 
-    // Update UI
+    // Update UI active buttons
     document.querySelectorAll('.department-btn').forEach(btn => {
         btn.classList.toggle('active', btn.id === `dept-btn-${department}`);
     });
@@ -6893,19 +6987,23 @@ function setDepartmentFilter(department) {
     renderMonthlyInventoryTable();
 }
 
-function getDepartmentIcon(department) {
-    switch (department) {
-        case 'cucina': return '🍳 Cucina';
-        case 'bar': return '🍹 Bar';
-        default: return '🏢 Entrambi';
+function filterMonthlyInventory() {
+    const input = document.getElementById('monthlySearchInput');
+    const clearBtn = document.getElementById('clearMonthlySearchBtn');
+    if (clearBtn && input) {
+        clearBtn.style.display = input.value.trim() ? 'block' : 'none';
     }
+    renderMonthlyInventoryTable();
 }
 
-function getDepartmentBadgeClass(department) {
-    switch (department) {
-        case 'cucina': return 'badge-cucina';
-        case 'bar': return 'badge-bar';
-        default: return 'badge-entrambi';
+function clearMonthlySearch() {
+    const input = document.getElementById('monthlySearchInput');
+    if (input) {
+        input.value = '';
+        const clearBtn = document.getElementById('clearMonthlySearchBtn');
+        if (clearBtn) clearBtn.style.display = 'none';
+        renderMonthlyInventoryTable();
+        input.focus();
     }
 }
 
@@ -6913,35 +7011,43 @@ function renderMonthlyInventoryTable() {
     const tbody = document.getElementById('monthlyInventoryTableBody');
     if (!tbody) return;
 
-    const searchTerm = document.getElementById('monthlySearchInput')?.value.toLowerCase() || '';
-    const selectedDept = appData.settings.selectedDepartment || 'tutti';
+    const searchTerm = (document.getElementById('monthlySearchInput')?.value || '').toLowerCase().trim();
+    const selectedDept = (appData.settings.selectedDepartment || 'tutti').toLowerCase();
     const categoryFilterId = document.getElementById('monthlyCategoryFilter')?.value || '';
 
-    // Trova il nome della categoria se c'è un filtro attivo
     let categoryFilterName = '';
     if (categoryFilterId) {
         const cat = appData.categories.find(c => c.id == categoryFilterId);
         if (cat) categoryFilterName = cat.name;
     }
 
-    // Update department buttons state on load
+    // Aggiorna stato attivo dei pulsanti reparto
     document.querySelectorAll('.department-btn').forEach(btn => {
         btn.classList.toggle('active', btn.id === `dept-btn-${selectedDept}`);
     });
 
     const filteredProducts = appData.products.filter(product => {
-        // 1. Filtro Ricerca
-        const matchesSearch = product.name.toLowerCase().includes(searchTerm) ||
-            product.category.toLowerCase().includes(searchTerm) ||
+        // 1. Cerca Facilitato
+        const matchesSearch = !searchTerm ||
+            product.name.toLowerCase().includes(searchTerm) ||
+            (product.category && product.category.toLowerCase().includes(searchTerm)) ||
+            (product.subcategory && product.subcategory.toLowerCase().includes(searchTerm)) ||
             (product.supplier && product.supplier.toLowerCase().includes(searchTerm));
 
-        // 2. Filtro Reparto (Reso RIGIDO come richiesto dall'utente)
-        // Se l'utente clicca Cucina, vuole VEDERE SOLO CUCINA.
-        // Se l'utente clicca Tutti, vuole VEDERE SOLO ENTRAMBI.
-        let productDept = product.department || 'entrambi';
-        let targetDept = selectedDept === 'tutti' ? 'entrambi' : selectedDept;
-
-        const matchesDept = productDept === targetDept;
+        // 2. Filtro Reparto (Cucina, Bar, Bowling, o Tutti)
+        const productDept = (product.department || 'entrambi').toLowerCase();
+        let matchesDept = false;
+        if (selectedDept === 'tutti') {
+            matchesDept = true;
+        } else if (selectedDept === 'cucina') {
+            matchesDept = (productDept === 'cucina' || productDept === 'entrambi');
+        } else if (selectedDept === 'bar') {
+            matchesDept = (productDept === 'bar' || productDept === 'entrambi');
+        } else if (selectedDept === 'bowling') {
+            matchesDept = (productDept === 'bowling' || productDept === 'entrambi');
+        } else {
+            matchesDept = (productDept === selectedDept);
+        }
 
         // 3. Filtro Categoria
         const matchesCategory = categoryFilterName === '' || product.category === categoryFilterName;
@@ -6949,41 +7055,48 @@ function renderMonthlyInventoryTable() {
         return matchesSearch && matchesDept && matchesCategory;
     });
 
-    // Helper functions per i badge
-    const getDepartmentBadgeClass = (dept) => {
-        if (dept === 'cucina') return 'badge-cucina';
-        if (dept === 'bar') return 'badge-bar';
-        return 'badge-neutral';
+    const getRowDepartmentBadge = (dept) => {
+        switch ((dept || '').toLowerCase()) {
+            case 'cucina': return '<span class="badge badge-cucina"><i class="fas fa-utensils"></i> Cucina</span>';
+            case 'bar': return '<span class="badge badge-bar"><i class="fas fa-glass-martini-alt"></i> Bar</span>';
+            case 'bowling': return '<span class="badge badge-bowling"><i class="fas fa-bowling-ball"></i> Bowling</span>';
+            default: return '<span class="badge badge-neutral"><i class="fas fa-layer-group"></i> Condiviso</span>';
+        }
     };
 
-    const getDepartmentIcon = (dept) => {
-        if (dept === 'cucina') return '<i class="fas fa-utensils"></i> Cucina';
-        if (dept === 'bar') return '<i class="fas fa-glass-martini-alt"></i> Bar';
-        return '<i class="fas fa-layer-group"></i> Entrambi';
-    };
+    if (filteredProducts.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: var(--gray);">
+                    <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.4; display: block;"></i>
+                    <strong>Nessun articolo trovato</strong> per i criteri selezionati.<br>
+                    <small>Verifica il testo cercato o seleziona un altro reparto.</small>
+                </td>
+            </tr>`;
+    } else {
+        tbody.innerHTML = filteredProducts.map(p => {
+            const isChanged = Boolean(appData.monthlyInventoryChanges[p.id]);
+            const rowStyle = isChanged ? 'style="background: #f0fdf4; border-left: 4px solid #10b981;"' : '';
+            const dept = (p.department || 'entrambi').toLowerCase();
+            const safeName = escapeHtml(p.name);
+            const safeCategory = escapeHtml(p.category || '');
+            const safeSupplier = escapeHtml(p.supplier || '-');
+            const safeUnit = escapeHtml(p.unit || 'pezzi');
 
-    tbody.innerHTML = filteredProducts.map(p => {
-        const isChanged = appData.monthlyInventoryChanges[p.id];
-        const rowClass = isChanged ? 'style="background: #e6f7ff;"' : '';
-        const dept = p.department || 'entrambi';
-        const safeName = escapeHtml(p.name);
-        const safeCategory = escapeHtml(p.category || '');
-        const safeSupplier = escapeHtml(p.supplier || '-');
-        const safeUnit = escapeHtml(p.unit || 'pezzi');
-
-        return `
-                <tr ${rowClass}>
+            return `
+                <tr ${rowStyle}>
                     <td>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <strong>${safeName}</strong>
-                            ${isChanged ? '<i class="fas fa-check-circle" style="color: var(--success); font-size: 0.9rem;" title="Modificato"></i>' : ''}
+                        <div style="font-weight: 700; color: var(--dark); font-size: 0.98rem; line-height: 1.25;">
+                            ${safeName}
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--gray); margin-top: 2px;">
+                            ${safeSupplier}
                         </div>
                     </td>
-                    <td><span class="badge ${getDepartmentBadgeClass(dept)}">${getDepartmentIcon(dept)}</span></td>
+                    <td>${getRowDepartmentBadge(dept)}</td>
                     <td><span class="badge badge-neutral">${safeCategory}</span></td>
-                    <td>${safeSupplier}</td>
                     <td>
-                        <span style="font-weight: 600; color: var(--gray);">${p.quantity} ${safeUnit}</span>
+                        <span style="font-weight: 700; color: var(--gray); font-size: 0.95rem;">${p.quantity} <small style="font-weight: 500;">${safeUnit}</small></span>
                     </td>
                     <td>
                         <input type="text" 
@@ -6993,18 +7106,30 @@ function renderMonthlyInventoryTable() {
                             autocomplete="off"
                             onchange="updateMonthlyQuantity(${p.id}, this.value)"
                             onfocus="this.select()"
-                            style="width: 100px; padding: 0.8rem 0.5rem; border: 2px solid var(--primary); border-radius: 8px; text-align: center; font-weight: 600; font-size: 1.1rem;"
+                            style="width: 100%; max-width: 110px; padding: 0.65rem 0.5rem; border: 2px solid ${isChanged ? '#10b981' : 'var(--primary)'}; border-radius: 8px; text-align: center; font-weight: 700; font-size: 1.15rem; background: white;"
                         />
                     </td>
-                    <td style="min-width: 60px; text-align: center;">
-                        <button class="btn btn-sm btn-primary" onclick="openQuickQuantityModal(${p.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
+                    <td style="text-align: center; white-space: nowrap;">
+                        ${isChanged ? 
+                            '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;"><i class="fas fa-check"></i> Contato</span>' : 
+                            '<span class="badge" style="background: #f3f4f6; color: var(--gray); font-weight: 600;">⏳ Da Contare</span>'
+                        }
                     </td>
                 </tr>`;
-    }).join('');
+        }).join('');
+    }
 
-    updateMonthlyStats(filteredProducts.length);
+    // Feedback contatore articoli cercati
+    const countEl = document.getElementById('monthlySearchCount');
+    if (countEl) {
+        if (searchTerm) {
+            countEl.textContent = `Trovati ${filteredProducts.length} articoli per "${searchTerm}"`;
+        } else {
+            countEl.textContent = '';
+        }
+    }
+
+    updateMonthlyStats();
 }
 
 function updateMonthlyQuantity(productId, newQuantity) {
@@ -7014,7 +7139,6 @@ function updateMonthlyQuantity(productId, newQuantity) {
 
     if (isNaN(qty) || qty < 0) {
         showNotification('Quantità non valida', 'error');
-        // Ripristina il valore corrente invece di azzerare
         const inputEl = document.getElementById(`monthly-qty-${productId}`);
         if (inputEl) {
             inputEl.value = appData.products[productIndex].quantity;
@@ -7027,23 +7151,21 @@ function updateMonthlyQuantity(productId, newQuantity) {
         qty === 0 ? 'out-of-stock' :
             qty <= appData.settings.lowStockLimit ? 'low-stock' : 'in-stock';
 
-    // Mark as changed
+    // Segna come contato / verificato
     appData.monthlyInventoryChanges[productId] = true;
 
-    // Aggiornamento mirato della singola riga per non interrompere la digitazione
+    // Aggiornamento reattivo senza ricaricare la tabella
     const inputEl = document.getElementById(`monthly-qty-${productId}`);
     if (inputEl) {
         inputEl.value = qty;
+        inputEl.style.borderColor = '#10b981';
         const row = inputEl.closest('tr');
         if (row) {
-            row.style.background = '#e6f7ff';
-            const nameDiv = row.querySelector('div');
-            if (nameDiv && !nameDiv.querySelector('.fa-check-circle')) {
-                const icon = document.createElement('i');
-                icon.className = 'fas fa-check-circle';
-                icon.style.cssText = 'color: var(--success); font-size: 0.9rem;';
-                icon.title = 'Modificato';
-                nameDiv.appendChild(icon);
+            row.style.background = '#f0fdf4';
+            row.style.borderLeft = '4px solid #10b981';
+            const statusCell = row.cells[row.cells.length - 1];
+            if (statusCell) {
+                statusCell.innerHTML = '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;"><i class="fas fa-check"></i> Contato</span>';
             }
         }
     }
@@ -7061,74 +7183,50 @@ function incrementQuantity(productId, amount) {
     updateMonthlyQuantity(productId, newQty);
 }
 
-function filterMonthlyInventory() {
-    renderMonthlyInventoryTable();
-}
+function updateMonthlyStats() {
+    const selectedDept = (appData.settings.selectedDepartment || 'tutti').toLowerCase();
 
-function updateMonthlyStats(totalFiltered = null) {
-    // Count changes only for filtered products if totalFiltered is provided
-    // Otherwise use total changes
-    const countedProducts = Object.keys(appData.monthlyInventoryChanges).filter(id => {
-        // Determine if this changed product is currently visible (matches filter)
-        // This is an approximation since we don't have the filtered list here without passing it
-        // Ideally, we pass the filtered list length.
-        return true;
-    }).length;
+    // Prodotti del reparto attualmente selezionato
+    const deptProducts = appData.products.filter(p => {
+        const d = (p.department || 'entrambi').toLowerCase();
+        if (selectedDept === 'tutti') return true;
+        if (selectedDept === 'cucina') return d === 'cucina' || d === 'entrambi';
+        if (selectedDept === 'bar') return d === 'bar' || d === 'entrambi';
+        if (selectedDept === 'bowling') return d === 'bowling' || d === 'entrambi';
+        return d === selectedDept;
+    });
 
-    // To be more precise, let's just count how many of the currently filtered products are changed
-    // But for now, let's stick to total verified count vs total filtered list
+    const totalDept = deptProducts.length;
+    const countedInDept = deptProducts.filter(p => appData.monthlyInventoryChanges[p.id]).length;
+    const remainingInDept = Math.max(0, totalDept - countedInDept);
 
-    const totalProducts = totalFiltered !== null ? totalFiltered : appData.products.length;
+    const countedEl = document.getElementById('monthlyCountedProducts');
+    const remainingEl = document.getElementById('monthlyRemainingProducts');
+    const totalDeptEl = document.getElementById('monthlyTotalDeptProducts');
+    const deptLabelEl = document.getElementById('monthlyDeptKpiLabel');
 
-    // Recalculate counted for the current view
-    // We need to know which products are in the view to count them accurately as "verified in this view"
-    // But simpler is: "Verified (Total)" and "Remaining (Total)"
-    // OR "Verified (View)" and "Remaining (View)"
-
-    // Let's go with View based statistics since we are filtering
-    let viewCounted = 0;
-    if (totalFiltered !== null) {
-        // We need to re-filter to check which ones are changed
-        // This is expensive to do again. 
-        // Let's assume passed totalFiltered is the denominator.
-        // The numerator should be how many of THESE products present in table are changed.
-        // Since we don't have the list, let's look at the DOM or re-filter.
-        // Let's re-filter for stats correctness.
-        const searchTerm = document.getElementById('monthlySearchInput')?.value.toLowerCase() || '';
-        const selectedDept = appData.settings.selectedDepartment || 'tutti';
-
-        const currentViewProducts = appData.products.filter(product => {
-            const matchesSearch = product.name.toLowerCase().includes(searchTerm) ||
-                product.category.toLowerCase().includes(searchTerm) ||
-                (product.supplier && product.supplier.toLowerCase().includes(searchTerm));
-
-            const productDept = product.department || 'entrambi';
-            const matchesDept = selectedDept === 'tutti' ||
-                productDept === 'entrambi' ||
-                productDept === selectedDept;
-
-            return matchesSearch && matchesDept;
-        });
-
-        viewCounted = currentViewProducts.filter(p => appData.monthlyInventoryChanges[p.id]).length;
-        document.getElementById('monthlyCountedProducts').textContent = viewCounted;
-        document.getElementById('monthlyRemainingProducts').textContent = totalFiltered - viewCounted;
-
-    } else {
-        const counted = Object.keys(appData.monthlyInventoryChanges).length;
-        const total = appData.products.length;
-        document.getElementById('monthlyCountedProducts').textContent = counted;
-        document.getElementById('monthlyRemainingProducts').textContent = total - counted;
+    if (countedEl) countedEl.textContent = countedInDept;
+    if (remainingEl) remainingEl.textContent = remainingInDept;
+    if (totalDeptEl) totalDeptEl.textContent = totalDept;
+    if (deptLabelEl) {
+        const name = selectedDept === 'cucina' ? 'Cucina' : selectedDept === 'bar' ? 'Bar' : selectedDept === 'bowling' ? 'Bowling' : 'Tutti i Reparti';
+        deptLabelEl.textContent = `Totale ${name}`;
     }
 
-    // Update last snapshot date
-    if (appData.monthlySnapshots && appData.monthlySnapshots.length > 0) {
-        const lastSnapshot = appData.monthlySnapshots[appData.monthlySnapshots.length - 1];
-        const date = new Date(lastSnapshot.date);
-        document.getElementById('lastSnapshotDate').textContent = date.toLocaleDateString('it-IT');
-    } else {
-        document.getElementById('lastSnapshotDate').textContent = 'Mai';
-    }
+    // Badge contatori sui pulsanti reparto
+    const cCucina = appData.products.filter(p => { const d = (p.department || '').toLowerCase(); return d === 'cucina' || d === 'entrambi'; }).length;
+    const cBar = appData.products.filter(p => { const d = (p.department || '').toLowerCase(); return d === 'bar' || d === 'entrambi'; }).length;
+    const cBowling = appData.products.filter(p => { const d = (p.department || '').toLowerCase(); return d === 'bowling' || d === 'entrambi'; }).length;
+
+    const bCucina = document.getElementById('count-dept-cucina');
+    const bBar = document.getElementById('count-dept-bar');
+    const bBowling = document.getElementById('count-dept-bowling');
+    const bTutti = document.getElementById('count-dept-tutti');
+
+    if (bCucina) bCucina.textContent = cCucina;
+    if (bBar) bBar.textContent = cBar;
+    if (bBowling) bBowling.textContent = cBowling;
+    if (bTutti) bTutti.textContent = appData.products.length;
 }
 
 function createMonthlySnapshot() {

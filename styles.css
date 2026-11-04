@@ -862,6 +862,26 @@ body {
     box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
 }
 
+.badge-bowling {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.dept-badge-count {
+    background: rgba(0, 0, 0, 0.08);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-left: 4px;
+}
+
+.department-btn.active .dept-badge-count {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
 /* Mobile Adjustments */
 @media (max-width: 1024px) {
     .sidebar {
@@ -927,7 +947,42 @@ body {
     }
 
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+
+    .stat-card-main {
+        padding: 0.5rem 0.25rem !important;
+        text-align: center !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .stat-card-main .stat-details {
+        text-align: center !important;
+    }
+
+    .stat-card-main .stat-main-value {
+        font-size: 1.15rem !important;
+    }
+
+    .stat-card-main .stat-main-label {
+        font-size: 0.68rem !important;
+    }
+
+    .department-selector {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+    }
+
+    .department-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 0.6rem 0.5rem !important;
+        font-size: 0.92rem !important;
+        min-height: 44px !important;
     }
 
     .charts-container {

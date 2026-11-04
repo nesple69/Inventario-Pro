@@ -38,25 +38,32 @@
             </div>
 
             <nav class="nav-tabs-header">
-                <button class="nav-tab active" onclick="showTab('dashboard')"><i
-                        class="fas fa-th-large"></i><span>Dashboard</span></button>
-                <button class="nav-tab" onclick="showTab('products')"><i
+                <button class="nav-tab admin-only" onclick="showTab('dashboard')"><i
+                        class="fas fa-chart-line"></i><span>Dashboard</span></button>
+                <button class="nav-tab admin-only" onclick="showTab('products')"><i
                         class="fas fa-box"></i><span>Prodotti</span></button>
-                <button class="nav-tab" onclick="showTab('categories')"><i
+                <button class="nav-tab admin-only" onclick="showTab('categories')"><i
                         class="fas fa-tags"></i><span>Categorie</span></button>
-                <button class="nav-tab" onclick="showTab('suppliers')"><i
+                <button class="nav-tab admin-only" onclick="showTab('suppliers')"><i
                         class="fas fa-truck-moving"></i><span>Fornitori</span></button>
-                <button class="nav-tab" onclick="showTab('reports')"><i
+                <button class="nav-tab admin-only" onclick="showTab('reports')"><i
                         class="fas fa-chart-pie"></i><span>Report</span></button>
-                <button class="nav-tab" onclick="showTab('monthly-inventory')"><i
-                        class="fas fa-clipboard-list"></i><span>Inventario</span></button>
-                <button class="nav-tab" onclick="showTab('settings')"><i
+                <button class="nav-tab active" onclick="showTab('monthly-inventory')"><i
+                        class="fas fa-clipboard-check"></i><span>Inventario</span></button>
+                <button class="nav-tab admin-only" onclick="showTab('settings')"><i
                         class="fas fa-sliders-h"></i><span>Impostazioni</span></button>
             </nav>
 
-            <div id="cloudStatus" class="sync-status offline">
-                <i class="fas fa-cloud"></i>
-                <span id="cloudStatusText">Locale</span>
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <button class="btn btn-sm btn-outline" id="roleToggleBtn" onclick="toggleUserRole()"
+                    style="color: white; border-color: rgba(255,255,255,0.45); border-radius: 20px; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0.75rem; background: rgba(255,255,255,0.1); cursor: pointer;"
+                    title="Tocca per cambiare modalità">
+                    <span id="roleIcon">👤</span> <span id="roleName">Collaboratore</span>
+                </button>
+                <div id="cloudStatus" class="sync-status offline">
+                    <i class="fas fa-cloud"></i>
+                    <span id="cloudStatusText">Locale</span>
+                </div>
             </div>
         </header>
 
@@ -526,40 +533,41 @@
 
                 <!-- MONTHLY INVENTORY TAB -->
                 <div class="tab-content" id="monthly-inventory-tab">
-                    <div class="section-header">
+                    <div class="section-header" style="flex-wrap: wrap; gap: 0.75rem;">
                         <div class="header-title">
-                            <h2>Inventario Mensile</h2>
-                            <p>Aggiorna rapidamente le quantità per l'inventario del mese</p>
+                            <h2>Conteggio Inventario</h2>
+                            <p>Seleziona il tuo reparto e inserisci le giacenze effettive</p>
                         </div>
                         <div class="header-actions">
-                            <button class="btn btn-outline" onclick="exportMonthlyToExcel()"><i
+                            <button class="btn btn-outline admin-only" onclick="exportMonthlyToExcel()"><i
                                     class="fas fa-file-excel"></i>Esporta Excel</button>
                             <button class="btn btn-success" onclick="createMonthlySnapshot()"><i
                                     class="fas fa-camera"></i>Salva Snapshot</button>
                         </div>
                     </div>
 
-                    <div class="card" style="margin-bottom: 1.5rem;">
+                    <!-- KPI REPARTO IN ALTO -->
+                    <div class="card" style="margin-bottom: 1.25rem; padding: 1rem 1.25rem;">
                         <div class="stats-grid" style="margin-bottom: 0;">
                             <div class="stat-card-main">
-                                <div class="stat-icon-wrapper icon-blue"><i class="fas fa-clipboard-check"></i></div>
+                                <div class="stat-icon-wrapper icon-blue"><i class="fas fa-boxes"></i></div>
                                 <div class="stat-details">
-                                    <span class="stat-main-value" id="monthlyCountedProducts">0</span>
-                                    <span class="stat-main-label">Prodotti Verificati</span>
+                                    <span class="stat-main-value" id="monthlyTotalDeptProducts">185</span>
+                                    <span class="stat-main-label" id="monthlyDeptKpiLabel">Totale Reparto</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-main">
+                                <div class="stat-icon-wrapper icon-green"><i class="fas fa-check-circle"></i></div>
+                                <div class="stat-details">
+                                    <span class="stat-main-value" id="monthlyCountedProducts" style="color: #10b981;">0</span>
+                                    <span class="stat-main-label">Verificati / Contati</span>
                                 </div>
                             </div>
                             <div class="stat-card-main">
                                 <div class="stat-icon-wrapper icon-orange"><i class="fas fa-hourglass-half"></i></div>
                                 <div class="stat-details">
-                                    <span class="stat-main-value" id="monthlyRemainingProducts">0</span>
+                                    <span class="stat-main-value" id="monthlyRemainingProducts" style="color: #f59e0b;">0</span>
                                     <span class="stat-main-label">Da Verificare</span>
-                                </div>
-                            </div>
-                            <div class="stat-card-main">
-                                <div class="stat-icon-wrapper icon-purple"><i class="fas fa-calendar-alt"></i></div>
-                                <div class="stat-details">
-                                    <span class="stat-main-value" id="lastSnapshotDate">Mai</span>
-                                    <span class="stat-main-label">Ultimo Snapshot</span>
                                 </div>
                             </div>
                         </div>
@@ -567,41 +575,54 @@
 
                     <div class="card">
                         <!-- Department Selector -->
-                        <div class="department-selector"
-                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-                            <div>
-                                <span style="font-weight: 600; color: var(--gray); margin-right: 0.5rem;">Filtra
-                                    Reparto:</span>
-                                <button class="department-btn active" onclick="setDepartmentFilter('tutti')"
-                                    id="dept-btn-tutti">
-                                    <i class="fas fa-layer-group"></i> Entrambi
-                                </button>
-                                <button class="department-btn" onclick="setDepartmentFilter('cucina')"
-                                    id="dept-btn-cucina">
-                                    <i class="fas fa-utensils"></i> Cucina
+                        <div class="department-selector-container" style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
+                                <span style="font-weight: 700; color: var(--dark); font-size: 0.95rem;">
+                                    <i class="fas fa-layer-group" style="color: var(--primary); margin-right: 0.35rem;"></i>1. Scegli il Reparto:
+                                </span>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--light); padding: 0.25rem 0.75rem; border-radius: 20px; border: 1px solid var(--border);">
+                                    <i class="fas fa-tags" style="color: var(--primary); font-size: 0.85rem;"></i>
+                                    <select id="monthlyCategoryFilter" class="form-select"
+                                        onchange="filterMonthlyInventory()"
+                                        style="border: none; background: transparent; padding: 0.2rem; min-width: 130px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+                                        <option value="">Tutte le Categorie</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="department-selector">
+                                <button class="department-btn" onclick="setDepartmentFilter('cucina')" id="dept-btn-cucina">
+                                    <i class="fas fa-utensils" style="color: #fb8500;"></i> Cucina <span class="dept-badge-count" id="count-dept-cucina">45</span>
                                 </button>
                                 <button class="department-btn" onclick="setDepartmentFilter('bar')" id="dept-btn-bar">
-                                    <i class="fas fa-glass-martini-alt"></i> Bar
+                                    <i class="fas fa-glass-martini-alt" style="color: #4361ee;"></i> Bar <span class="dept-badge-count" id="count-dept-bar">111</span>
                                 </button>
-                            </div>
-                            <div
-                                style="display: flex; align-items: center; gap: 0.5rem; background: var(--light); padding: 0.3rem 0.8rem; border-radius: 20px; border: 1px solid var(--border);">
-                                <i class="fas fa-tags" style="color: var(--primary);"></i>
-                                <select id="monthlyCategoryFilter" class="form-select"
-                                    onchange="filterMonthlyInventory()"
-                                    style="border: none; background: transparent; padding: 0.2rem; min-width: 150px; font-weight: 500; font-size: 0.95rem; cursor: pointer;">
-                                    <option value="">Tutte le Categorie</option>
-                                </select>
+                                <button class="department-btn" onclick="setDepartmentFilter('bowling')" id="dept-btn-bowling">
+                                    <i class="fas fa-bowling-ball" style="color: #10b981;"></i> Bowling <span class="dept-badge-count" id="count-dept-bowling">15</span>
+                                </button>
+                                <button class="department-btn active" onclick="setDepartmentFilter('tutti')" id="dept-btn-tutti">
+                                    <i class="fas fa-layer-group" style="color: #7209b7;"></i> Tutti <span class="dept-badge-count" id="count-dept-tutti">185</span>
+                                </button>
                             </div>
                         </div>
 
-                        <div style="margin-bottom: 1.5rem;">
-                            <div class="search-container">
-                                <i class="fas fa-search search-icon"></i>
-                                <input type="text" id="monthlySearchInput" class="search-input"
-                                    placeholder="Cerca prodotto per nome, categoria o fornitore..."
-                                    onkeyup="filterMonthlyInventory()">
+                        <!-- Cerca Facilitato Prominente -->
+                        <div style="margin-bottom: 1.25rem; margin-top: 1.25rem;">
+                            <div style="font-weight: 700; color: var(--dark); font-size: 0.95rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-search" style="color: var(--primary); margin-right: 0.35rem;"></i>2. Cerca Articolo da Contare:
                             </div>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <i class="fas fa-search" style="position: absolute; left: 1rem; color: var(--primary); font-size: 1.15rem; pointer-events: none;"></i>
+                                <input type="text" id="monthlySearchInput" class="form-control"
+                                    placeholder="Scrivi qui per trovare subito (es. levissima, birra, hamburger, piatti...)"
+                                    oninput="filterMonthlyInventory()"
+                                    autocomplete="off"
+                                    style="padding: 0.85rem 2.8rem 0.85rem 2.8rem; font-size: 1.05rem; border-radius: 12px; border: 2px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.03); width: 100%;">
+                                <button id="clearMonthlySearchBtn" onclick="clearMonthlySearch()"
+                                    style="position: absolute; right: 0.75rem; background: none; border: none; font-size: 1.2rem; color: var(--gray); cursor: pointer; display: none; padding: 0.4rem;">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </div>
+                            <div id="monthlySearchCount" style="font-size: 0.82rem; color: var(--gray); margin-top: 0.4rem; padding-left: 0.25rem; font-weight: 600;"></div>
                         </div>
 
                         <div class="table-responsive">
@@ -611,10 +632,9 @@
                                         <th>Prodotto</th>
                                         <th>Reparto</th>
                                         <th>Categoria</th>
-                                        <th>Fornitore</th>
-                                        <th>Quantità Attuale</th>
-                                        <th>Nuova Quantità</th>
-                                        <th>Azioni</th>
+                                        <th>Giacenza Attuale</th>
+                                        <th style="min-width: 140px;">Nuova Giacenza</th>
+                                        <th>Stato</th>
                                     </tr>
                                 </thead>
                                 <tbody id="monthlyInventoryTableBody"></tbody>
@@ -622,15 +642,14 @@
                         </div>
                     </div>
 
-                    <div class="card"
+                    <div class="card admin-only"
                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                         <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-info-circle"></i>
-                            Gestione Inventario Mensile
+                            Gestione Amministrativa Inventario
                         </h3>
                         <p style="margin-bottom: 1rem; opacity: 0.95;">
-                            Usa questa sezione per aggiornare rapidamente le quantità durante l'inventario mensile.
-                            Le modifiche vengono salvate automaticamente.
+                            Sezione riservata all'amministratore per storicizzare gli snapshot o azzerare le quantità a inizio mese.
                         </p>
                         <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                             <button class="btn" style="background: white; color: #667eea;"
@@ -1093,6 +1112,27 @@
         </div>
     </div>
 
+    <!-- MODALE PIN ADMIN -->
+    <div id="adminPinModal" class="modal">
+        <div class="modal-content" style="max-width: 360px; text-align: center; border-radius: 18px; padding: 1.75rem;">
+            <div style="width: 52px; height: 52px; background: rgba(67, 97, 238, 0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--primary); font-size: 1.5rem;">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h3 style="margin-bottom: 0.4rem; font-size: 1.25rem;">Accesso Amministratore</h3>
+            <p style="color: var(--gray); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                Inserisci il PIN per sbloccare la Dashboard, i Report e le Impostazioni
+            </p>
+            <input type="password" id="adminPinInput" class="form-control" placeholder="PIN (es. 1234)"
+                inputmode="numeric" maxlength="8"
+                style="font-size: 1.5rem; text-align: center; letter-spacing: 6px; padding: 0.75rem; border-radius: 12px; margin-bottom: 1.25rem;"
+                onkeyup="if(event.key === 'Enter') verifyAdminPin()">
+            <div style="display: flex; gap: 0.75rem;">
+                <button class="btn btn-outline" style="flex: 1;" onclick="closeAdminPinModal()">Annulla</button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="verifyAdminPin()">Accedi</button>
+            </div>
+        </div>
+    </div>
+
     <div class="notification" id="notification">
         <i class="fas fa-check-circle notification-icon"></i>
         <div class="notification-content">
@@ -1101,7 +1141,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2.7"></script>
+    <script src="app.js?v=2.8"></script>
 </body>
 
 </html>
