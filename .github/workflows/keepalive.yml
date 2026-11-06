@@ -1,0 +1,20 @@
+name: Supabase Keepalive Trigger
+
+on:
+  schedule:
+    # Esegue ogni 4 giorni alle ore 08:00 UTC (così non supera mai la soglia dei 7 giorni di Supabase)
+    - cron: '0 8 */4 * *'
+  workflow_dispatch: # Permette anche di avviarlo manualmente dalla scheda Actions di GitHub
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invia Ping Keepalive a Supabase
+        run: |
+          echo "Sending keepalive ping to Supabase database..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL" \
+            -H "Authorization: Bearer sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL" \
+            "https://sdcpgbowbykenwikpzqv.supabase.co/rest/v1/inventario_secure_v1_9x8b7c?id=eq.1&select=id")
+          echo "Supabase Response HTTP Code: $HTTP_STATUS"
