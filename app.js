@@ -2380,7 +2380,10 @@ let appData = {
         "currency": "EUR",
         "decimalPlaces": 2,
         "lowStockLimit": 5,
-        "stockNotifications": "all"
+        "stockNotifications": "all",
+        "autoSync": true,
+        "supabaseUrl": "https://sdcpgbowbykenwikpzqv.supabase.co",
+        "supabaseKey": "sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL"
     },
     "monthlySnapshots": [
         {
@@ -4911,6 +4914,15 @@ function initApp() {
                     localStorage.setItem('inventario_pro_data', JSON.stringify(appData));
     localStorage.setItem('inventarioData', JSON.stringify(appData));
                 }
+            }
+            // Auto-configurazione credenziali di sincronizzazione Cloud centralizzata
+            const DEFAULT_SUPABASE_URL = "https://sdcpgbowbykenwikpzqv.supabase.co";
+            const DEFAULT_SUPABASE_KEY = "sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL";
+            if (!appData.settings.supabaseUrl || !appData.settings.supabaseUrl.includes(".supabase.co")) {
+                appData.settings.supabaseUrl = DEFAULT_SUPABASE_URL;
+            }
+            if (!appData.settings.supabaseKey) {
+                appData.settings.supabaseKey = DEFAULT_SUPABASE_KEY;
             }
             if (appData.settings.autoSync === undefined) {
                 appData.settings.autoSync = true;
