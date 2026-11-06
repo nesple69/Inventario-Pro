@@ -4677,15 +4677,86 @@ function getRowDepartmentBadge(dept) {
     return `<span class="badge ${getDepartmentBadgeClass(dept)}">${getDepartmentIcon(dept)}</span>`;
 }
 
+// ==========================================
+// ⏱️ GESTIONE TEMPISTICHE INVENTARIO BIMESTRALE (2 MESI)
+// Cadenza obbligatoria ogni 2 mesi (60 giorni)
+// - Sotto "Stato": mostra la data dell'ultimo inventario (es. "Verificato: 06/11/2026")
+// - Scadenza > 2 mesi: scritta rossa "Da Verificare"
+// - Al conteggio: ripassa immediatamente a "Verificato: [data odierna]"
+// ==========================================
+const INVENTORY_CADENCE_DAYS = 60; // 2 mesi
+const INVENTORY_CADENCE_MS = INVENTORY_CADENCE_DAYS * 24 * 60 * 60 * 1000;
+
+function getProductInventoryStatus(product) {
+    if (!product || !product.lastInventoryDate) {
+        return {
+            isExpired: true,
+            lastDate: null,
+            formattedDate: 'Mai verificato',
+            daysAgo: null,
+            badgeHtml: `<span class="badge badge-da-verificare"><i class="fas fa-exclamation-triangle"></i> Da Verificare</span>`,
+            text: 'Da Verificare'
+        };
+    }
+
+    const lastDate = new Date(product.lastInventoryDate);
+    const timestamp = lastDate.getTime();
+    if (isNaN(timestamp)) {
+        return {
+            isExpired: true,
+            lastDate: null,
+            formattedDate: 'Data non valida',
+            badgeHtml: `<span class="badge badge-da-verificare"><i class="fas fa-exclamation-triangle"></i> Da Verificare</span>`,
+            text: 'Da Verificare'
+        };
+    }
+
+    const diffMs = Date.now() - timestamp;
+    const daysAgo = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+    const isExpired = diffMs > INVENTORY_CADENCE_MS;
+    const formattedDate = lastDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    if (isExpired) {
+        return {
+            isExpired: true,
+            lastDate,
+            formattedDate,
+            daysAgo,
+            badgeHtml: `<span class="badge badge-da-verificare" title="Scaduto oltre 2 mesi fa (${formattedDate})"><i class="fas fa-exclamation-triangle"></i> Da Verificare <small style="font-weight: 500; opacity: 0.85;">(${formattedDate})</small></span>`,
+            text: `Da Verificare (${formattedDate})`
+        };
+    } else {
+        return {
+            isExpired: false,
+            lastDate,
+            formattedDate,
+            daysAgo,
+            badgeHtml: `<span class="badge badge-verificato"><i class="fas fa-check-circle"></i> Verificato: ${formattedDate}</span>`,
+            text: `Verificato: ${formattedDate}`
+        };
+    }
+}
+
+function confirmMonthlyQuantity(productId) {
+    const product = appData.products.find(p => p.id === productId);
+    if (!product) return;
+    updateMonthlyQuantity(productId, product.quantity);
+}
+
 function sanitizeAppData(data) {
     if (!data) return;
     if (!Array.isArray(data.products)) data.products = [];
     if (!Array.isArray(data.categories)) data.categories = [];
     if (!Array.isArray(data.suppliers)) data.suppliers = [];
+    if (!data.monthlyInventoryChanges) data.monthlyInventoryChanges = {};
     data.products.forEach(p => {
         p.quantity = safeNum(p.quantity, 0);
         p.price = safeNum(p.price, 0);
         p.department = (p.department || 'entrambi').toString().toLowerCase().trim();
+        // Se il prodotto non ha lastInventoryDate ma è tracciato nei cambi recenti, valorizzalo a oggi
+        if (!p.lastInventoryDate && data.monthlyInventoryChanges && data.monthlyInventoryChanges[p.id]) {
+            p.lastInventoryDate = new Date().toISOString();
+        }
     });
 }
 
@@ -5835,6 +5906,9 @@ function saveQuickQuantity() {
 
     p.quantity = newQuantity;
     p.price = newPrice;
+    p.lastInventoryDate = new Date().toISOString();
+    if (!appData.monthlyInventoryChanges) appData.monthlyInventoryChanges = {};
+    appData.monthlyInventoryChanges[p.id] = true;
 
     // Update status
     p.status =
@@ -7337,8 +7411,12 @@ function renderMonthlyInventoryTable() {
             </tr>`;
     } else {
         tbody.innerHTML = filteredProducts.map(p => {
-            const isChanged = Boolean(appData.monthlyInventoryChanges[p.id]);
-            const rowStyle = isChanged ? 'style="background: #f0fdf4; border-left: 5px solid #10b981;"' : '';
+            const status = getProductInventoryStatus(p);
+            const isVerified = !status.isExpired;
+            const rowClass = isVerified ? 'row-counted' : 'row-expired';
+            const rowStyle = isVerified 
+                ? 'style="background: #f0fdf4; border-left: 5px solid #10b981;"' 
+                : 'style="background: #fff8f8; border-left: 5px solid #ef4444;"';
             const dept = (p.department || 'entrambi').toLowerCase();
             const safeName = escapeHtml(p.name);
             const safeCategory = escapeHtml(p.category || '');
@@ -7346,7 +7424,7 @@ function renderMonthlyInventoryTable() {
             const safeUnit = escapeHtml(p.unit || 'pezzi');
 
             return `
-                <tr class="${isChanged ? 'row-counted' : ''}" ${rowStyle}>
+                <tr class="${rowClass}" ${rowStyle}>
                     <td class="col-product-info">
                         <div style="font-weight: 700; color: var(--dark); font-size: 1rem; line-height: 1.25;">
                             ${safeName}
@@ -7358,20 +7436,27 @@ function renderMonthlyInventoryTable() {
                         </div>
                     </td>
                     <td class="col-product-input" style="text-align: center;">
-                        <input type="text" 
-                            id="monthly-qty-${p.id}" 
-                            value="${p.quantity}" 
-                            inputmode="decimal"
-                            autocomplete="off"
-                            onchange="updateMonthlyQuantity(${p.id}, this.value)"
-                            onfocus="this.select()"
-                            style="width: 100%; max-width: 105px; height: 44px; padding: 0.4rem; border: 2px solid ${isChanged ? '#10b981' : 'var(--primary)'}; border-radius: 10px; text-align: center; font-weight: 800; font-size: 1.25rem; background: white;"
-                        />
-                        <div class="mobile-status-wrapper item-status-badge" style="margin-top: 4px;">
-                            ${isChanged ? 
-                                '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; font-size: 0.75rem;"><i class="fas fa-check"></i> Contato</span>' : 
-                                '<span class="badge" style="background: #f3f4f6; color: var(--gray); font-weight: 600; font-size: 0.75rem;">⏳ Da Contare</span>'
-                            }
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <input type="text" 
+                                id="monthly-qty-${p.id}" 
+                                value="${p.quantity}" 
+                                inputmode="decimal"
+                                autocomplete="off"
+                                onchange="updateMonthlyQuantity(${p.id}, this.value)"
+                                onkeydown="if(event.key === 'Enter') { updateMonthlyQuantity(${p.id}, this.value); this.blur(); }"
+                                onfocus="this.select()"
+                                style="width: 100%; max-width: 90px; height: 42px; padding: 0.3rem; border: 2px solid ${isVerified ? '#10b981' : '#ef4444'}; border-radius: 8px; text-align: center; font-weight: 800; font-size: 1.25rem; background: white;"
+                            />
+                            <button type="button" 
+                                class="btn-confirm-inventory"
+                                onclick="confirmMonthlyQuantity(${p.id})"
+                                title="Conferma giacenza attuale a oggi (${p.quantity} ${safeUnit})"
+                                style="height: 42px; width: 38px; border: none; border-radius: 8px; background: ${isVerified ? '#10b981' : '#ef4444'}; color: white; font-size: 1.05rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                        <div class="mobile-status-wrapper item-status-badge" style="margin-top: 5px; cursor: pointer;" onclick="confirmMonthlyQuantity(${p.id})" title="Tocca per confermare conteggio a oggi">
+                            ${status.badgeHtml}
                         </div>
                     </td>
                     <td class="col-desktop-only">
@@ -7380,10 +7465,7 @@ function renderMonthlyInventoryTable() {
                     <td class="col-desktop-only">${getRowDepartmentBadge(dept)}</td>
                     <td class="col-desktop-only"><span class="badge badge-neutral">${safeCategory}</span></td>
                     <td class="col-desktop-only item-status-badge" style="text-align: center; white-space: nowrap;">
-                        ${isChanged ? 
-                            '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;"><i class="fas fa-check"></i> Contato</span>' : 
-                            '<span class="badge" style="background: #f3f4f6; color: var(--gray); font-weight: 600;">⏳ Da Contare</span>'
-                        }
+                        ${status.badgeHtml}
                     </td>
                 </tr>`;
         }).join('');
@@ -7416,26 +7498,38 @@ function updateMonthlyQuantity(productId, newQuantity) {
         return;
     }
 
-    appData.products[productIndex].quantity = qty;
-    appData.products[productIndex].status =
+    const p = appData.products[productIndex];
+    p.quantity = qty;
+    p.lastInventoryDate = new Date().toISOString();
+    p.status =
         qty === 0 ? 'out-of-stock' :
             qty <= appData.settings.lowStockLimit ? 'low-stock' : 'in-stock';
 
-    // Segna come contato / verificato
+    // Segna come contato / verificato nel ciclo corrente
+    if (!appData.monthlyInventoryChanges) appData.monthlyInventoryChanges = {};
     appData.monthlyInventoryChanges[productId] = true;
 
-    // Aggiornamento reattivo senza ricaricare la tabella
+    // Aggiornamento reattivo immediato dell'interfaccia senza ricaricare la tabella
+    const status = getProductInventoryStatus(p);
     const inputEl = document.getElementById(`monthly-qty-${productId}`);
     if (inputEl) {
         inputEl.value = qty;
         inputEl.style.borderColor = '#10b981';
         const row = inputEl.closest('tr');
         if (row) {
+            row.classList.remove('row-expired');
             row.classList.add('row-counted');
             row.style.background = '#f0fdf4';
             row.style.borderLeft = '5px solid #10b981';
+
+            const confirmBtn = row.querySelector('.btn-confirm-inventory');
+            if (confirmBtn) {
+                confirmBtn.style.background = '#10b981';
+                confirmBtn.title = `Conferma giacenza attuale a oggi (${qty} ${p.unit || 'pezzi'})`;
+            }
+
             row.querySelectorAll('.item-status-badge').forEach(statusCell => {
-                statusCell.innerHTML = '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;"><i class="fas fa-check"></i> Contato</span>';
+                statusCell.innerHTML = status.badgeHtml;
             });
         }
     }
@@ -7467,16 +7561,25 @@ function updateMonthlyStats() {
     });
 
     const totalDept = deptProducts.length;
-    const countedInDept = deptProducts.filter(p => appData.monthlyInventoryChanges[p.id]).length;
-    const remainingInDept = Math.max(0, totalDept - countedInDept);
+    let verifiedInDept = 0;
+    let expiredInDept = 0;
+
+    deptProducts.forEach(p => {
+        const status = getProductInventoryStatus(p);
+        if (status.isExpired) {
+            expiredInDept++;
+        } else {
+            verifiedInDept++;
+        }
+    });
 
     const countedEl = document.getElementById('monthlyCountedProducts');
     const remainingEl = document.getElementById('monthlyRemainingProducts');
     const totalDeptEl = document.getElementById('monthlyTotalDeptProducts');
     const deptLabelEl = document.getElementById('monthlyDeptKpiLabel');
 
-    if (countedEl) countedEl.textContent = countedInDept;
-    if (remainingEl) remainingEl.textContent = remainingInDept;
+    if (countedEl) countedEl.textContent = verifiedInDept;
+    if (remainingEl) remainingEl.textContent = expiredInDept;
     if (totalDeptEl) totalDeptEl.textContent = totalDept;
     if (deptLabelEl) {
         const name = selectedDept === 'cucina' ? 'Cucina' : selectedDept === 'bar' ? 'Bar' : selectedDept === 'bowling' ? 'Bowling' : 'Tutti i Reparti';
@@ -7534,25 +7637,29 @@ function exportMonthlyToExcel() {
         const now = new Date();
         const dateStr = now.toLocaleDateString('it-IT').replace(/\//g, '-');
 
-        const data = appData.products.map(product => ({
-            'Data Inventario': dateStr,
-            'Prodotto': product.name,
-            'Reparto': (product.department || 'entrambi').charAt(0).toUpperCase() + (product.department || 'entrambi').slice(1),
-            'Categoria': product.category,
-            'Sottocategoria': product.subcategory,
-            'Quantità': product.quantity,
-            'Unità': product.unit,
-            'Fornitore': product.supplier,
-            'Prezzo Unitario': product.price,
-            'Valore Totale': (product.quantity * product.price).toFixed(2)
-        }));
+        const data = appData.products.map(product => {
+            const status = getProductInventoryStatus(product);
+            return {
+                'Stato Verifica (2 Mesi)': status.isExpired ? 'DA VERIFICARE' : 'VERIFICATO',
+                'Data Ultimo Inventario': status.formattedDate,
+                'Prodotto': product.name,
+                'Reparto': (product.department || 'entrambi').charAt(0).toUpperCase() + (product.department || 'entrambi').slice(1),
+                'Categoria': product.category,
+                'Sottocategoria': product.subcategory,
+                'Quantità': product.quantity,
+                'Unità': product.unit,
+                'Fornitore': product.supplier,
+                'Prezzo Unitario': product.price,
+                'Valore Totale': (product.quantity * product.price).toFixed(2)
+            };
+        });
 
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, `Inventario ${dateStr}`);
-        XLSX.writeFile(wb, `Inventario_Mensile_${dateStr}.xlsx`);
+        XLSX.writeFile(wb, `Inventario_Bimestrale_${dateStr}.xlsx`);
 
-        showNotification('Inventario mensile esportato!', 'success');
+        showNotification('Inventario bimestrale esportato in Excel!', 'success');
     } catch (error) {
         console.error('Export error:', error);
         showNotification('Errore durante l\'esportazione', 'error');
@@ -7669,16 +7776,16 @@ function closeResetQuantitiesModal() {
 
 
 function confirmResetQuantities() {
-    // Create automatic snapshot before reset
+    // Crea snapshot automatico di chiusura prima del reset
     createMonthlySnapshot();
 
-    // Reset all quantities to 0
+    // Reimposta la data ultimo inventario per tutti i prodotti:
+    // Tutti gli articoli passano allo stato rosso "Da Verificare" per il nuovo ciclo di 2 mesi
     appData.products.forEach(product => {
-        product.quantity = 0;
-        product.status = 'out-of-stock';
+        product.lastInventoryDate = null;
     });
 
-    // Clear monthly changes tracking
+    // Svuota il tracciamento modifiche del periodo
     appData.monthlyInventoryChanges = {};
 
     saveToCloud();
@@ -7686,7 +7793,7 @@ function confirmResetQuantities() {
     renderMonthlyInventoryTable();
     closeResetQuantitiesModal();
 
-    showNotification('Quantità azzerate! Snapshot salvato automaticamente.', 'success');
+    showNotification('Nuovo ciclo bimestrale avviato! Tutti gli articoli sono ora in stato "Da Verificare". Snapshot salvato.', 'success');
 }
 
 // UTILITY

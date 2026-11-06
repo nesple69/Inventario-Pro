@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=3.6">
+    <link rel="stylesheet" href="styles.css?v=3.7">
 
 </head>
 
@@ -579,8 +579,8 @@
                 <div class="tab-content" id="monthly-inventory-tab">
                     <div class="section-header" style="flex-wrap: wrap; gap: 0.75rem;">
                         <div class="header-title">
-                            <h2>Conteggio Inventario</h2>
-                            <p>Seleziona il tuo reparto e inserisci le giacenze effettive</p>
+                            <h2>Conteggio Inventario Bimestrale</h2>
+                            <p>Inventario obbligatorio ogni 2 mesi: verifica o aggiorna le giacenze per regolarizzare lo stato</p>
                         </div>
                         <div class="header-actions">
                             <button class="btn btn-outline admin-only" onclick="exportMonthlyToExcel()"><i
@@ -604,14 +604,14 @@
                                 <div class="stat-icon-wrapper icon-green"><i class="fas fa-check-circle"></i></div>
                                 <div class="stat-details">
                                     <span class="stat-main-value" id="monthlyCountedProducts" style="color: #10b981;">0</span>
-                                    <span class="stat-main-label">Verificati / Contati</span>
+                                    <span class="stat-main-label">Verificati (&le; 2 mesi)</span>
                                 </div>
                             </div>
                             <div class="stat-card-main">
-                                <div class="stat-icon-wrapper icon-orange"><i class="fas fa-hourglass-half"></i></div>
+                                <div class="stat-icon-wrapper" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;"><i class="fas fa-exclamation-triangle"></i></div>
                                 <div class="stat-details">
-                                    <span class="stat-main-value" id="monthlyRemainingProducts" style="color: #f59e0b;">0</span>
-                                    <span class="stat-main-label">Da Verificare</span>
+                                    <span class="stat-main-value" id="monthlyRemainingProducts" style="color: #ef4444;">0</span>
+                                    <span class="stat-main-label" style="color: #ef4444; font-weight: 700;">Da Verificare (&gt; 2 mesi)</span>
                                 </div>
                             </div>
                         </div>
@@ -674,11 +674,11 @@
                                 <thead>
                                     <tr>
                                         <th>Prodotto</th>
-                                        <th style="min-width: 130px; text-align: center;">Nuova Giacenza</th>
+                                        <th style="min-width: 140px; text-align: center;">Nuova Giacenza</th>
                                         <th>Giacenza Attuale</th>
                                         <th>Reparto</th>
                                         <th>Categoria</th>
-                                        <th style="text-align: center;">Stato</th>
+                                        <th style="text-align: center;">Stato (Scadenza 2 Mesi)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="monthlyInventoryTableBody"></tbody>
@@ -690,10 +690,10 @@
                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                         <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-info-circle"></i>
-                            Gestione Amministrativa Inventario
+                            Gestione Ciclo Inventario Bimestrale
                         </h3>
                         <p style="margin-bottom: 1rem; opacity: 0.95;">
-                            Sezione riservata all'amministratore per storicizzare gli snapshot o azzerare le quantità a inizio mese.
+                            Sezione riservata all'amministratore per storicizzare gli snapshot o avviare un nuovo ciclo di verifica per il nuovo bimestre.
                         </p>
                         <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                             <button class="btn" style="background: white; color: #667eea;"
@@ -701,7 +701,7 @@
                                 <i class="fas fa-history"></i>Storico Snapshot
                             </button>
                             <button class="btn btn-danger" onclick="showResetQuantitiesModal()">
-                                <i class="fas fa-redo"></i>Reset Quantità (Nuovo Mese)
+                                <i class="fas fa-redo"></i>Nuovo Ciclo Bimestrale
                             </button>
                         </div>
                     </div>
@@ -1080,8 +1080,7 @@
     <div class="modal" id="resetQuantitiesModal">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title"><i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>Reset
-                    Quantità - Nuovo Mese</div>
+                <div class="modal-title"><i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>Avvia Nuovo Ciclo Bimestrale</div>
                 <button class="modal-close" onclick="closeResetQuantitiesModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
@@ -1089,11 +1088,11 @@
                     style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
                     <h4 style="color: #856404; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-info-circle"></i>
-                        Attenzione
+                        Nuovo Bimestre (Obbligo 2 Mesi)
                     </h4>
                     <p style="color: #856404; margin: 0; font-size: 0.9rem;">
-                        Questa operazione azzererà <strong>SOLO le quantità</strong> di tutti i prodotti.
-                        Tutti i prodotti, categorie, fornitori e prezzi rimarranno invariati.
+                        Questa operazione reimposta lo stato di verifica di tutti i prodotti su <strong>"Da Verificare"</strong> per iniziare il conteggio del nuovo bimestre.
+                        Tutti i prodotti, categorie, fornitori, prezzi e giacenze attuali rimarranno salvati.
                     </p>
                 </div>
 
@@ -1101,25 +1100,24 @@
                     style="background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
                     <h4 style="color: #0c5460; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-camera"></i>
-                        Snapshot Automatico
+                        Snapshot Automatico di Chiusura
                     </h4>
                     <p style="color: #0c5460; margin: 0; font-size: 0.9rem;">
-                        Prima del reset verrà creato automaticamente uno snapshot dell'inventario corrente
-                        con la data di oggi.
+                        Prima del riavvio verrà salvato automaticamente uno snapshot contabile completo con la data di oggi per lo storico.
                     </p>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">
                         <input type="checkbox" id="confirmResetCheckbox" style="margin-right: 0.5rem;">
-                        Confermo di voler azzerare tutte le quantità
+                        Confermo di voler avviare il nuovo ciclo di inventario bimestrale
                     </label>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeResetQuantitiesModal()">Annulla</button>
                 <button class="btn btn-danger" onclick="confirmResetQuantities()" id="confirmResetBtn" disabled>
-                    <i class="fas fa-redo"></i>Reset Quantità
+                    <i class="fas fa-redo"></i>Avvia Nuovo Ciclo
                 </button>
             </div>
         </div>
@@ -1195,7 +1193,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=3.6"></script>
+    <script src="app.js?v=3.7"></script>
 </body>
 
 </html>
