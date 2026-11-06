@@ -2383,7 +2383,7 @@ let appData = {
         "stockNotifications": "all",
         "autoSync": true,
         "supabaseUrl": "https://qqvwrliuhomyecyvbbep.supabase.co",
-        "supabaseKey": "sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL"
+        "supabaseKey": "sb_publishable_9uhFuw4MYnFLGORNRKWZ_w_yfH1Qdx2"
     },
     "monthlySnapshots": [
         {
@@ -4917,11 +4917,12 @@ function initApp() {
             }
             // Auto-configurazione credenziali di sincronizzazione Cloud centralizzata
             const DEFAULT_SUPABASE_URL = "https://qqvwrliuhomyecyvbbep.supabase.co";
-            const DEFAULT_SUPABASE_KEY = "sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL";
-            if (!appData.settings.supabaseUrl || !appData.settings.supabaseUrl.includes(".supabase.co")) {
+            const DEFAULT_SUPABASE_KEY = "sb_publishable_9uhFuw4MYnFLGORNRKWZ_w_yfH1Qdx2";
+            if (!appData.settings.supabaseUrl || appData.settings.supabaseUrl.includes("sdcpgbowbykenwikpzqv") || !appData.settings.supabaseUrl.includes(".supabase.co")) {
                 appData.settings.supabaseUrl = DEFAULT_SUPABASE_URL;
+                appData.settings.supabaseKey = DEFAULT_SUPABASE_KEY;
             }
-            if (!appData.settings.supabaseKey) {
+            if (!appData.settings.supabaseKey || (appData.settings.supabaseUrl === DEFAULT_SUPABASE_URL && appData.settings.supabaseKey !== DEFAULT_SUPABASE_KEY)) {
                 appData.settings.supabaseKey = DEFAULT_SUPABASE_KEY;
             }
             if (appData.settings.autoSync === undefined) {

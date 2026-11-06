@@ -14,7 +14,7 @@ jobs:
         run: |
           echo "Sending keepalive ping to Supabase database..."
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "apikey: sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL" \
-            -H "Authorization: Bearer sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL" \
+            -H "apikey: sb_publishable_9uhFuw4MYnFLGORNRKWZ_w_yfH1Qdx2" \
+            -H "Authorization: Bearer sb_publishable_9uhFuw4MYnFLGORNRKWZ_w_yfH1Qdx2" \
             "https://qqvwrliuhomyecyvbbep.supabase.co/rest/v1/inventario_secure_v1_9x8b7c?id=eq.1&select=id")
           echo "Supabase Response HTTP Code: $HTTP_STATUS"

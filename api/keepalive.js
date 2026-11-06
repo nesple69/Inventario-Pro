@@ -3,7 +3,7 @@
 
 export default async function handler(req, res) {
     const sbUrl = process.env.SUPABASE_URL || 'https://qqvwrliuhomyecyvbbep.supabase.co';
-    const sbKey = process.env.SUPABASE_KEY || 'sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL';
+    const sbKey = process.env.SUPABASE_KEY || 'sb_publishable_9uhFuw4MYnFLGORNRKWZ_w_yfH1Qdx2';
 
     try {
         const fetchUrl = `${sbUrl}/rest/v1/inventario_secure_v1_9x8b7c?id=eq.1&select=id`;
