@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=3.4">
+    <link rel="stylesheet" href="styles.css?v=3.5">
 
 </head>
 
@@ -132,47 +132,47 @@
                             </div>
                         </div>
 
-                        <!-- IN STOCK -->
+                        <!-- VALORE BOWLING -->
                         <div class="stat-card-main" onclick="showTab('products')"
                             style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
-                            <div class="stat-icon-wrapper icon-green"><i class="fas fa-check-circle"></i></div>
+                            <div class="stat-icon-wrapper icon-green" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i class="fas fa-bowling-ball"></i></div>
                             <div class="stat-details">
-                                <span class="stat-main-value" id="inStockCount" style="color: var(--success);">0</span>
-                                <span class="stat-main-label">Scorte Ottimali</span>
-                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">In stock regolare</span>
+                                <span class="stat-main-value" id="dashBowlingVal">€ 0,00</span>
+                                <span class="stat-main-label">Reparto Bowling</span>
+                                <span style="font-size: 0.75rem; color: #10b981; font-weight: 600; margin-top: 2px;" id="dashBowlingSub">0% del totale</span>
                             </div>
                         </div>
 
-                        <!-- SOTTO SOGLIA -->
+                        <!-- VALORE CONDIVISO -->
                         <div class="stat-card-main" onclick="showTab('products')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border); border-left: 4px solid var(--warning);">
-                            <div class="stat-icon-wrapper icon-orange"><i class="fas fa-exclamation-triangle"></i></div>
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                            <div class="stat-icon-wrapper icon-blue" style="background: rgba(67, 97, 238, 0.1); color: #4361ee;"><i class="fas fa-boxes"></i></div>
                             <div class="stat-details">
-                                <span class="stat-main-value" id="lowStockCount" style="color: var(--warning);">0</span>
-                                <span class="stat-main-label">Sotto Soglia (Alert)</span>
-                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">Da riordinare</span>
+                                <span class="stat-main-value" id="dashSharedVal">€ 0,00</span>
+                                <span class="stat-main-label">Merci Condivise</span>
+                                <span style="font-size: 0.75rem; color: var(--primary); font-weight: 600; margin-top: 2px;" id="dashSharedSub">0% del totale</span>
                             </div>
                         </div>
 
-                        <!-- ESAURITI -->
-                        <div class="stat-card-main" onclick="showTab('products')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border); border-left: 4px solid var(--danger);">
-                            <div class="stat-icon-wrapper icon-red"><i class="fas fa-times-circle"></i></div>
-                            <div class="stat-details">
-                                <span class="stat-main-value" id="outOfStockCount" style="color: var(--danger);">0</span>
-                                <span class="stat-main-label">Articoli Esauriti</span>
-                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">Giacenza a 0</span>
-                            </div>
-                        </div>
-
-                        <!-- CATEGORIE & FORNITORI -->
+                        <!-- CATEGORIE -->
                         <div class="stat-card-main" onclick="showTab('categories')"
                             style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
                             <div class="stat-icon-wrapper icon-blue" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-tags"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="categoriesCount">0</span>
-                                <span class="stat-main-label">Categorie Attive</span>
-                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;"><span id="suppliersCount">0</span> Fornitori</span>
+                                <span class="stat-main-label">Categorie Merceologiche</span>
+                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">Raggruppamenti contabili</span>
+                            </div>
+                        </div>
+
+                        <!-- FORNITORI -->
+                        <div class="stat-card-main" onclick="showTab('suppliers')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                            <div class="stat-icon-wrapper icon-purple" style="background: rgba(114, 9, 183, 0.1); color: #7209b7;"><i class="fas fa-truck-moving"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-main-value" id="suppliersCount">0</span>
+                                <span class="stat-main-label">Fornitori Partner</span>
+                                <span style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">Anagrafiche attive</span>
                             </div>
                         </div>
                     </div>
@@ -219,14 +219,14 @@
                             </div>
                         </div>
 
-                        <!-- GRAFICO 3: STATO SALUTE SCORTE -->
+                        <!-- GRAFICO 3: INCIDENZA PATRIMONIALE PER REPARTO -->
                         <div class="chart-card">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                                 <div>
                                     <h4 style="margin: 0; color: var(--dark); font-size: 1.1rem; font-weight: 700;">
-                                        <i class="fas fa-heartbeat" style="margin-right: 0.5rem; color: var(--success);"></i>Salute Scorte & Disponibilità
+                                        <i class="fas fa-chart-pie" style="margin-right: 0.5rem; color: #4361ee;"></i>Quote % per Reparto
                                     </h4>
-                                    <p style="margin: 0.25rem 0 0 0; color: var(--gray); font-size: 0.82rem;">Ripartizione delle referenze per stato di giacenza</p>
+                                    <p style="margin: 0.25rem 0 0 0; color: var(--gray); font-size: 0.82rem;">Incidenza percentuale del valore tra Cucina, Bar e Bowling</p>
                                 </div>
                             </div>
                             <div class="chart-wrapper">
@@ -473,61 +473,104 @@
                     </div>
                 </div>
 
-                <!-- REPORTS TAB -->
+                <!-- REPORTS TAB (CENTRO REPORT CONTABILI & DOCUMENTI PDF) -->
                 <div class="tab-content" id="reports-tab">
                     <div class="section-header">
                         <div class="header-title">
-                            <h2>Analisi e Reportistica</h2>
-                            <p>Visualizza l'andamento del tuo magazzino e genera documenti PDF</p>
+                            <h2><i class="fas fa-file-invoice-dollar" style="color: var(--primary); margin-right: 0.5rem;"></i>Report Contabili & Esportazioni PDF</h2>
+                            <p>Prospetti ufficiali valorizzati per la contabilità, bilancio e revisione inventario</p>
                         </div>
                         <div class="header-actions">
-                            <button class="btn btn-outline" onclick="generateStockReport()"><i
-                                    class="fas fa-file-pdf"></i>Stock PDF</button>
-                            <button class="btn btn-outline" onclick="generateValueReport()"><i
-                                    class="fas fa-file-invoice-dollar"></i>Valore PDF</button>
+                            <button class="btn btn-outline" onclick="exportToExcel()"><i class="fas fa-file-excel"></i>Esporta Tutto (Excel)</button>
+                            <button class="btn btn-primary" onclick="generateFullInventoryPDF()"><i class="fas fa-file-pdf"></i>Stampa Inventario Completo</button>
                         </div>
                     </div>
 
-                    <div class="charts-container">
-                        <div class="chart-card">
-                            <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
-                                    class="fas fa-chart-pie"
-                                    style="margin-right: 0.5rem; color: var(--primary);"></i>Distribuzione per Categoria
-                            </h3>
-                            <div class="chart-wrapper">
-                                <canvas id="categoryChartCanvas"></canvas>
+                    <!-- GRIGLIA PULSANTI REPORT CONTABILI -->
+                    <div class="reports-grid">
+                        <!-- 1. INVENTARIO CONTABILE COMPLETO -->
+                        <div class="report-action-card" onclick="generateFullInventoryPDF()">
+                            <div class="report-card-top">
+                                <div class="report-card-icon icon-blue">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </div>
+                                <div class="report-card-content">
+                                    <h3>Inventario Completo Valorizzato</h3>
+                                    <p>Tutti i 185 articoli ordinati per reparto e categoria, con giacenze, prezzi unitari, valori e totale finale di bilancio.</p>
+                                </div>
+                            </div>
+                            <div class="report-card-footer">
+                                <span class="report-badge"><i class="fas fa-file-pdf" style="color: #ef4444; margin-right: 4px;"></i>PDF Ufficiale A4</span>
+                                <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); generateFullInventoryPDF()">Scarica PDF <i class="fas fa-download"></i></button>
                             </div>
                         </div>
-                        <div class="chart-card">
-                            <h3 class="sidebar-title" style="color: var(--dark); margin-bottom: 1.5rem;"><i
-                                    class="fas fa-chart-bar"
-                                    style="margin-right: 0.5rem; color: var(--success);"></i>Stato Giacenze</h3>
-                            <div class="chart-wrapper">
-                                <canvas id="stockChartCanvas"></canvas>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="stats-grid" style="margin-top: 2rem;">
-                        <div class="report-card" onclick="showCategoryReport()">
-                            <i class="fas fa-layer-group"></i>
-                            <h3>Report Categorie</h3>
-                            <p>Dettaglio prodotti per ogni categoria</p>
+                        <!-- 2. REPORT PER REPARTO -->
+                        <div class="report-action-card" onclick="generateDepartmentReportPDF()">
+                            <div class="report-card-top">
+                                <div class="report-card-icon icon-orange">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <div class="report-card-content">
+                                    <h3>Bilancio per Reparto (Cucina, Bar, Bowling)</h3>
+                                    <p>Prospetto patrimoniale con ripartizione economica in euro e percentuali di incidenza sul valore totale.</p>
+                                </div>
+                            </div>
+                            <div class="report-card-footer">
+                                <span class="report-badge"><i class="fas fa-file-pdf" style="color: #ef4444; margin-right: 4px;"></i>PDF Riepilogo A4</span>
+                                <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); generateDepartmentReportPDF()">Scarica PDF <i class="fas fa-download"></i></button>
+                            </div>
                         </div>
-                        <div class="report-card" onclick="showSupplierReport()">
-                            <i class="fas fa-address-book"></i>
-                            <h3>Report Fornitori</h3>
-                            <p>Analisi delle forniture e contatti</p>
+
+                        <!-- 3. REPORT PER CATEGORIA -->
+                        <div class="report-action-card" onclick="generateCategoryReportPDF()">
+                            <div class="report-card-top">
+                                <div class="report-card-icon icon-purple">
+                                    <i class="fas fa-tags"></i>
+                                </div>
+                                <div class="report-card-content">
+                                    <h3>Prospetto per Categoria Merceologica</h3>
+                                    <p>Totali quantitativi e valore complessivo in euro suddiviso per ciascuna categoria merceologica.</p>
+                                </div>
+                            </div>
+                            <div class="report-card-footer">
+                                <span class="report-badge"><i class="fas fa-file-pdf" style="color: #ef4444; margin-right: 4px;"></i>PDF Categorie A4</span>
+                                <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); generateCategoryReportPDF()">Scarica PDF <i class="fas fa-download"></i></button>
+                            </div>
                         </div>
-                        <div class="report-card" onclick="showStockReport()">
-                            <i class="fas fa-boxes"></i>
-                            <h3>Esaurimenti</h3>
-                            <p>Elenco articoli esauriti o in esaurimento</p>
+
+                        <!-- 4. REPORT PER FORNITORE -->
+                        <div class="report-action-card" onclick="generateSupplierReportPDF()">
+                            <div class="report-card-top">
+                                <div class="report-card-icon icon-green">
+                                    <i class="fas fa-truck-moving"></i>
+                                </div>
+                                <div class="report-card-content">
+                                    <h3>Prospetto Merci per Fornitore</h3>
+                                    <p>Analisi delle forniture con recapiti commerciali, referenze assegnate e valore economico acquistato.</p>
+                                </div>
+                            </div>
+                            <div class="report-card-footer">
+                                <span class="report-badge"><i class="fas fa-file-pdf" style="color: #ef4444; margin-right: 4px;"></i>PDF Fornitori A4</span>
+                                <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); generateSupplierReportPDF()">Scarica PDF <i class="fas fa-download"></i></button>
+                            </div>
                         </div>
-                        <div class="report-card" onclick="showValueReport()">
-                            <i class="fas fa-coins"></i>
-                            <h3>Valutazione</h3>
-                            <p>Stima economica totale dell'inventario</p>
+
+                        <!-- 5. EXCEL COMPLETO -->
+                        <div class="report-action-card" onclick="exportToExcel()">
+                            <div class="report-card-top">
+                                <div class="report-card-icon icon-emerald">
+                                    <i class="fas fa-file-excel"></i>
+                                </div>
+                                <div class="report-card-content">
+                                    <h3>Esportazione Completa Excel</h3>
+                                    <p>Foglio di calcolo con tutti i dati del magazzino, ideale per il commercialista o integrazione contabile.</p>
+                                </div>
+                            </div>
+                            <div class="report-card-footer">
+                                <span class="report-badge" style="background: rgba(16, 185, 129, 0.15); color: #059669;"><i class="fas fa-table" style="margin-right: 4px;"></i>Foglio XLSX</span>
+                                <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); exportToExcel()">Esporta Excel <i class="fas fa-file-download"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1152,7 +1195,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=3.4"></script>
+    <script src="app.js?v=3.5"></script>
 </body>
 
 </html>

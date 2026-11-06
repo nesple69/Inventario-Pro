@@ -4982,8 +4982,7 @@ function loadSuppliersTab() {
 }
 
 function loadReportsTab() {
-    // Give time for display: block to take effect before rendering charts
-    setTimeout(renderCharts, 50);
+    // Sezione Centro Report & Contabilità
 }
 
 function loadMonthlyInventoryTab() {
@@ -5046,17 +5045,16 @@ function updateStatistics() {
     const totalVal = appData.products.reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
     const cucinaVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'cucina').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
     const barVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'bar').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
-    
-    const limit = safeNum(appData.settings.lowStockLimit, 5);
-    const inStock = appData.products.filter(p => safeNum(p.quantity) > limit).length;
-    const lowStock = appData.products.filter(p => { const q = safeNum(p.quantity); return q > 0 && q <= limit; }).length;
-    const outOfStock = appData.products.filter(p => safeNum(p.quantity) === 0).length;
+    const bowlingVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'bowling').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+    const sharedVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'entrambi').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
 
     const currency = appData.settings.currency === 'EUR' ? '€' : appData.settings.currency === 'USD' ? '$' : '£';
     const fmt = (num) => currency + ' ' + (isNaN(num) ? 0 : num).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const cucinaPct = totalVal > 0 ? Math.round((cucinaVal / totalVal) * 100) : 0;
     const barPct = totalVal > 0 ? Math.round((barVal / totalVal) * 100) : 0;
+    const bowlingPct = totalVal > 0 ? Math.round((bowlingVal / totalVal) * 100) : 0;
+    const sharedPct = totalVal > 0 ? Math.round((sharedVal / totalVal) * 100) : 0;
 
     // Dashboard Main Stats
     const totalProdElem = document.getElementById('total-products');
@@ -5074,12 +5072,15 @@ function updateStatistics() {
     if (barElem) barElem.textContent = fmt(barVal);
     if (barSub) barSub.textContent = barPct + '% del magazzino';
 
-    const inStockElem = document.getElementById('inStockCount');
-    const lowStockElem = document.getElementById('lowStockCount');
-    const outOfStockElem = document.getElementById('outOfStockCount');
-    if (inStockElem) inStockElem.textContent = inStock;
-    if (lowStockElem) lowStockElem.textContent = lowStock;
-    if (outOfStockElem) outOfStockElem.textContent = outOfStock;
+    const bowlingElem = document.getElementById('dashBowlingVal');
+    const bowlingSub = document.getElementById('dashBowlingSub');
+    if (bowlingElem) bowlingElem.textContent = fmt(bowlingVal);
+    if (bowlingSub) bowlingSub.textContent = bowlingPct + '% del magazzino';
+
+    const sharedElem = document.getElementById('dashSharedVal');
+    const sharedSub = document.getElementById('dashSharedSub');
+    if (sharedElem) sharedElem.textContent = fmt(sharedVal);
+    if (sharedSub) sharedSub.textContent = sharedPct + '% del magazzino';
 
     const catElem = document.getElementById('categoriesCount');
     if (catElem) catElem.textContent = appData.categories.length;
@@ -5273,10 +5274,12 @@ function renderDashStockChart() {
     const ctx = document.getElementById('dashStockChartCanvas');
     if (!ctx) return;
 
-    const limit = safeNum(appData.settings.lowStockLimit, 5);
-    const inStock = appData.products.filter(p => safeNum(p.quantity) > limit).length;
-    const lowStock = appData.products.filter(p => { const q = safeNum(p.quantity); return q > 0 && q <= limit; }).length;
-    const outOfStock = appData.products.filter(p => safeNum(p.quantity) === 0).length;
+    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+    const cucinaVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'cucina').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+    const barVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'bar').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+    const bowlingVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'bowling').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+    const sharedVal = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'entrambi').reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+    const total = cucinaVal + barVal + bowlingVal + sharedVal;
 
     if (dashStockChartInst) {
         dashStockChartInst.destroy();
@@ -5284,36 +5287,38 @@ function renderDashStockChart() {
     }
 
     dashStockChartInst = new Chart(ctx, {
-        type: 'bar',
+        type: 'doughnut',
         data: {
-            labels: ['In Stock Ottimale', 'Sotto Soglia (Alert)', 'Esaurito (Giacenza 0)'],
+            labels: ['🍳 Cucina', '🍹 Bar', '🎳 Bowling', '🏢 Condiviso'],
             datasets: [{
-                label: 'Numero Articoli',
-                data: [inStock, lowStock, outOfStock],
-                backgroundColor: ['#2ec4b6', '#ff9f1c', '#e63946'],
-                borderRadius: 8,
-                borderWidth: 1
+                data: [cucinaVal, barVal, bowlingVal, sharedVal],
+                backgroundColor: ['#fb8500', '#4361ee', '#10b981', '#7209b7'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }
-            },
             plugins: {
-                legend: { display: false },
+                legend: { position: 'bottom', labels: { padding: 12, font: { weight: '600' } } },
                 tooltip: {
                     callbacks: {
-                        label: (c) => ' ' + c.parsed.y + ' articoli'
+                        label: (c) => {
+                            const val = c.raw || 0;
+                            const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0';
+                            return ` ${c.label}: ${currency} ${val.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${pct}%)`;
+                        }
                     }
                 },
                 datalabels: {
-                    anchor: 'end',
-                    align: 'top',
-                    color: '#212529',
-                    font: { weight: 'bold', size: 12 },
-                    formatter: (val) => val > 0 ? val : ''
+                    color: '#ffffff',
+                    font: { weight: 'bold', size: 11 },
+                    formatter: (val) => {
+                        if (!val || total === 0) return '';
+                        const pct = ((val / total) * 100).toFixed(0);
+                        return pct > 4 ? pct + '%' : '';
+                    }
                 }
             }
         }
@@ -6344,198 +6349,317 @@ function updateSubcategories(type) {
     }
 }
 
-// FUNZIONI REPORT
-function showCategoryReport() {
-    if (!window.jspdf) {
-        showNotification('Libreria PDF non caricata. Controlla la connessione internet.', 'error');
-        return;
+// ==========================================
+// 📄 CENTRO REPORT CONTABILI & DOCUMENTI PDF
+// ==========================================
+function checkJsPdfAvailable() {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        showNotification('Libreria PDF in caricamento o connessione non disponibile. Riprova tra un attimo.', 'error');
+        return false;
     }
+    return true;
+}
+
+// 1. INVENTARIO CONTABILE COMPLETO VALORIZZATO (PDF)
+function generateFullInventoryPDF() {
+    if (!checkJsPdfAvailable()) return;
+
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(18);
-    doc.text("Report per Categoria", 14, 22);
-    doc.setFontSize(11);
-    doc.text("Generato il: " + new Date().toLocaleString(), 14, 30);
-
-    const tableColumn = ["Categoria", "Prodotti", "Quantità Totale", "Valore Totale"];
-    const tableRows = [];
-
+    const doc = new jsPDF('p', 'mm', 'a4');
     const currency = appData.settings.currency === 'EUR' ? '€' : '$';
 
-    appData.categories.forEach(cat => {
-        const catProducts = appData.products.filter(p => p.category === cat.name);
-        const totalQty = catProducts.reduce((sum, p) => sum + p.quantity, 0);
-        const totalVal = catProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0);
+    // Intestazione Documento
+    doc.setFontSize(16);
+    doc.setTextColor(30, 41, 59);
+    doc.text("INVENTARIO CONTABILE & VALORIZZAZIONE MAGAZZINO", 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Azienda: Bowling Valdera | Data generazione: " + new Date().toLocaleString('it-IT'), 14, 25);
+
+    let totalInventoryValue = 0;
+    const tableColumn = ["Prodotto", "Reparto", "Categoria", "Giacenza", "Prezzo Unit.", "Valore Totale"];
+    const tableRows = [];
+
+    // Ordina per reparto e poi per nome
+    const sortedProducts = [...appData.products].sort((a, b) => {
+        const deptA = (a.department || 'entrambi').toLowerCase();
+        const deptB = (b.department || 'entrambi').toLowerCase();
+        if (deptA !== deptB) return deptA.localeCompare(deptB);
+        return a.name.localeCompare(b.name);
+    });
+
+    sortedProducts.forEach(p => {
+        const qty = safeNum(p.quantity, 0);
+        const price = safeNum(p.price, 0);
+        const rowVal = qty * price;
+        totalInventoryValue += rowVal;
+
+        const deptName = (p.department || 'entrambi').toLowerCase();
+        const deptDisplay = deptName === 'cucina' ? 'Cucina' : deptName === 'bar' ? 'Bar' : deptName === 'bowling' ? 'Bowling' : 'Condiviso';
 
         tableRows.push([
-            cat.name,
-            catProducts.length,
-            totalQty.toFixed(2),
-            currency + " " + totalVal.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            p.name,
+            deptDisplay,
+            p.category || '-',
+            `${qty} ${p.unit || 'pz'}`,
+            `${currency} ${price.toFixed(2)}`,
+            `${currency} ${rowVal.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         ]);
     });
 
-    doc.autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        startY: 40,
-        theme: 'grid',
-        headStyles: { fillColor: [114, 9, 183] }
-    });
-
-    doc.save("report_categorie.pdf");
-    showNotification('Report Categorie scaricato!', 'success');
-}
-
-function showSupplierReport() {
-    if (!window.jspdf) {
-        showNotification('Libreria PDF non caricata. Controlla la connessione internet.', 'error');
-        return;
-    }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(18);
-    doc.text("Report per Fornitore", 14, 22);
-    doc.setFontSize(11);
-    doc.text("Generato il: " + new Date().toLocaleString(), 14, 30);
-
-    const tableColumn = ["Fornitore", "Prodotti", "Contatti", "Valore Fornitura"];
-    const tableRows = [];
-
-    appData.suppliers.forEach(sup => {
-        const supProducts = appData.products.filter(p => p.supplier === sup.name);
-        const totalVal = supProducts.reduce((sum, p) => sum + (p.quantity * p.price), 0);
-
-        // Formatta i contatti
-        let contactInfo = sup.email;
-        if (sup.phone) contactInfo += (contactInfo ? " / " : "") + sup.phone;
-
-        tableRows.push([
-            sup.name,
-            supProducts.length,
-            contactInfo || "-",
-            "€ " + totalVal.toFixed(2)
-        ]);
-    });
+    // Riga di chiusura contabile totale
+    tableRows.push([
+        "TOTALE GENERALE MAGAZZINO",
+        "",
+        "",
+        `${sortedProducts.length} articoli`,
+        "",
+        `${currency} ${totalInventoryValue.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    ]);
 
     doc.autoTable({
         head: [tableColumn],
         body: tableRows,
-        startY: 40,
-        theme: 'grid',
-        headStyles: { fillColor: [58, 12, 163] }
-    });
-
-    doc.save("report_fornitori.pdf");
-    showNotification('Report Fornitori scaricato!', 'success');
-}
-
-function showStockReport() {
-    showNotification('Report stock generato', 'success');
-}
-
-function showValueReport() {
-    showNotification('Report valore generato', 'success');
-}
-
-function generateStockReport() {
-
-    // Fix for jspdf undefined
-    if (!window.jspdf) {
-        showNotification('Libreria PDF non caricata. Controlla la connessione internet.', 'error');
-        return;
-    }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(18);
-    doc.text("Report Stock Magazzino", 14, 22);
-    doc.setFontSize(11);
-    doc.text("Generato il: " + new Date().toLocaleString(), 14, 30);
-
-    const tableColumn = ["Prodotto", "Categoria", "Qta", "Unita", "Stato"];
-    const tableRows = [];
-
-    appData.products.forEach(product => {
-        const productData = [
-            product.name,
-            product.category,
-            product.quantity,
-            product.unit,
-            product.status === 'out-of-stock' ? 'Esaurito' : (product.status === 'low-stock' ? 'Basso' : 'Ok')
-        ];
-        tableRows.push(productData);
-    });
-
-    doc.autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        startY: 40,
-        theme: 'grid',
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [67, 97, 238] }
-    });
-
-    doc.save("report_stock.pdf");
-    showNotification('PDF scaricato!', 'success');
-}
-
-function generateValueReport() {
-    // Fix for jspdf undefined
-    if (!window.jspdf) {
-        showNotification('Libreria PDF non caricata. Controlla la connessione internet.', 'error');
-        return;
-    }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(18);
-    doc.text("Report Valore Magazzino", 14, 22);
-    doc.setFontSize(11);
-    doc.text("Generato il: " + new Date().toLocaleString(), 14, 30);
-
-    let totalValue = 0;
-    const tableColumn = ["Prodotto", "Qta", "Prezzo", "Totale"];
-    const tableRows = [];
-
-    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
-
-    appData.products.forEach(product => {
-        const rowTotal = product.quantity * product.price;
-        totalValue += rowTotal;
-        const productData = [
-            product.name,
-            product.quantity,
-            currency + " " + product.price.toFixed(2),
-            currency + " " + rowTotal.toFixed(2)
-        ];
-        tableRows.push(productData);
-    });
-
-    // Add total row
-    tableRows.push(["", "", "TOTALE VALORE", currency + " " + totalValue.toFixed(2)]);
-
-    doc.autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        startY: 40,
+        startY: 32,
         theme: 'striped',
-        headStyles: { fillColor: [45, 55, 72] },
+        styles: { fontSize: 8.5, cellPadding: 2 },
+        headStyles: { fillColor: [67, 97, 238], textColor: 255, fontStyle: 'bold' },
+        columnStyles: {
+            0: { cellWidth: 55 },
+            3: { halign: 'right' },
+            4: { halign: 'right' },
+            5: { halign: 'right', fontStyle: 'bold' }
+        },
         didParseCell: function (data) {
             if (data.row.index === tableRows.length - 1) {
                 data.cell.styles.fontStyle = 'bold';
-                data.cell.styles.fillColor = [240, 240, 240];
+                data.cell.styles.fillColor = [226, 232, 240];
+                data.cell.styles.textColor = [15, 23, 42];
             }
         }
     });
 
-    doc.text("Valore Totale Inventario: € " + totalValue.toFixed(2), 14, doc.lastAutoTable.finalY + 10);
-
-    doc.save("report_valore.pdf");
-    showNotification('PDF scaricato!', 'success');
+    doc.save("inventario_contabile_completo.pdf");
+    showNotification('Inventario Contabile Completo scaricato in PDF!', 'success');
 }
+
+// 2. REPORT CONTABILE PER REPARTO (PDF)
+function generateDepartmentReportPDF() {
+    if (!checkJsPdfAvailable()) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+
+    doc.setFontSize(16);
+    doc.setTextColor(30, 41, 59);
+    doc.text("PROSPETTO CONTABILE DI BILANCIO PER REPARTO", 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Bowling Valdera | Elaborato il: " + new Date().toLocaleString('it-IT'), 14, 25);
+
+    const depts = [
+        { id: 'cucina', label: '🍳 Cucina' },
+        { id: 'bar', label: '🍹 Bar' },
+        { id: 'bowling', label: '🎳 Bowling' },
+        { id: 'entrambi', label: '🏢 Condiviso / Generale' }
+    ];
+
+    const grandTotal = appData.products.reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+
+    const tableColumn = ["Reparto", "Numero Articoli", "Valore Merci (€)", "Incidenza Patrimoniale"];
+    const tableRows = [];
+
+    depts.forEach(d => {
+        const prods = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === d.id);
+        const val = prods.reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+        const pct = grandTotal > 0 ? ((val / grandTotal) * 100).toFixed(1) + '%' : '0%';
+
+        tableRows.push([
+            d.label,
+            `${prods.length} referenze`,
+            `${currency} ${val.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            pct
+        ]);
+    });
+
+    // Riga totale
+    tableRows.push([
+        "TOTALE COMPLESSIVO",
+        `${appData.products.length} referenze`,
+        `${currency} ${grandTotal.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        "100.0%"
+    ]);
+
+    doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 32,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 3.5 },
+        headStyles: { fillColor: [251, 133, 0], textColor: 255, fontStyle: 'bold' },
+        columnStyles: {
+            2: { halign: 'right', fontStyle: 'bold' },
+            3: { halign: 'center' }
+        },
+        didParseCell: function (data) {
+            if (data.row.index === tableRows.length - 1) {
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.fillColor = [254, 243, 199];
+            }
+        }
+    });
+
+    doc.save("report_contabile_reparti.pdf");
+    showNotification('Report Reparti scaricato in PDF!', 'success');
+}
+
+// 3. REPORT CONTABILE PER CATEGORIA (PDF)
+function generateCategoryReportPDF() {
+    if (!checkJsPdfAvailable()) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+
+    doc.setFontSize(16);
+    doc.setTextColor(30, 41, 59);
+    doc.text("PROSPETTO CONTABILE PER CATEGORIA MERCEOLOGICA", 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Bowling Valdera | Elaborato il: " + new Date().toLocaleString('it-IT'), 14, 25);
+
+    const grandTotal = appData.products.reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+    const tableColumn = ["Categoria", "Articoli Censiti", "Quantità Totale", "Valore Totale (€)", "Incidenza %"];
+    const tableRows = [];
+
+    appData.categories.forEach(cat => {
+        const catProds = appData.products.filter(p => p.category === cat.name);
+        const totalQty = catProds.reduce((sum, p) => sum + safeNum(p.quantity), 0);
+        const totalVal = catProds.reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+        const pct = grandTotal > 0 ? ((totalVal / grandTotal) * 100).toFixed(1) + '%' : '0%';
+
+        tableRows.push([
+            cat.name,
+            `${catProds.length} referenze`,
+            totalQty.toLocaleString('it-IT'),
+            `${currency} ${totalVal.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            pct
+        ]);
+    });
+
+    // Riga totale
+    tableRows.push([
+        "TOTALE GENERALE",
+        `${appData.products.length} referenze`,
+        "",
+        `${currency} ${grandTotal.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        "100.0%"
+    ]);
+
+    doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 32,
+        theme: 'grid',
+        styles: { fontSize: 9.5, cellPadding: 3 },
+        headStyles: { fillColor: [114, 9, 183], textColor: 255, fontStyle: 'bold' },
+        columnStyles: {
+            2: { halign: 'right' },
+            3: { halign: 'right', fontStyle: 'bold' },
+            4: { halign: 'center' }
+        },
+        didParseCell: function (data) {
+            if (data.row.index === tableRows.length - 1) {
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.fillColor = [243, 232, 255];
+            }
+        }
+    });
+
+    doc.save("report_contabile_categorie.pdf");
+    showNotification('Report Categorie scaricato in PDF!', 'success');
+}
+
+// 4. REPORT CONTABILE PER FORNITORE (PDF)
+function generateSupplierReportPDF() {
+    if (!checkJsPdfAvailable()) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+
+    doc.setFontSize(16);
+    doc.setTextColor(30, 41, 59);
+    doc.text("PROSPETTO MERCI E VALORE PER FORNITORE", 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Bowling Valdera | Elaborato il: " + new Date().toLocaleString('it-IT'), 14, 25);
+
+    const grandTotal = appData.products.reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+    const tableColumn = ["Fornitore", "Contatti", "Referenze", "Valore Giacenza (€)", "Incidenza %"];
+    const tableRows = [];
+
+    // Ordina fornitori per valore decrescente
+    const sortedSuppliers = [...appData.suppliers].map(sup => {
+        const supProds = appData.products.filter(p => p.supplier === sup.name);
+        const totalVal = supProds.reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
+        return { sup, supProds, totalVal };
+    }).sort((a, b) => b.totalVal - a.totalVal);
+
+    sortedSuppliers.forEach(({ sup, supProds, totalVal }) => {
+        let contact = sup.email || '';
+        if (sup.phone) contact += (contact ? ' - ' : '') + sup.phone;
+        const pct = grandTotal > 0 ? ((totalVal / grandTotal) * 100).toFixed(1) + '%' : '0%';
+
+        tableRows.push([
+            sup.name,
+            contact || '-',
+            `${supProds.length} articoli`,
+            `${currency} ${totalVal.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            pct
+        ]);
+    });
+
+    // Riga totale
+    tableRows.push([
+        "TOTALE FORNITORI",
+        "",
+        `${appData.products.length} articoli`,
+        `${currency} ${grandTotal.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        "100.0%"
+    ]);
+
+    doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 32,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 2.8 },
+        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
+        columnStyles: {
+            3: { halign: 'right', fontStyle: 'bold' },
+            4: { halign: 'center' }
+        },
+        didParseCell: function (data) {
+            if (data.row.index === tableRows.length - 1) {
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.fillColor = [209, 250, 229];
+            }
+        }
+    });
+
+    doc.save("report_contabile_fornitori.pdf");
+    showNotification('Report Fornitori scaricato in PDF!', 'success');
+}
+
+// Alias di retrocompatibilità
+function showCategoryReport() { generateCategoryReportPDF(); }
+function showSupplierReport() { generateSupplierReportPDF(); }
+function showStockReport() { generateFullInventoryPDF(); }
+function showValueReport() { generateFullInventoryPDF(); }
+function generateStockReport() { generateFullInventoryPDF(); }
+function generateValueReport() { generateFullInventoryPDF(); }
 
 // FUNZIONI IMPOSTAZIONI
 function toggleAutoSync() {
