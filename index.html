@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Inventario Pro">
-    <link rel="stylesheet" href="styles.css?v=3.7">
+    <link rel="stylesheet" href="styles.css?v=3.8">
 
 </head>
 
@@ -89,8 +89,9 @@
                     <!-- GRID KPI PRINCIPALI -->
                     <div class="stats-grid">
                         <!-- VALORE TOTALE -->
-                        <div class="stat-card-main" onclick="showTab('products')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                        <div class="stat-card-main" onclick="showProductsByDepartment('tutti')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);"
+                            title="Tocca per vedere tutti i prodotti">
                             <div class="stat-icon-wrapper icon-purple"><i class="fas fa-wallet"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="total-value">€ 0,00</span>
@@ -100,8 +101,9 @@
                         </div>
 
                         <!-- PRODOTTI TOTALI -->
-                        <div class="stat-card-main" onclick="showTab('products')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                        <div class="stat-card-main" onclick="showProductsByDepartment('tutti')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);"
+                            title="Tocca per vedere tutti i prodotti">
                             <div class="stat-icon-wrapper icon-blue"><i class="fas fa-cubes"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="total-products">0</span>
@@ -111,8 +113,9 @@
                         </div>
 
                         <!-- VALORE CUCINA -->
-                        <div class="stat-card-main" onclick="showTab('products')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                        <div class="stat-card-main" onclick="showProductsByDepartment('cucina')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);"
+                            title="Tocca per vedere solo i prodotti del Reparto Cucina">
                             <div class="stat-icon-wrapper icon-orange"><i class="fas fa-utensils"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="dashCucinaVal">€ 0,00</span>
@@ -122,8 +125,9 @@
                         </div>
 
                         <!-- VALORE BAR -->
-                        <div class="stat-card-main" onclick="showTab('products')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                        <div class="stat-card-main" onclick="showProductsByDepartment('bar')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);"
+                            title="Tocca per vedere solo i prodotti del Reparto Bar">
                             <div class="stat-icon-wrapper icon-purple" style="background: rgba(131, 56, 236, 0.1); color: #8338ec;"><i class="fas fa-glass-martini-alt"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="dashBarVal">€ 0,00</span>
@@ -133,8 +137,9 @@
                         </div>
 
                         <!-- VALORE BOWLING -->
-                        <div class="stat-card-main" onclick="showTab('products')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                        <div class="stat-card-main" onclick="showProductsByDepartment('bowling')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);"
+                            title="Tocca per vedere solo i prodotti del Reparto Bowling">
                             <div class="stat-icon-wrapper icon-green" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i class="fas fa-bowling-ball"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="dashBowlingVal">€ 0,00</span>
@@ -144,8 +149,9 @@
                         </div>
 
                         <!-- VALORE CONDIVISO -->
-                        <div class="stat-card-main" onclick="showTab('products')"
-                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);">
+                        <div class="stat-card-main" onclick="showProductsByDepartment('entrambi')"
+                            style="cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border);"
+                            title="Tocca per vedere i prodotti Condivisi">
                             <div class="stat-icon-wrapper icon-blue" style="background: rgba(67, 97, 238, 0.1); color: #4361ee;"><i class="fas fa-boxes"></i></div>
                             <div class="stat-details">
                                 <span class="stat-main-value" id="dashSharedVal">€ 0,00</span>
@@ -333,10 +339,35 @@
                                         class="fas fa-file-import"></i>Importa Excel</button>
                             </div>
                         </div>
-                        <div style="margin-bottom: 1rem;">
-                            <input type="text" id="productSearchInput" class="form-input"
-                                placeholder="🔍 Cerca prodotto per nome, categoria o fornitore..."
-                                onkeyup="filterProductsTable()" style="font-size: 1rem; padding: 0.75rem 1rem;">
+                        <div class="product-department-filter-wrapper" style="margin-bottom: 1.25rem;">
+                            <div style="font-weight: 700; color: var(--dark); font-size: 0.92rem; margin-bottom: 0.45rem;">
+                                <i class="fas fa-layer-group" style="color: var(--primary); margin-right: 0.35rem;"></i>Filtra per Reparto:
+                            </div>
+                            <div class="department-selector" style="margin-bottom: 0.75rem;">
+                                <button class="department-btn product-dept-btn active" data-dept="tutti" onclick="setProductDepartmentFilter('tutti')" id="prod-dept-btn-tutti">
+                                    <i class="fas fa-layer-group" style="color: #7209b7;"></i> Tutti <span class="dept-badge-count" id="count-prod-tutti">185</span>
+                                </button>
+                                <button class="department-btn product-dept-btn" data-dept="cucina" onclick="setProductDepartmentFilter('cucina')" id="prod-dept-btn-cucina">
+                                    <i class="fas fa-utensils" style="color: #fb8500;"></i> Cucina <span class="dept-badge-count" id="count-prod-cucina">55</span>
+                                </button>
+                                <button class="department-btn product-dept-btn" data-dept="bar" onclick="setProductDepartmentFilter('bar')" id="prod-dept-btn-bar">
+                                    <i class="fas fa-glass-martini-alt" style="color: #4361ee;"></i> Bar <span class="dept-badge-count" id="count-prod-bar">120</span>
+                                </button>
+                                <button class="department-btn product-dept-btn" data-dept="bowling" onclick="setProductDepartmentFilter('bowling')" id="prod-dept-btn-bowling">
+                                    <i class="fas fa-bowling-ball" style="color: #10b981;"></i> Bowling <span class="dept-badge-count" id="count-prod-bowling">10</span>
+                                </button>
+                                <button class="department-btn product-dept-btn" data-dept="entrambi" onclick="setProductDepartmentFilter('entrambi')" id="prod-dept-btn-entrambi">
+                                    <i class="fas fa-boxes" style="color: #06d6a0;"></i> Condiviso <span class="dept-badge-count" id="count-prod-entrambi">0</span>
+                                </button>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                                <div style="position: relative; flex: 1; min-width: 260px;">
+                                    <input type="text" id="productSearchInput" class="form-input"
+                                        placeholder="🔍 Cerca prodotto per nome, categoria o fornitore..."
+                                        oninput="filterProductsTable()" style="font-size: 0.95rem; padding: 0.7rem 1rem;">
+                                </div>
+                                <div id="productsTableCount" style="font-size: 0.88rem; font-weight: 700; color: var(--primary);"></div>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="data-table">
@@ -1193,7 +1224,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=3.7"></script>
+    <script src="app.js?v=3.8"></script>
 </body>
 
 </html>

@@ -5222,6 +5222,17 @@ function renderDashDeptChart() {
 
     dashDeptChartInst = new Chart(ctx, {
         type: 'doughnut',
+        options: {
+            onClick: (event, elements) => {
+                if (elements && elements.length > 0 && hasData) {
+                    const idx = elements[0].index;
+                    const depts = ['cucina', 'bar', 'bowling', 'entrambi'];
+                    if (depts[idx]) {
+                        showProductsByDepartment(depts[idx]);
+                    }
+                }
+            }
+        },
         data: {
             labels: labels,
             datasets: [{
@@ -5531,7 +5542,53 @@ function renderRecentProducts() {
     }
 }
 
+// FILTRO REPARTO CATALOGO PRODOTTI
+let currentProductDeptFilter = 'tutti';
+
+function showProductsByDepartment(department) {
+    currentProductDeptFilter = (department || 'tutti').toLowerCase();
+    showTab('products');
+    setProductDepartmentFilter(currentProductDeptFilter);
+}
+
+function setProductDepartmentFilter(department) {
+    currentProductDeptFilter = (department || 'tutti').toLowerCase();
+
+    // Aggiorna stato attivo dei pulsanti reparto nella scheda prodotti
+    document.querySelectorAll('.product-dept-btn').forEach(btn => {
+        const d = (btn.getAttribute('data-dept') || '').toLowerCase();
+        btn.classList.toggle('active', d === currentProductDeptFilter);
+    });
+
+    filterProductsTable();
+}
+
+function updateProductDeptCounts() {
+    const cTutti = appData.products.length;
+    const cCucina = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'cucina').length;
+    const cBar = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'bar').length;
+    const cBowling = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'bowling').length;
+    const cEntrambi = appData.products.filter(p => (p.department || 'entrambi').toLowerCase() === 'entrambi').length;
+
+    const bTutti = document.getElementById('count-prod-tutti');
+    const bCucina = document.getElementById('count-prod-cucina');
+    const bBar = document.getElementById('count-prod-bar');
+    const bBowling = document.getElementById('count-prod-bowling');
+    const bEntrambi = document.getElementById('count-prod-entrambi');
+
+    if (bTutti) bTutti.textContent = cTutti;
+    if (bCucina) bCucina.textContent = cCucina;
+    if (bBar) bBar.textContent = cBar;
+    if (bBowling) bBowling.textContent = cBowling;
+    if (bEntrambi) bEntrambi.textContent = cEntrambi;
+}
+
 function renderAllProductsTable() {
+    updateProductDeptCounts();
+    filterProductsTable();
+}
+
+function _old_renderAllProductsTable() {
     const tbody = document.getElementById('allProductsTableBody');
     if (!tbody) return;
 
@@ -5927,18 +5984,68 @@ function saveQuickQuantity() {
 
 // PRODUCT TABLE FILTER
 function filterProductsTable() {
-    const searchTerm = document.getElementById('productSearchInput').value.toLowerCase();
+    const searchInput = document.getElementById('productSearchInput');
+    const searchTerm = (searchInput?.value || '').toLowerCase().trim();
     const tbody = document.getElementById('allProductsTableBody');
     if (!tbody) return;
 
-    const filteredProducts = appData.products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm) ||
-        product.category.toLowerCase().includes(searchTerm) ||
-        product.subcategory.toLowerCase().includes(searchTerm) ||
-        (product.supplier && product.supplier.toLowerCase().includes(searchTerm))
-    );
+    updateProductDeptCounts();
+
+    const filteredProducts = appData.products.filter(product => {
+        // 1. Filtro Reparto
+        const productDept = (product.department || 'entrambi').toLowerCase();
+        let matchesDept = false;
+        if (currentProductDeptFilter === 'tutti') {
+            matchesDept = true;
+        } else if (currentProductDeptFilter === 'cucina') {
+            matchesDept = (productDept === 'cucina');
+        } else if (currentProductDeptFilter === 'bar') {
+            matchesDept = (productDept === 'bar');
+        } else if (currentProductDeptFilter === 'bowling') {
+            matchesDept = (productDept === 'bowling');
+        } else if (currentProductDeptFilter === 'entrambi') {
+            matchesDept = (productDept === 'entrambi');
+        } else {
+            matchesDept = (productDept === currentProductDeptFilter);
+        }
+
+        // 2. Filtro Ricerca
+        const matchesSearch = !searchTerm ||
+            product.name.toLowerCase().includes(searchTerm) ||
+            (product.category && product.category.toLowerCase().includes(searchTerm)) ||
+            (product.subcategory && product.subcategory.toLowerCase().includes(searchTerm)) ||
+            (product.supplier && product.supplier.toLowerCase().includes(searchTerm));
+
+        return matchesDept && matchesSearch;
+    });
+
+    const countEl = document.getElementById('productsTableCount');
+    if (countEl) {
+        const deptNames = {
+            'tutti': 'Tutti i Reparti',
+            'cucina': 'Cucina',
+            'bar': 'Bar',
+            'bowling': 'Bowling',
+            'entrambi': 'Condivisi'
+        };
+        const deptName = deptNames[currentProductDeptFilter] || currentProductDeptFilter;
+        countEl.textContent = `${filteredProducts.length} referenze (${deptName})${searchTerm ? ` per "${searchTerm}"` : ''}`;
+    }
 
     const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+
+    if (filteredProducts.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 2.5rem 1rem; color: var(--gray);">
+                    <i class="fas fa-boxes" style="font-size: 2.2rem; margin-bottom: 0.5rem; opacity: 0.35; display: block;"></i>
+                    <strong>Nessun articolo trovato</strong> per il reparto selezionato.<br>
+                    <small>Seleziona un altro reparto o modifica i termini di ricerca.</small>
+                </td>
+            </tr>`;
+        return;
+    }
+
     tbody.innerHTML = filteredProducts.map(p => {
         const safeName = escapeHtml(p.name);
         const safeSupplier = escapeHtml(p.supplier || 'Nessun fornitore');
@@ -5950,6 +6057,7 @@ function filterProductsTable() {
                     <td class="product-cell">
                         <span class="product-name" style="font-weight: 600; color: var(--dark);">${safeName}</span>
                     </td>
+                    <td><span class="badge ${getDepartmentBadgeClass(p.department || 'entrambi')}">${getDepartmentIcon(p.department || 'entrambi')}</span></td>
                     <td><span class="product-meta">${safeSupplier}</span></td>
                     <td><span class="badge badge-category">${safeCategory}</span></td>
                     <td><span class="subcategory-text">${safeSubcategory}</span></td>
@@ -5959,7 +6067,7 @@ function filterProductsTable() {
                     </td>
                     <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
                     <td style="white-space: nowrap; width: 110px;">
-                        <div class="table-actions">
+                        <div class="product-actions-inline" style="display: flex; gap: 4px; justify-content: center; align-items: center;">
                             <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Modifica Rapida Quantità e Prezzo" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
                             <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Articolo"><i class="fas fa-edit"></i></button>
                             <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina Articolo"><i class="fas fa-trash-alt"></i></button>
