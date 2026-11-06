@@ -8138,8 +8138,9 @@ async function restoreFromCloud(silent = false) {
             if (!silent) showNotification('Dati ripristinati dal Cloud con successo!', 'success');
             updateCloudStatus('online', 'Sincronizzato');
         } else {
-            if (!silent) showNotification('Il database Supabase sembra vuoto o non configurato.', 'error');
-            updateCloudStatus('error', 'Dati non validi');
+            console.log('Database Supabase vuoto o non inizializzato: salvataggio automatico del magazzino locale...');
+            await syncToCloud(true);
+            updateCloudStatus('online', 'Sincronizzato');
         }
 
     } catch (e) {
