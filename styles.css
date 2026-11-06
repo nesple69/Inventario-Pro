@@ -504,7 +504,7 @@ body {
 
 .data-table th {
     text-align: left;
-    padding: 1rem 1.5rem;
+    padding: 0.7rem 1rem;
     font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -515,8 +515,8 @@ body {
 }
 
 .data-table td {
-    padding: 1rem 1.5rem;
-    font-size: 0.95rem;
+    padding: 0.55rem 1rem;
+    font-size: 0.92rem;
     border-bottom: 1px solid var(--border);
     color: var(--dark);
     vertical-align: middle;
@@ -614,35 +614,57 @@ body {
     background: rgba(230, 57, 70, 0.05);
 }
 
-/* Action buttons - ACTUAL class used in tables */
+/* Table action buttons - compact horizontal inline row */
+.table-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+}
+
 .action-btn {
-    width: 52px !important;
-    height: 52px !important;
-    border-radius: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--border);
-    background: white;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1.5px solid var(--border) !important;
+    background: white !important;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.2s ease;
     color: var(--gray);
-    font-size: 1.3rem;
-    flex-shrink: 0;
-    margin: 0 4px;
+    font-size: 0.88rem !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.action-btn i {
+    font-size: 0.88rem !important;
+    line-height: 1 !important;
 }
 
 .action-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: rgba(67, 97, 238, 0.05);
-    transform: scale(1.08);
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+    background: rgba(67, 97, 238, 0.08) !important;
+    transform: translateY(-1px) scale(1.05);
+}
+
+.action-btn.edit:hover {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+    background: rgba(67, 97, 238, 0.08) !important;
 }
 
 .action-btn.delete:hover {
-    border-color: var(--danger);
-    color: var(--danger);
-    background: rgba(230, 57, 70, 0.05);
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+    background: rgba(230, 57, 70, 0.08) !important;
 }
 
 /* Modals */

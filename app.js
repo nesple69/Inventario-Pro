@@ -5480,11 +5480,11 @@ function renderAllProductsTable() {
                         <span class="quantity-unit">${safeUnit}</span>
                     </td>
                     <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
-                    <td>
+                    <td style="white-space: nowrap; width: 110px;">
                         <div class="table-actions">
                             <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
-                            <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
+                            <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Articolo"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina Articolo"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </td>
                 </tr>`;
@@ -5529,10 +5529,11 @@ function createProductRow(p) {
                 <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
                 <td class="price-cell"><strong>${currency} ${totalValue.toFixed(2)}</strong></td>
                 <td><span class="badge ${statusClass}"><i class="fas ${statusIcon}"></i>${statusText}</span></td>
-                <td>
+                <td style="white-space: nowrap; width: 110px;">
                     <div class="table-actions">
-                        <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
+                        <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
+                        <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Articolo"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina Articolo"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </td>
             </tr>`;
@@ -5838,11 +5839,11 @@ function filterProductsTable() {
                         <span class="quantity-unit">${safeUnit}</span>
                     </td>
                     <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
-                    <td>
+                    <td style="white-space: nowrap; width: 110px;">
                         <div class="table-actions">
                             <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
-                            <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina"><i class="fas fa-trash-alt"></i></button>
+                            <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Articolo"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina Articolo"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </td>
                 </tr>`;
