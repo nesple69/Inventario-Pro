@@ -2382,7 +2382,7 @@ let appData = {
         "lowStockLimit": 5,
         "stockNotifications": "all",
         "autoSync": true,
-        "supabaseUrl": "https://sdcpgbowbykenwikpzqv.supabase.co",
+        "supabaseUrl": "https://qqvwrliuhomyecyvbbep.supabase.co",
         "supabaseKey": "sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL"
     },
     "monthlySnapshots": [
@@ -4916,7 +4916,7 @@ function initApp() {
                 }
             }
             // Auto-configurazione credenziali di sincronizzazione Cloud centralizzata
-            const DEFAULT_SUPABASE_URL = "https://sdcpgbowbykenwikpzqv.supabase.co";
+            const DEFAULT_SUPABASE_URL = "https://qqvwrliuhomyecyvbbep.supabase.co";
             const DEFAULT_SUPABASE_KEY = "sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL";
             if (!appData.settings.supabaseUrl || !appData.settings.supabaseUrl.includes(".supabase.co")) {
                 appData.settings.supabaseUrl = DEFAULT_SUPABASE_URL;

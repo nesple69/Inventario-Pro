@@ -2,7 +2,7 @@
 // Keeps the free Supabase database active to prevent the 7-day auto-pause
 
 export default async function handler(req, res) {
-    const sbUrl = process.env.SUPABASE_URL || 'https://sdcpgbowbykenwikpzqv.supabase.co';
+    const sbUrl = process.env.SUPABASE_URL || 'https://qqvwrliuhomyecyvbbep.supabase.co';
     const sbKey = process.env.SUPABASE_KEY || 'sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL';
 
     try {

@@ -16,5 +16,5 @@ jobs:
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "apikey: sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL" \
             -H "Authorization: Bearer sb_publishable_zf7Pu1ouMpZi6jRrvgMaKA_DujlovNL" \
-            "https://sdcpgbowbykenwikpzqv.supabase.co/rest/v1/inventario_secure_v1_9x8b7c?id=eq.1&select=id")
+            "https://qqvwrliuhomyecyvbbep.supabase.co/rest/v1/inventario_secure_v1_9x8b7c?id=eq.1&select=id")
           echo "Supabase Response HTTP Code: $HTTP_STATUS"
