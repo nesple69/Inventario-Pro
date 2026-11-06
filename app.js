@@ -5482,7 +5482,7 @@ function renderAllProductsTable() {
                     <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
                     <td style="white-space: nowrap; width: 110px;">
                         <div class="table-actions">
-                            <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
+                            <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Modifica Rapida Quantità e Prezzo" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
                             <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Articolo"><i class="fas fa-edit"></i></button>
                             <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina Articolo"><i class="fas fa-trash-alt"></i></button>
                         </div>
@@ -5531,7 +5531,7 @@ function createProductRow(p) {
                 <td><span class="badge ${statusClass}"><i class="fas ${statusIcon}"></i>${statusText}</span></td>
                 <td style="white-space: nowrap; width: 110px;">
                     <div class="table-actions">
-                        <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
+                        <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Modifica Rapida Quantità e Prezzo" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
                         <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Articolo"><i class="fas fa-edit"></i></button>
                         <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina Articolo"><i class="fas fa-trash-alt"></i></button>
                     </div>
@@ -5753,57 +5753,97 @@ function updateProduct(productId) {
 // QUICK QUANTITY UPDATE
 let currentQuickEditProductId = null;
 
+function updateQuickTotalPreview() {
+    const qty = parseLocaleFloat(document.getElementById('quickNewQuantity')?.value, 0);
+    const price = parseLocaleFloat(document.getElementById('quickNewPrice')?.value, 0);
+    const totalEl = document.getElementById('quickTotalValuePreview');
+    if (totalEl) {
+        const total = (isNaN(qty) || isNaN(price)) ? 0 : Math.max(0, qty * price);
+        const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+        totalEl.textContent = `${currency} ${total.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+}
+
 function openQuickQuantityModal(productId) {
     const product = appData.products.find(p => p.id === productId);
     if (!product) return;
 
     currentQuickEditProductId = productId;
+    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
 
-    document.getElementById('quickProductName').value = product.name;
-    document.getElementById('quickCurrentQuantity').value = `${product.quantity} ${product.unit}`;
-    document.getElementById('quickNewQuantity').value = product.quantity;
+    const nameEl = document.getElementById('quickProductName');
+    const unitEl = document.getElementById('quickProductUnitLabel');
+    const curQtyEl = document.getElementById('quickCurrentQuantity');
+    const newQtyEl = document.getElementById('quickNewQuantity');
+    const curPriceEl = document.getElementById('quickCurrentPrice');
+    const newPriceEl = document.getElementById('quickNewPrice');
 
-    document.getElementById('quickQuantityModal').classList.add('show');
+    if (nameEl) nameEl.value = product.name;
+    if (unitEl) unitEl.textContent = product.unit || 'pezzi';
+    if (curQtyEl) curQtyEl.textContent = `${product.quantity} ${product.unit || 'pezzi'}`;
+    if (newQtyEl) newQtyEl.value = product.quantity;
+    if (curPriceEl) curPriceEl.textContent = `${currency} ${product.price.toFixed(2)}`;
+    if (newPriceEl) newPriceEl.value = product.price.toFixed(2);
 
-    // Focus on input
+    updateQuickTotalPreview();
+
+    const modal = document.getElementById('quickQuantityModal');
+    if (modal) modal.classList.add('show');
+
+    // Focus on quantity input
     setTimeout(() => {
-        const input = document.getElementById('quickNewQuantity');
-        if (input.focus) input.focus();
-        input.select();
+        if (newQtyEl && newQtyEl.focus) {
+            newQtyEl.focus();
+            newQtyEl.select();
+        }
     }, 100);
 }
 
 function closeQuickQuantityModal() {
-    document.getElementById('quickQuantityModal').classList.remove('show');
+    const modal = document.getElementById('quickQuantityModal');
+    if (modal) modal.classList.remove('show');
     currentQuickEditProductId = null;
 }
 
 function saveQuickQuantity() {
     if (!currentQuickEditProductId) return;
 
-    const newQuantity = parseLocaleFloat(document.getElementById('quickNewQuantity').value);
+    const newQuantity = parseLocaleFloat(document.getElementById('quickNewQuantity')?.value);
+    const newPrice = parseLocaleFloat(document.getElementById('quickNewPrice')?.value);
 
     if (isNaN(newQuantity) || newQuantity < 0) {
-        showNotification('Inserisci una quantità valida', 'error');
+        showNotification('Inserisci una quantità valida (maggiore o uguale a 0)', 'error');
+        return;
+    }
+
+    if (isNaN(newPrice) || newPrice < 0) {
+        showNotification('Inserisci un prezzo valido (maggiore o uguale a 0)', 'error');
         return;
     }
 
     const productIndex = appData.products.findIndex(p => p.id === currentQuickEditProductId);
     if (productIndex === -1) return;
 
-    const oldQuantity = appData.products[productIndex].quantity;
-    appData.products[productIndex].quantity = newQuantity;
+    const p = appData.products[productIndex];
+    const oldQty = p.quantity;
+    const oldPrice = p.price;
+
+    p.quantity = newQuantity;
+    p.price = newPrice;
 
     // Update status
-    appData.products[productIndex].status =
+    p.status =
         newQuantity === 0 ? 'out-of-stock' :
             newQuantity <= appData.settings.lowStockLimit ? 'low-stock' : 'in-stock';
 
     closeQuickQuantityModal();
     updateAll();
 
-    const productName = appData.products[productIndex].name;
-    showNotification(`Quantità aggiornata: ${productName} (${oldQuantity} → ${newQuantity})`, 'success');
+    const currency = appData.settings.currency === 'EUR' ? '€' : '$';
+    showNotification(
+        `Aggiornato "${p.name}": Q.tà ${oldQty} → ${newQuantity}, Prezzo ${currency} ${oldPrice.toFixed(2)} → ${currency} ${newPrice.toFixed(2)}`,
+        'success'
+    );
 }
 
 // PRODUCT TABLE FILTER
@@ -5841,7 +5881,7 @@ function filterProductsTable() {
                     <td class="price-cell">${currency} ${p.price.toFixed(2)}</td>
                     <td style="white-space: nowrap; width: 110px;">
                         <div class="table-actions">
-                            <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Aggiorna Quantità" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
+                            <button class="action-btn" onclick="openQuickQuantityModal(${p.id})" title="Modifica Rapida Quantità e Prezzo" style="background: rgba(76, 201, 240, 0.1); color: var(--accent);"><i class="fas fa-hashtag"></i></button>
                             <button class="action-btn edit" onclick="editProduct(${p.id})" title="Modifica Articolo"><i class="fas fa-edit"></i></button>
                             <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Elimina Articolo"><i class="fas fa-trash-alt"></i></button>
                         </div>
