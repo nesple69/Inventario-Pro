@@ -4641,6 +4641,19 @@ function safeNum(val, fallback = 0) {
     return isNaN(n) ? fallback : n;
 }
 
+// UTILITY DEBOUNCE
+function debounce(func, wait = 250) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // UTILITY BADGE & ICONE REPARTI (CUCINA, BAR, BOWLING, CONDIVISO)
 function getDepartmentBadgeClass(dept) {
     switch ((dept || '').toLowerCase()) {
@@ -4678,30 +4691,74 @@ function sanitizeAppData(data) {
 
 
 // ==========================================
-// 👥 GESTIONE RUOLI: ADMIN VS COLLABORATORE
+// 👥 GESTIONE DISPOSITIVI E RUOLI
+// PC UFFICIO = ADMIN (Accesso completo a tutte le schede: Fornitori, Tabelle, Catalogo, ecc.)
+// SMARTPHONE = COLLABORATORE (Accesso esclusivo alla scheda Inventario)
 // ==========================================
-let currentRole = localStorage.getItem('inventario_user_role') || 'collaboratore';
+function isMobileDevice() {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+    const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
+    const isMobileUA = mobileRegex.test(ua);
+    const isSmallScreen = window.innerWidth <= 820;
+    const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 1);
+
+    return isMobileUA || (isSmallScreen && hasTouch);
+}
+
+function determineInitialRole() {
+    const isMobile = isMobileDevice();
+    if (!isMobile) {
+        // Sul PC dell'ufficio: SEMPRE ADMIN (accesso completo e illimitato a tutte le schede)
+        return 'admin';
+    }
+    // Su Smartphone / Tablet: default COLLABORATORE (solo scheda Inventario)
+    // Se l'admin ha inserito il PIN su questo smartphone, mantiene la sessione
+    const savedMobileRole = (typeof localStorage !== 'undefined') ? localStorage.getItem('inventario_mobile_role') : null;
+    return savedMobileRole || 'collaboratore';
+}
+
+var currentRole = determineInitialRole();
 
 function applyRolePermissions() {
     const isAdmin = (currentRole === 'admin');
+    const isMobile = isMobileDevice();
 
-    // Mostra/Nascondi sezioni riservate ad Admin
+    // 1. Mostra/Nascondi sezioni e schede riservate ad Admin
     document.querySelectorAll('.admin-only').forEach(el => {
         el.style.display = isAdmin ? '' : 'none';
     });
 
+    // 2. Indicatore ruolo nell'Header
     const roleIcon = document.getElementById('roleIcon');
     const roleName = document.getElementById('roleName');
     const roleBtn = document.getElementById('roleToggleBtn');
 
     if (roleIcon) roleIcon.textContent = isAdmin ? '👑' : '👤';
-    if (roleName) roleName.textContent = isAdmin ? 'Admin' : 'Collaboratore';
+    if (roleName) {
+        if (isAdmin) {
+            roleName.textContent = isMobile ? 'Admin' : 'Admin (PC)';
+        } else {
+            roleName.textContent = 'Collaboratore';
+        }
+    }
     if (roleBtn) {
         roleBtn.className = isAdmin ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline';
-        roleBtn.title = isAdmin ? 'Tocca per passare alla modalità Collaboratore' : 'Tocca per inserire il PIN Admin';
+        roleBtn.title = isAdmin ? 'Modalità Amministratore attiva (Tutte le schede abilitate)' : 'Tocca per inserire il PIN Admin';
     }
 
-    // Se l'operatore non è admin e si trova su un tab riservato, reindirizza subito all'inventario
+    // 3. Su Smartphone in modalità Collaboratore:
+    // Nascondi la barra tab (ha solo l'inventario) per massimizzare la visibilità e semplicità
+    const navTabsHeader = document.querySelector('.nav-tabs-header');
+    if (navTabsHeader) {
+        if (isMobile && !isAdmin) {
+            navTabsHeader.style.display = 'none';
+        } else {
+            navTabsHeader.style.display = 'flex';
+        }
+    }
+
+    // 4. Se Collaboratore (su smartphone), blocca qualsiasi tab diverso da 'monthly-inventory'
     const currentActiveTab = document.querySelector('.tab-content.active')?.id;
     if (!isAdmin && currentActiveTab !== 'monthly-inventory-tab') {
         showTab('monthly-inventory');
@@ -4709,9 +4766,12 @@ function applyRolePermissions() {
 }
 
 function toggleUserRole() {
+    const isMobile = isMobileDevice();
     if (currentRole === 'admin') {
         currentRole = 'collaboratore';
-        localStorage.setItem('inventario_user_role', 'collaboratore');
+        if (isMobile && typeof localStorage !== 'undefined') {
+            localStorage.setItem('inventario_mobile_role', 'collaboratore');
+        }
         applyRolePermissions();
         showNotification('Modalità Collaboratore attiva: visibile solo la schermata Inventario.', 'info');
     } else {
@@ -4725,7 +4785,7 @@ function showAdminPinModal() {
     if (modal) modal.classList.add('show');
     if (input) {
         input.value = '';
-        setTimeout(() => input.focus(), 150);
+        setTimeout(() => { if (input.focus) input.focus(); }, 150);
     }
 }
 
@@ -4741,10 +4801,13 @@ function verifyAdminPin() {
 
     if (pin === validPin || pin === '1234') {
         currentRole = 'admin';
-        localStorage.setItem('inventario_user_role', 'admin');
+        const isMobile = isMobileDevice();
+        if (isMobile && typeof localStorage !== 'undefined') {
+            localStorage.setItem('inventario_mobile_role', 'admin');
+        }
         closeAdminPinModal();
         applyRolePermissions();
-        showNotification('Accesso Amministratore sbloccato!', 'success');
+        showNotification('Accesso Amministratore sbloccato! Tutte le schede sono ora disponibili.', 'success');
         showTab('dashboard');
     } else {
         showNotification('PIN non corretto. Riprova.', 'error');
@@ -4813,6 +4876,15 @@ function initApp() {
     } else {
         showTab('dashboard');
     }
+
+    // Auto-adattamento reattivo in caso di resize/rotazione schermo
+    window.addEventListener('resize', debounce(() => {
+        const isMobile = isMobileDevice();
+        if (!isMobile && currentRole !== 'admin') {
+            currentRole = 'admin';
+        }
+        applyRolePermissions();
+    }, 250));
 
     // Initial render
     updateAll();
@@ -4885,7 +4957,7 @@ function showTab(tabName) {
     if (tabLoaders[tabName]) tabLoaders[tabName]();
 
     // On mobile, scroll to top when changing tabs
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 768 && typeof window.scrollTo === 'function') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
@@ -6843,6 +6915,7 @@ let catChartInstance = null;
 let stockChartInstance = null;
 
 function renderCharts() {
+    if (typeof Chart === 'undefined') return;
     renderCategoryChart();
     renderStockChart();
 }
