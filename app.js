@@ -6459,10 +6459,10 @@ function generateDepartmentReportPDF() {
     doc.text("Bowling Valdera | Elaborato il: " + new Date().toLocaleString('it-IT'), 14, 25);
 
     const depts = [
-        { id: 'cucina', label: '🍳 Cucina' },
-        { id: 'bar', label: '🍹 Bar' },
-        { id: 'bowling', label: '🎳 Bowling' },
-        { id: 'entrambi', label: '🏢 Condiviso / Generale' }
+        { id: 'cucina', label: 'Cucina' },
+        { id: 'bar', label: 'Bar' },
+        { id: 'bowling', label: 'Bowling' },
+        { id: 'entrambi', label: 'Condiviso / Generale' }
     ];
 
     const grandTotal = appData.products.reduce((sum, p) => sum + (safeNum(p.quantity) * safeNum(p.price)), 0);
